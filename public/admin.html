@@ -14,70 +14,145 @@
   <!-- Toast de Notificação -->
   <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
 
-  <!-- Header Admin -->
+  <!-- Header Admin Responsivo -->
   <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center font-bold">
-          <i data-lucide="settings" class="w-5 h-5"></i>
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-0 sm:h-16 flex items-center justify-between gap-2">
+      <!-- Lado Esquerdo: Ícone + Título -->
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center font-bold flex-shrink-0 shadow-sm">
+          <i data-lucide="settings" class="w-4 h-4 sm:w-5 sm:h-5"></i>
         </div>
-        <div>
-          <h1 class="text-base font-bold leading-none">Painel de Edição da ONG</h1>
-          <span class="text-[11px] text-emerald-400">Edite absolutamente todos os textos, fotos e documentos do site</span>
+        <div class="min-w-0">
+          <h1 class="text-sm sm:text-base font-bold leading-tight truncate">Painel de Edição</h1>
+          <span class="text-[11px] text-emerald-400 hidden md:inline">Edite absolutamente todos os textos, fotos e documentos do site</span>
+          <span class="text-[10px] text-emerald-400 block md:hidden">Gestão do Site</span>
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
-        <span class="text-xs text-slate-300 hidden sm:inline">Admin: <strong id="admin-user-display" class="text-emerald-400">admin</strong></span>
-        <a href="/" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition">
-          <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Ver Site
+      <!-- Lado Direito: Ações / Botões -->
+      <div class="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+        <span class="text-xs text-slate-300 hidden lg:inline">Admin: <strong id="admin-user-display" class="text-emerald-400">admin</strong></span>
+        
+        <a href="/" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1 transition" title="Ver Site">
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Ver Site</span>
         </a>
-        <button id="btn-salvar-tudo" onclick="salvarConfiguracoes()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-emerald-600/30 transition hover-lift">
-          <i data-lucide="save" class="w-4 h-4"></i> Salvar Alterações
+
+        <button id="btn-salvar-tudo" onclick="salvarConfiguracoes()" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg shadow-emerald-600/30 transition hover-lift">
+          <i data-lucide="save" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+          <span>Salvar<span class="hidden sm:inline"> Alterações</span></span>
         </button>
-        <button onclick="logoutAdmin()" class="px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-500/20 text-xs font-bold flex items-center gap-1.5 transition" title="Sair do painel">
-          <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Sair
+
+        <button onclick="logoutAdmin()" class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-500/20 text-xs font-bold flex items-center gap-1 transition" title="Sair do painel administrativo">
+          <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Sair</span>
         </button>
       </div>
     </div>
   </header>
 
   <!-- Conteúdo Principal -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+  <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8">
     
-    <!-- Sidebar de Navegação de Abas -->
-    <nav aria-label="Abas de configuração" class="lg:col-span-3 space-y-1 bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200/80 h-fit sticky top-20 max-h-[85vh] overflow-y-auto">
-      <button onclick="trocarAba('geral')" class="aba-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 transition bg-emerald-50 text-emerald-800">
-        <i data-lucide="home" class="w-4 h-4"></i> 1. Página Inicial (Hero)
-      </button>
-      <button onclick="trocarAba('quem-somos')" class="aba-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 transition text-slate-600 hover:bg-slate-50">
-        <i data-lucide="users" class="w-4 h-4"></i> 2. Quem Somos & Equipe
-      </button>
-      <button onclick="trocarAba('o-que-fazemos')" class="aba-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 transition text-slate-600 hover:bg-slate-50">
-        <i data-lucide="book-open" class="w-4 h-4"></i> 3. O Que Fazemos & Projetos
-      </button>
-      <button onclick="trocarAba('impacto')" class="aba-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 transition text-slate-600 hover:bg-slate-50">
-        <i data-lucide="trending-up" class="w-4 h-4"></i> 4. Impacto, Depoimentos & Galeria
-      </button>
-      <button onclick="trocarAba('como-ajudar')" class="aba-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 transition text-slate-600 hover:bg-slate-50">
-        <i data-lucide="heart" class="w-4 h-4"></i> 5. Doações, PIX & Bancos
-      </button>
-      <button onclick="trocarAba('transparencia')" class="aba-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 transition text-slate-600 hover:bg-slate-50">
-        <i data-lucide="shield-check" class="w-4 h-4"></i> 6. Transparência & Documentos PDF
-      </button>
-      <button onclick="trocarAba('noticias')" class="aba-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 transition text-slate-600 hover:bg-slate-50">
-        <i data-lucide="newspaper" class="w-4 h-4"></i> 7. Notícias & Blog
-      </button>
-      <button onclick="trocarAba('contato')" class="aba-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 transition text-slate-600 hover:bg-slate-50">
-        <i data-lucide="mail" class="w-4 h-4"></i> 8. Contato, Redes & Mapa
-      </button>
-      <button onclick="trocarAba('inbox')" class="aba-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 transition text-slate-600 hover:bg-slate-50">
-        <i data-lucide="inbox" class="w-4 h-4"></i> 9. Mensagens & Voluntários
-      </button>
-    </nav>
+    <!-- Hub de Seleção de Abas no Mobile (Compacto, NÃO flutuante, nunca cobre nada) -->
+    <div class="block lg:hidden col-span-1 bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-extrabold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+          <i data-lucide="layers" class="w-4 h-4 text-emerald-600"></i> Seção Ativa:
+        </span>
+        <span id="mobile-tab-indicador" class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+          1. Página Inicial
+        </span>
+      </div>
+
+      <!-- Menu Dropdown para Celular -->
+      <div class="relative mb-2">
+        <select id="mobile-tab-select" onchange="trocarAba(this.value)" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-3.5 py-2.5 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white pr-9 shadow-sm cursor-pointer">
+          <option value="geral" selected>🏠 1. Página Inicial (Hero)</option>
+          <option value="quem-somos">👥 2. Quem Somos & Equipe</option>
+          <option value="o-que-fazemos">📖 3. O Que Fazemos & Projetos</option>
+          <option value="impacto">📈 4. Impacto, Depoimentos & Galeria</option>
+          <option value="como-ajudar">❤️ 5. Doações, PIX & Bancos</option>
+          <option value="transparencia">🛡️ 6. Transparência & Documentos PDF</option>
+          <option value="noticias">📰 7. Notícias & Blog</option>
+          <option value="contato">✉️ 8. Contato, Redes & Mapa</option>
+          <option value="inbox">📥 9. Mensagens & Voluntários</option>
+        </select>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+          <i data-lucide="chevron-down" class="w-4 h-4"></i>
+        </div>
+      </div>
+
+      <!-- Atalhos rápidos em Carrossel Horizontal para tocar com o dedo -->
+      <div class="flex overflow-x-auto gap-1.5 pb-1 no-scrollbar scroll-smooth">
+        <button type="button" onclick="trocarAba('geral')" data-aba="geral" class="aba-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-800 flex items-center gap-1 flex-shrink-0">
+          <i data-lucide="home" class="w-3.5 h-3.5"></i> 1. Início
+        </button>
+        <button type="button" onclick="trocarAba('quem-somos')" data-aba="quem-somos" class="aba-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-600 bg-slate-50 flex items-center gap-1 flex-shrink-0">
+          <i data-lucide="users" class="w-3.5 h-3.5"></i> 2. Quem Somos
+        </button>
+        <button type="button" onclick="trocarAba('o-que-fazemos')" data-aba="o-que-fazemos" class="aba-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-600 bg-slate-50 flex items-center gap-1 flex-shrink-0">
+          <i data-lucide="book-open" class="w-3.5 h-3.5"></i> 3. Projetos
+        </button>
+        <button type="button" onclick="trocarAba('impacto')" data-aba="impacto" class="aba-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-600 bg-slate-50 flex items-center gap-1 flex-shrink-0">
+          <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> 4. Impacto
+        </button>
+        <button type="button" onclick="trocarAba('como-ajudar')" data-aba="como-ajudar" class="aba-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-600 bg-slate-50 flex items-center gap-1 flex-shrink-0">
+          <i data-lucide="heart" class="w-3.5 h-3.5"></i> 5. Doações
+        </button>
+        <button type="button" onclick="trocarAba('transparencia')" data-aba="transparencia" class="aba-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-600 bg-slate-50 flex items-center gap-1 flex-shrink-0">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> 6. Transparência
+        </button>
+        <button type="button" onclick="trocarAba('noticias')" data-aba="noticias" class="aba-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-600 bg-slate-50 flex items-center gap-1 flex-shrink-0">
+          <i data-lucide="newspaper" class="w-3.5 h-3.5"></i> 7. Notícias
+        </button>
+        <button type="button" onclick="trocarAba('contato')" data-aba="contato" class="aba-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-600 bg-slate-50 flex items-center gap-1 flex-shrink-0">
+          <i data-lucide="mail" class="w-3.5 h-3.5"></i> 8. Contato
+        </button>
+        <button type="button" onclick="trocarAba('inbox')" data-aba="inbox" class="aba-btn whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-600 bg-slate-50 flex items-center gap-1 flex-shrink-0">
+          <i data-lucide="inbox" class="w-3.5 h-3.5"></i> 9. Mensagens
+        </button>
+      </div>
+    </div>
+
+    <!-- Sidebar de Navegação de Abas (Apenas no Computador / Telas Grandes) -->
+    <aside class="hidden lg:block lg:col-span-3">
+      <nav aria-label="Abas de configuração desktop" class="space-y-1 bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200/80 sticky top-20 max-h-[85vh] overflow-y-auto">
+        <div class="px-3 py-2 text-[11px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-1">
+          Menu de Seções
+        </div>
+        <button onclick="trocarAba('geral')" data-aba="geral" class="aba-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 transition bg-emerald-50 text-emerald-800">
+          <i data-lucide="home" class="w-4 h-4"></i> 1. Página Inicial (Hero)
+        </button>
+        <button onclick="trocarAba('quem-somos')" data-aba="quem-somos" class="aba-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 transition text-slate-600 hover:bg-slate-50">
+          <i data-lucide="users" class="w-4 h-4"></i> 2. Quem Somos & Equipe
+        </button>
+        <button onclick="trocarAba('o-que-fazemos')" data-aba="o-que-fazemos" class="aba-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 transition text-slate-600 hover:bg-slate-50">
+          <i data-lucide="book-open" class="w-4 h-4"></i> 3. O Que Fazemos & Projetos
+        </button>
+        <button onclick="trocarAba('impacto')" data-aba="impacto" class="aba-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 transition text-slate-600 hover:bg-slate-50">
+          <i data-lucide="trending-up" class="w-4 h-4"></i> 4. Impacto, Depoimentos & Galeria
+        </button>
+        <button onclick="trocarAba('como-ajudar')" data-aba="como-ajudar" class="aba-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 transition text-slate-600 hover:bg-slate-50">
+          <i data-lucide="heart" class="w-4 h-4"></i> 5. Doações, PIX & Bancos
+        </button>
+        <button onclick="trocarAba('transparencia')" data-aba="transparencia" class="aba-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 transition text-slate-600 hover:bg-slate-50">
+          <i data-lucide="shield-check" class="w-4 h-4"></i> 6. Transparência & Documentos PDF
+        </button>
+        <button onclick="trocarAba('noticias')" data-aba="noticias" class="aba-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 transition text-slate-600 hover:bg-slate-50">
+          <i data-lucide="newspaper" class="w-4 h-4"></i> 7. Notícias & Blog
+        </button>
+        <button onclick="trocarAba('contato')" data-aba="contato" class="aba-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 transition text-slate-600 hover:bg-slate-50">
+          <i data-lucide="mail" class="w-4 h-4"></i> 8. Contato, Redes & Mapa
+        </button>
+        <button onclick="trocarAba('inbox')" data-aba="inbox" class="aba-btn w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2.5 transition text-slate-600 hover:bg-slate-50">
+          <i data-lucide="inbox" class="w-4 h-4"></i> 9. Mensagens & Voluntários
+        </button>
+      </nav>
+    </aside>
 
     <!-- Área de Conteúdo dos Formulários -->
-    <main class="lg:col-span-9 bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200/80">
+    <main class="lg:col-span-9 bg-white p-4 sm:p-8 rounded-2xl shadow-sm border border-slate-200/80 w-full min-w-0">
 
       <!-- ============================================================== -->
       <!-- ABA 1: PÁGINA INICIAL / GERAL                                  -->
@@ -874,6 +949,18 @@
       if (window.lucide) lucide.createIcons();
     });
 
+    const nomesAbasFormatados = {
+      "geral": "1. Página Inicial",
+      "quem-somos": "2. Quem Somos & Equipe",
+      "o-que-fazemos": "3. O Que Fazemos & Projetos",
+      "impacto": "4. Impacto & Galeria",
+      "como-ajudar": "5. Doações & PIX",
+      "transparencia": "6. Transparência & Documentos",
+      "noticias": "7. Notícias & Blog",
+      "contato": "8. Contato & Redes",
+      "inbox": "9. Mensagens & Voluntários"
+    };
+
     function trocarAba(abaNome) {
       document.querySelectorAll(".aba-conteudo").forEach(el => el.classList.add("hidden"));
       document.querySelectorAll(".aba-btn").forEach(el => {
@@ -884,9 +971,22 @@
       const alvo = document.getElementById(`aba-${abaNome}`);
       if (alvo) alvo.classList.remove("hidden");
 
-      if (event && event.currentTarget) {
-        event.currentTarget.classList.add("bg-emerald-50", "text-emerald-800");
-        event.currentTarget.classList.remove("text-slate-600");
+      // Destaca todos os botões da aba correspondente (desktop e mobile)
+      document.querySelectorAll(`[data-aba="${abaNome}"]`).forEach(btn => {
+        btn.classList.add("bg-emerald-50", "text-emerald-800");
+        btn.classList.remove("text-slate-600");
+      });
+
+      // Sincroniza o seletor dropdown mobile
+      const selectMobile = document.getElementById("mobile-tab-select");
+      if (selectMobile && selectMobile.value !== abaNome) {
+        selectMobile.value = abaNome;
+      }
+
+      // Atualiza o texto do badge indicador mobile
+      const indicadorMobile = document.getElementById("mobile-tab-indicador");
+      if (indicadorMobile && nomesAbasFormatados[abaNome]) {
+        indicadorMobile.textContent = nomesAbasFormatados[abaNome];
       }
 
       if (abaNome === 'inbox') carregarInbox();
