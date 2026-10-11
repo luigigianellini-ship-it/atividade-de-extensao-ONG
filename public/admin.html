@@ -582,12 +582,13 @@
     async function authFetch(url, options = {}) {
       options.headers = options.headers || {};
       options.credentials = 'same-origin';
-      const token = localStorage.getItem('admin_token');
+      const token = sessionStorage.getItem('admin_token') || localStorage.getItem('admin_token');
       if (token && !options.headers['X-Admin-Token']) {
         options.headers['X-Admin-Token'] = token;
       }
       const res = await fetch(url, options);
       if (res.status === 401) {
+        sessionStorage.clear();
         localStorage.removeItem('admin_token');
         localStorage.removeItem('admin_user');
         window.location.href = '/login';
@@ -851,6 +852,7 @@
       try {
         await authFetch('/api/admin/logout', { method: 'POST' });
       } catch(e) {}
+      sessionStorage.clear();
       localStorage.removeItem('admin_token');
       localStorage.removeItem('admin_user');
       window.location.href = '/login';

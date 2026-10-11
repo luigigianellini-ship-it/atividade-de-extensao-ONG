@@ -287,12 +287,6 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
             self.send_file(os.path.join(PUBLIC_DIR, 'index.html'))
             return
         elif path == '/login' or path == '/login.html':
-            if self.is_authenticated():
-                self.send_response(302)
-                self.send_header('Location', '/admin')
-                self.send_header('Content-Length', '0')
-                self.end_headers()
-                return
             self.send_file(os.path.join(PUBLIC_DIR, 'login.html'))
             return
         elif path == '/admin' or path == '/admin.html':
@@ -422,7 +416,7 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 return
 
             token = create_admin_session(username)
-            cookie_val = f"admin_token={token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800"
+            cookie_val = f"admin_token={token}; Path=/; HttpOnly; SameSite=Lax"
             self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.send_header('Set-Cookie', cookie_val)

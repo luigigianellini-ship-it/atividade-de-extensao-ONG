@@ -25,15 +25,15 @@
       <p class="text-xs text-slate-500 mt-1">Acesso restrito para administradores da organização</p>
     </div>
 
-    <!-- Formulário de Login -->
-    <form id="form-login" class="space-y-5">
+    <!-- Formulário de Login (Sem preenchimento automático) -->
+    <form id="form-login" class="space-y-5" autocomplete="off">
       <div>
         <label for="login-username" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Usuário</label>
         <div class="relative">
           <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
             <i data-lucide="user" class="w-4 h-4"></i>
           </div>
-          <input type="text" id="login-username" required autofocus placeholder="Digite seu usuário" autocomplete="username" class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 focus:bg-white transition">
+          <input type="text" id="login-username" required placeholder="Digite seu usuário" autocomplete="off" class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 focus:bg-white transition">
         </div>
       </div>
 
@@ -43,7 +43,7 @@
           <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
             <i data-lucide="lock" class="w-4 h-4"></i>
           </div>
-          <input type="password" id="login-password" required placeholder="••••••••" autocomplete="current-password" class="w-full pl-10 pr-11 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 focus:bg-white transition">
+          <input type="password" id="login-password" required placeholder="••••••••" autocomplete="new-password" class="w-full pl-10 pr-11 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 focus:bg-white transition">
           <button type="button" id="btn-toggle-senha" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition" aria-label="Mostrar ou ocultar senha">
             <i data-lucide="eye" id="icone-eye" class="w-4 h-4"></i>
           </button>
@@ -123,9 +123,12 @@
           const data = await res.json();
 
           if (data.sucesso) {
+            // Limpa tokens antigos e usa sessão temporária
+            localStorage.removeItem("admin_token");
+            localStorage.removeItem("admin_user");
             if (data.token) {
-              localStorage.setItem("admin_token", data.token);
-              localStorage.setItem("admin_user", data.username || username);
+              sessionStorage.setItem("admin_token", data.token);
+              sessionStorage.setItem("admin_user", data.username || username);
             }
             showToast("Login autorizado! Redirecionando...", "sucesso");
             setTimeout(() => {
@@ -147,6 +150,14 @@
         }
       });
     }
+
+    // Garante que os campos de login venham vazios ao abrir a página
+    window.addEventListener("DOMContentLoaded", () => {
+      const u = document.getElementById("login-username");
+      const p = document.getElementById("login-password");
+      if (u) u.value = "";
+      if (p) p.value = "";
+    });
   </script>
 </body>
 </html>

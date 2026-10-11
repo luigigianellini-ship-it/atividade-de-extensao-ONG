@@ -95,8 +95,11 @@ function aplicarDadosNoDOM(config) {
     if (campEl && hero.campanha_urgente) {
       if (hero.campanha_urgente.ativa) {
         campEl.classList.remove("hidden");
-        document.getElementById("campanha-titulo").textContent = hero.campanha_urgente.titulo;
-        document.getElementById("campanha-texto").textContent = hero.campanha_urgente.texto;
+        const titEl = document.getElementById("campanha-titulo");
+        if (titEl) titEl.textContent = hero.campanha_urgente.titulo || "";
+        const txtEl = document.getElementById("campanha-texto");
+        if (txtEl) txtEl.textContent = hero.campanha_urgente.texto || "";
+        if (window.lucide) lucide.createIcons();
       } else {
         campEl.classList.add("hidden");
       }

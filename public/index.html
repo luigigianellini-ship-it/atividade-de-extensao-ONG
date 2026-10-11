@@ -41,6 +41,25 @@
   <!-- Toast Container -->
   <div id="toast-container"></div>
 
+  <!-- Barra de Campanha Urgente no Topo -->
+  <aside id="hero-campanha" aria-label="Campanha Urgente" class="hidden bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-900 text-white px-4 py-2.5 shadow-md relative z-50 border-b border-emerald-700/50">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 text-center sm:text-left text-xs sm:text-sm">
+      <div class="flex items-center gap-2.5 flex-wrap justify-center sm:justify-start">
+        <span class="bg-amber-400 text-amber-950 font-black px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider flex items-center gap-1 shadow-sm">
+          <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> Campanha Ativa
+        </span>
+        <strong id="campanha-titulo" class="font-extrabold text-white text-sm"></strong>
+        <span class="hidden md:inline text-emerald-300">•</span>
+        <span id="campanha-texto" class="text-emerald-100 font-medium"></span>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <button onclick="abrirModalDoacao()" class="px-4 py-1.5 rounded-full bg-white hover:bg-emerald-50 text-emerald-900 font-extrabold text-xs shadow-sm transition hover:scale-105 flex items-center gap-1.5">
+          <i data-lucide="heart" class="w-3.5 h-3.5 fill-emerald-600 text-emerald-600"></i> Apoiar Campanha
+        </button>
+      </div>
+    </div>
+  </aside>
+
   <!-- Navbar -->
   <header class="glass-nav sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
