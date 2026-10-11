@@ -150,9 +150,41 @@ html.dark body {
   color: #f1f5f9 !important;
 }
 
-/* Painel de Administração em Modo Escuro */
-html.dark .bg-slate-100 {
+/* Seções com fundos na Landing Page e Painel */
+html.dark section.bg-slate-50,
+html.dark section.bg-white,
+html.dark section.bg-emerald-50\/50,
+html.dark #como-ajudar,
+html.dark #inicio,
+html.dark #quem-somos,
+html.dark #o-que-fazemos,
+html.dark #impacto,
+html.dark #transparencia,
+html.dark #noticias,
+html.dark #contato {
   background-color: #0b1324 !important;
+}
+
+/* Gradientes e Translucências adaptados para o tema escuro */
+html.dark .from-emerald-50\/60 {
+  --tw-gradient-from: #15243f !important;
+  --tw-gradient-to: #0f1c34 !important;
+}
+
+html.dark .hero-gradient {
+  background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.18), transparent 50%),
+              radial-gradient(circle at bottom left, rgba(2, 132, 199, 0.12), transparent 50%) !important;
+}
+
+html.dark .bg-white\/90,
+html.dark .bg-white\/95 {
+  background-color: rgba(15, 28, 52, 0.92) !important;
+  border-color: rgba(39, 55, 84, 0.8) !important;
+}
+
+/* Elementos de Cards e Blocos */
+html.dark .bg-slate-100 {
+  background-color: #15223a !important;
 }
 
 html.dark .bg-slate-50 {
@@ -166,10 +198,13 @@ html.dark .bg-white {
 
 html.dark .border-slate-200,
 html.dark .border-slate-200\/80,
-html.dark .border-slate-100 {
+html.dark .border-slate-100,
+html.dark .border-emerald-100,
+html.dark .border-emerald-200 {
   border-color: #273754 !important;
 }
 
+/* Regras de Contraste e Legibilidade de Textos */
 html.dark .text-slate-900,
 html.dark .text-slate-800 {
   color: #f8fafc !important;
@@ -185,13 +220,98 @@ html.dark .text-slate-400 {
   color: #94a3b8 !important;
 }
 
-/* Inputs, Textareas e Selects em Modo Escuro */
+/* Textos em Verde / Emerald / Teal com brilho e contraste no fundo escuro */
+html.dark .text-emerald-600,
+html.dark .text-emerald-700,
+html.dark .text-emerald-800,
+html.dark .text-emerald-900 {
+  color: #34d399 !important;
+}
+
+html.dark .text-teal-600,
+html.dark .text-teal-700,
+html.dark .text-teal-800 {
+  color: #2dd4bf !important;
+}
+
+/* Textos em Amarelo / Amber */
+html.dark .text-amber-600,
+html.dark .text-amber-700,
+html.dark .text-amber-800,
+html.dark .text-amber-900 {
+  color: #fbbf24 !important;
+}
+
+/* Textos em Azul / Blue */
+html.dark .text-blue-600,
+html.dark .text-blue-700,
+html.dark .text-blue-800 {
+  color: #60a5fa !important;
+}
+
+/* Textos em Vermelho / Red */
+html.dark .text-red-700,
+html.dark .text-red-800 {
+  color: #f87171 !important;
+}
+
+/* Badges e Selos de Ícones (fundo sutil e texto vibrante) */
+html.dark .bg-emerald-50,
+html.dark .bg-emerald-50\/50,
+html.dark .bg-emerald-50\/70,
+html.dark .bg-emerald-100 {
+  background-color: rgba(16, 185, 129, 0.18) !important;
+  color: #34d399 !important;
+}
+
+html.dark .bg-teal-50,
+html.dark .bg-teal-100 {
+  background-color: rgba(20, 184, 166, 0.18) !important;
+  color: #2dd4bf !important;
+}
+
+html.dark .bg-amber-50,
+html.dark .bg-amber-50\/50,
+html.dark .bg-amber-100 {
+  background-color: rgba(245, 158, 11, 0.18) !important;
+  color: #fbbf24 !important;
+}
+
+html.dark .bg-blue-50,
+html.dark .bg-blue-100 {
+  background-color: rgba(59, 130, 246, 0.18) !important;
+  color: #60a5fa !important;
+}
+
+html.dark .bg-red-50,
+html.dark .bg-red-100 {
+  background-color: rgba(239, 68, 68, 0.18) !important;
+  color: #f87171 !important;
+}
+
+/* Anéis de avatar / fotos */
+html.dark .ring-emerald-50,
+html.dark .ring-emerald-100 {
+  --tw-ring-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+/* Formulários e Inputs */
 html.dark input,
 html.dark textarea,
 html.dark select {
   background-color: #172542 !important;
   color: #f8fafc !important;
   border-color: #2b3d60 !important;
+}
+
+html.dark select option {
+  background-color: #0f1c34 !important;
+  color: #f8fafc !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748b !important;
 }
 
 html.dark input:focus,
@@ -217,20 +337,56 @@ html.dark .aba-btn.bg-emerald-50 {
   color: #34d399 !important;
 }
 
-/* Blocos e Sub-seções internas */
-html.dark .bg-slate-50.border {
-  background-color: #15223a !important;
-  border-color: #293a58 !important;
+/* Botões de Ação de Doação */
+html.dark .btn-valor-doacao {
+  background-color: #172542 !important;
+  border-color: #2b3d60 !important;
 }
 
-/* Landing Page (index.html) em Modo Escuro */
-html.dark .hero-gradient {
-  background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.2), transparent 50%),
-              radial-gradient(circle at bottom left, rgba(2, 132, 199, 0.15), transparent 50%) !important;
+html.dark .btn-valor-doacao:hover {
+  background-color: rgba(16, 185, 129, 0.25) !important;
+  border-color: #10b981 !important;
 }
 
+html.dark .btn-valor-doacao.bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.25) !important;
+  border-color: #10b981 !important;
+}
+
+/* Botões com fundo escuro prévio (bg-slate-900 / bg-slate-800) */
+html.dark button.bg-slate-900,
+html.dark a.bg-slate-900 {
+  background-color: #1e293b !important;
+  border: 1px solid #334155 !important;
+}
+
+html.dark button.bg-slate-900:hover,
+html.dark a.bg-slate-900:hover {
+  background-color: #334155 !important;
+}
+
+html.dark button.bg-slate-800,
+html.dark a.bg-slate-800 {
+  background-color: #1e293b !important;
+  border: 1px solid #334155 !important;
+}
+
+html.dark button.bg-slate-800:hover,
+html.dark a.bg-slate-800:hover {
+  background-color: #334155 !important;
+}
+
+/* QR Code PIX (Garante fundo branco puro para leitura imediata pela câmera do celular) */
+html.dark #pix-qrcode-img,
+html.dark #modal-pix-qrcode-img {
+  background-color: #ffffff !important;
+  padding: 6px;
+  border-radius: 12px;
+}
+
+/* Header Navbar e Menus */
 html.dark header.glass-nav {
-  background: rgba(15, 28, 52, 0.92) !important;
+  background: rgba(15, 28, 52, 0.95) !important;
   border-bottom-color: rgba(39, 55, 84, 0.8) !important;
 }
 

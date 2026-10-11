@@ -39,7 +39,7 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="/assets/css/custom.css?v=10">
+  <link rel="stylesheet" href="/assets/css/custom.css?v=11">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>">
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased selection:bg-emerald-500 selection:text-white">
@@ -67,48 +67,49 @@
   </aside>
 
   <!-- Navbar -->
+  <!-- Navbar -->
   <header class="glass-nav sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-20">
-        <!-- Logo & Identidade -->
-        <a href="#" class="flex items-center gap-3 group">
-          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-300">
-            <i data-lucide="sprout" class="w-7 h-7"></i>
+      <div class="flex items-center justify-between h-20 min-h-[5rem]">
+        <!-- Logo & Identidade (Sem quebrar texto) -->
+        <a href="#" class="flex items-center gap-2.5 sm:gap-3 group flex-shrink-0">
+          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-300 flex-shrink-0">
+            <i data-lucide="sprout" class="w-6 h-6"></i>
           </div>
-          <div>
-            <span class="text-xl font-black tracking-tight text-slate-900 site-nome block font-heading">Instituto Sementes do Amanhã</span>
-            <span class="text-xs font-semibold text-emerald-600 block uppercase tracking-wider">Projeto Social & Comunitário</span>
+          <div class="min-w-0">
+            <span class="text-base sm:text-lg lg:text-xl font-black tracking-tight text-slate-900 site-nome block font-heading whitespace-nowrap leading-tight">Instituto Sementes do Amanhã</span>
+            <span class="text-[10px] sm:text-xs font-semibold text-emerald-600 block uppercase tracking-wider whitespace-nowrap mt-0.5">Projeto Social & Comunitário</span>
           </div>
         </a>
 
-        <!-- Links Desktop -->
-        <nav class="hidden xl:flex items-center gap-7 text-sm font-semibold text-slate-600">
-          <a href="#inicio" class="hover:text-emerald-600 transition">Início</a>
-          <a href="#quem-somos" class="hover:text-emerald-600 transition">Quem Somos</a>
-          <a href="#o-que-fazemos" class="hover:text-emerald-600 transition">O Que Fazemos</a>
-          <a href="#impacto" class="hover:text-emerald-600 transition">Impacto</a>
-          <a href="#como-ajudar" class="hover:text-emerald-600 transition">Como Ajudar</a>
-          <a href="#transparencia" class="hover:text-emerald-600 transition">Transparência</a>
-          <a href="#noticias" class="hover:text-emerald-600 transition">Notícias</a>
-          <a href="#contato" class="hover:text-emerald-600 transition">Contato</a>
+        <!-- Links Desktop (Com whitespace-nowrap para NUNCA quebrar texto em 2 linhas) -->
+        <nav class="hidden xl:flex items-center gap-3.5 2xl:gap-6 text-xs 2xl:text-sm font-semibold text-slate-600 dark:text-slate-300">
+          <a href="#inicio" class="whitespace-nowrap hover:text-emerald-600 transition">Início</a>
+          <a href="#quem-somos" class="whitespace-nowrap hover:text-emerald-600 transition">Quem Somos</a>
+          <a href="#o-que-fazemos" class="whitespace-nowrap hover:text-emerald-600 transition">O Que Fazemos</a>
+          <a href="#impacto" class="whitespace-nowrap hover:text-emerald-600 transition">Impacto</a>
+          <a href="#como-ajudar" class="whitespace-nowrap hover:text-emerald-600 transition">Como Ajudar</a>
+          <a href="#transparencia" class="whitespace-nowrap hover:text-emerald-600 transition">Transparência</a>
+          <a href="#noticias" class="whitespace-nowrap hover:text-emerald-600 transition">Notícias</a>
+          <a href="#contato" class="whitespace-nowrap hover:text-emerald-600 transition">Contato</a>
         </nav>
 
-        <!-- Botões de Ação do Topo -->
-        <div class="hidden md:flex items-center gap-3">
+        <!-- Botões de Ação do Topo (Ajustados com espaçamento proporcional) -->
+        <div class="hidden md:flex items-center gap-2 lg:gap-2.5 flex-shrink-0">
           <!-- Botão Modo Escuro -->
-          <button type="button" onclick="alternarModoEscuro()" class="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:text-amber-500 hover:bg-slate-50 transition shadow-sm" title="Alternar Modo Escuro / Claro">
+          <button type="button" onclick="alternarModoEscuro()" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-amber-400 hover:text-amber-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition shadow-sm" title="Alternar Modo Escuro / Claro">
             <i data-lucide="moon" class="icon-theme w-4 h-4"></i>
           </button>
 
-          <a href="/admin" title="Painel do Administrador" class="px-3 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-slate-50 font-bold text-xs uppercase tracking-wider transition hover-lift flex items-center gap-1.5">
+          <a href="/admin" title="Painel do Administrador" class="px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-400 hover:border-emerald-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold text-xs uppercase tracking-wider transition hover-lift flex items-center gap-1.5 whitespace-nowrap">
             <i data-lucide="lock" class="w-3.5 h-3.5 text-emerald-600"></i>
             Admin
           </a>
-          <button onclick="abrirModalVoluntario()" class="px-4 py-2.5 rounded-xl border border-emerald-600/30 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100 font-bold text-xs uppercase tracking-wider transition hover-lift">
+          <button onclick="abrirModalVoluntario()" class="px-3.5 py-2 rounded-xl border border-emerald-600/30 text-emerald-700 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 font-bold text-xs uppercase tracking-wider transition hover-lift whitespace-nowrap">
             Seja Voluntário
           </button>
-          <button onclick="abrirModalDoacao()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/25 transition hover-lift flex items-center gap-2">
-            <i data-lucide="heart" class="w-4 h-4 text-emerald-200 fill-emerald-200"></i>
+          <button onclick="abrirModalDoacao()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/25 transition hover-lift flex items-center gap-1.5 whitespace-nowrap">
+            <i data-lucide="heart" class="w-3.5 h-3.5 text-emerald-200 fill-emerald-200"></i>
             Doe Agora
           </button>
         </div>
