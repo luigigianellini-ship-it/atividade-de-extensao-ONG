@@ -442,49 +442,7 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
             return
 
         elif path == '/api/admin/alterar-senha':
-            if not self.is_authenticated():
-                self.send_json({"sucesso": False, "erro": "Acesso não autorizado. Faça login primeiro."}, 401)
-                return
-
-            current_user = self.get_authenticated_user()
-            senha_atual = body_json.get('senha_atual', '')
-            nova_senha = body_json.get('nova_senha', '')
-            novo_username = body_json.get('novo_username', '').strip()
-
-            if not senha_atual or not nova_senha:
-                self.send_json({"sucesso": False, "erro": "Informe a senha atual e a nova senha."}, 400)
-                return
-
-            if len(nova_senha) < 6:
-                self.send_json({"sucesso": False, "erro": "A nova senha deve ter no mínimo 6 caracteres."}, 400)
-                return
-
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT password_hash, salt FROM usuarios_admin WHERE username = ?", (current_user,))
-            row = cursor.fetchone()
-
-            if not row or not verify_password(senha_atual, row[0], row[1]):
-                conn.close()
-                self.send_json({"sucesso": False, "erro": "A senha atual está incorreta."}, 400)
-                return
-
-            new_hash, new_salt = hash_password(nova_senha)
-            target_username = novo_username if novo_username and len(novo_username) >= 3 else current_user
-
-            cursor.execute("""
-                UPDATE usuarios_admin
-                SET username = ?, password_hash = ?, salt = ?
-                WHERE username = ?
-            """, (target_username, new_hash, new_salt, current_user))
-            conn.commit()
-            conn.close()
-
-            self.send_json({
-                "sucesso": True,
-                "mensagem": "Credenciais atualizadas com sucesso! Use a nova senha no próximo login.",
-                "username": target_username
-            })
+            self.send_json({"sucesso": False, "erro": "A alteração de senha via painel foi desativada por segurança. As credenciais são definidas exclusivamente através das Variáveis de Ambiente da Host."}, 403)
             return
 
         elif path == '/api/contato':
