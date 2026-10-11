@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login Administrativo | Instituto Sementes do Amanhã</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+    if (localStorage.getItem('tema') === 'dark' || (!localStorage.getItem('tema') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="/assets/css/custom.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔒</text></svg>">
@@ -15,6 +23,11 @@
   <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none" style="pointer-events: none !important; bottom: auto !important;"></div>
 
   <div class="max-w-md w-full bg-white rounded-3xl p-8 sm:p-10 shadow-2xl border border-slate-100/10 relative z-10">
+    
+    <!-- Botão Modo Escuro no Login -->
+    <button type="button" onclick="alternarModoEscuro()" class="absolute top-6 right-6 p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition" title="Alternar Modo Escuro / Claro">
+      <i data-lucide="moon" id="icon-theme" class="w-4 h-4 text-amber-500"></i>
+    </button>
     
     <!-- Ícone e Cabeçalho -->
     <div class="text-center mb-8">
@@ -69,8 +82,23 @@
     </div>
 
   </div>
-
   <script>
+    function alternarModoEscuro() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('tema', isDark ? 'dark' : 'light');
+      atualizarIconeTema();
+    }
+
+    function atualizarIconeTema() {
+      const isDark = document.documentElement.classList.contains('dark');
+      const icon = document.getElementById('icon-theme');
+      if (icon) {
+        icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    atualizarIconeTema();
     if (window.lucide) lucide.createIcons();
 
     // Toggle de visibilidade da senha

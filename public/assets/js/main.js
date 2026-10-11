@@ -8,6 +8,7 @@ let siteConfig = null;
 
 // Inicialização ao carregar a página
 document.addEventListener("DOMContentLoaded", async () => {
+  atualizarIconeTema();
   await carregarConfiguracoes();
   inicializarEventos();
 });
@@ -919,6 +920,25 @@ window.fecharLightbox = fecharLightbox;
 window.abrirNoticiaModal = abrirNoticiaModal;
 window.fecharModalNoticia = fecharModalNoticia;
 window.showToast = showToast;
+
+// Modo Escuro
+function alternarModoEscuro() {
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('tema', isDark ? 'dark' : 'light');
+  atualizarIconeTema();
+  showToast(isDark ? "Modo escuro ativado!" : "Modo claro ativado!", "sucesso");
+}
+
+function atualizarIconeTema() {
+  const isDark = document.documentElement.classList.contains('dark');
+  document.querySelectorAll('.icon-theme').forEach(icon => {
+    icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+  });
+  if (window.lucide) lucide.createIcons();
+}
+
+window.alternarModoEscuro = alternarModoEscuro;
+window.atualizarIconeTema = atualizarIconeTema;
 
 // Dados de Fallback (caso abra o HTML estático direto pelo navegador sem o backend)
 function getFallbackConfig() {

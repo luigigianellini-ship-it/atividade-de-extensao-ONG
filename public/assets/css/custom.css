@@ -137,3 +137,125 @@ h1, h2, h3, h4, .font-heading {
   max-width: 90vw;
   object-fit: contain;
 }
+
+/* ============================================================== */
+/* DARK MODE / TEMA ESCURO DO SISTEMA                             */
+/* ============================================================== */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0b1324 !important;
+  color: #f1f5f9 !important;
+}
+
+/* Painel de Administração em Modo Escuro */
+html.dark .bg-slate-100 {
+  background-color: #0b1324 !important;
+}
+
+html.dark .bg-slate-50 {
+  background-color: #17223b !important;
+}
+
+html.dark .bg-white {
+  background-color: #0f1c34 !important;
+  color: #f8fafc !important;
+}
+
+html.dark .border-slate-200,
+html.dark .border-slate-200\/80,
+html.dark .border-slate-100 {
+  border-color: #273754 !important;
+}
+
+html.dark .text-slate-900,
+html.dark .text-slate-800 {
+  color: #f8fafc !important;
+}
+
+html.dark .text-slate-700,
+html.dark .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+html.dark .text-slate-500,
+html.dark .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+/* Inputs, Textareas e Selects em Modo Escuro */
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: #172542 !important;
+  color: #f8fafc !important;
+  border-color: #2b3d60 !important;
+}
+
+html.dark input:focus,
+html.dark textarea:focus,
+html.dark select:focus {
+  background-color: #0f1c34 !important;
+  border-color: #10b981 !important;
+}
+
+/* Botões do Hub de Abas */
+html.dark .aba-btn:not(.bg-emerald-50) {
+  color: #94a3b8 !important;
+  background-color: transparent !important;
+}
+
+html.dark .aba-btn:not(.bg-emerald-50):hover {
+  background-color: #172542 !important;
+  color: #34d399 !important;
+}
+
+html.dark .aba-btn.bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.22) !important;
+  color: #34d399 !important;
+}
+
+/* Blocos e Sub-seções internas */
+html.dark .bg-slate-50.border {
+  background-color: #15223a !important;
+  border-color: #293a58 !important;
+}
+
+/* Landing Page (index.html) em Modo Escuro */
+html.dark .hero-gradient {
+  background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.2), transparent 50%),
+              radial-gradient(circle at bottom left, rgba(2, 132, 199, 0.15), transparent 50%) !important;
+}
+
+html.dark header.glass-nav {
+  background: rgba(15, 28, 52, 0.92) !important;
+  border-bottom-color: rgba(39, 55, 84, 0.8) !important;
+}
+
+html.dark .glass-card {
+  background: rgba(15, 28, 52, 0.95) !important;
+  border-color: #273754 !important;
+}
+
+html.dark #mobile-menu {
+  background-color: #0f1c34 !important;
+  border-color: #273754 !important;
+}
+
+html.dark .modal-content {
+  background-color: #0f1c34 !important;
+  color: #f8fafc !important;
+}
+
+/* Custom Scrollbar no Modo Escuro */
+html.dark ::-webkit-scrollbar-track {
+  background: #0b1324;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}

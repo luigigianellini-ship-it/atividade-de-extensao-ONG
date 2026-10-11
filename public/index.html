@@ -10,6 +10,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
@@ -26,6 +27,11 @@
           }
         }
       }
+    };
+    if (localStorage.getItem('tema') === 'dark' || (!localStorage.getItem('tema') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
     }
   </script>
 
@@ -89,6 +95,11 @@
 
         <!-- Botões de Ação do Topo -->
         <div class="hidden md:flex items-center gap-3">
+          <!-- Botão Modo Escuro -->
+          <button type="button" onclick="alternarModoEscuro()" class="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:text-amber-500 hover:bg-slate-50 transition shadow-sm" title="Alternar Modo Escuro / Claro">
+            <i data-lucide="moon" class="icon-theme w-4 h-4"></i>
+          </button>
+
           <a href="/admin" title="Painel do Administrador" class="px-3 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-slate-50 font-bold text-xs uppercase tracking-wider transition hover-lift flex items-center gap-1.5">
             <i data-lucide="lock" class="w-3.5 h-3.5 text-emerald-600"></i>
             Admin
@@ -118,6 +129,14 @@
         <a href="#transparencia" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700">Transparência e Contas</a>
         <a href="#noticias" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700">Notícias e Blog</a>
         <a href="#contato" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700">Contato</a>
+        <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-100 border border-slate-200/50">
+          <span class="text-xs font-bold text-slate-700 flex items-center gap-2">
+            <i data-lucide="moon" class="icon-theme w-4 h-4 text-amber-500"></i> Modo Escuro
+          </span>
+          <button type="button" onclick="alternarModoEscuro()" class="px-3 py-1 rounded-md text-xs font-bold bg-white text-slate-700 border border-slate-200 shadow-sm">
+            Alternar
+          </button>
+        </div>
         <a href="/admin" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100">
           <i data-lucide="lock" class="w-4 h-4"></i> Painel do Admin
         </a>
