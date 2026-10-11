@@ -14,9 +14,9 @@
     "utilidade_publica": "Declaração de Utilidade Pública Municipal Lei nº 5.821/2021"
   },
   "hero": {
-    "badge": "🌱 Atuação em campo com amor e transparência",
-    "titulo_destaque": "Reforço escolar gratuito, cultura e acolhimento para crianças da comunidade.",
-    "subtitulo": "Acreditamos que a educação transforma realidades. Atendemos mais de 450 crianças e suas famílias no contraturno escolar com alimentação, apoio pedagógico e oficinas extracurriculares.",
+    "badge": "🌱 Educação e Futuro para Crianças",
+    "titulo_destaque": "Educação, acolhimento e futuro para crianças da comunidade.",
+    "subtitulo": "Apoio pedagógico, alimentação saudável e oficinas gratuitas no contraturno escolar para mais de 450 crianças e suas famílias.",
     "foto_url": "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=1200&auto=format&fit=crop",
     "foto_legenda": "Oficina de leitura e contação de histórias com nossos educandos",
     "video_url": "",
@@ -27,17 +27,17 @@
       "link_acao": "#como-ajudar"
     },
     "botoes": {
-      "doar": "Doe Agora",
+      "doar": "Doe pelo PIX",
       "voluntario": "Seja Voluntário",
-      "contato": "Fale Conosco"
+      "contato": "Contato"
     }
   },
   "quem_somos": {
     "titulo": "Quem Somos",
-    "subtitulo": "Nossa trajetória, nossos princípios e as pessoas dedicadas a fazer a diferença todos os dias.",
-    "historia": "O Instituto Sementes do Amanhã nasceu em maio de 2018 na garagem de uma professora aposentada da comunidade, preocupada com as crianças que ficavam sozinhas nas ruas após a escola. O que começou com 12 alunos e doações de cadernos usados cresceu com a força da união de voluntários, educadores e apoiadores. Hoje contamos com sede comunitária própria, biblioteca com mais de 3.000 títulos e uma cozinha industrial solidária.",
-    "missao": "Garantir educação complementar de excelência, nutrição adequada e acolhimento socioemocional a crianças e jovens em situação de vulnerabilidade, fomentando sua autonomia e cidadania.",
-    "visao": "Ser polo de referência comunitária em transformação social até 2030, erradicando a evasão escolar e impulsionando 100% de nossos jovens concluintes ao ensino técnico ou superior.",
+    "subtitulo": "Conheça nosso compromisso em acolher e educar crianças para um futuro com mais oportunidades.",
+    "historia": "O Instituto Sementes do Amanhã nasceu da união de educadores voluntários para acolher crianças no contraturno escolar. O que começou com aulas de reforço e cadernos doados hoje é um polo comunitário com biblioteca, oficinas pedagógicas e alimentação saudável diária para centenas de famílias.",
+    "missao": "Oferecer educação complementar, alimentação de qualidade e acolhimento socioemocional a crianças em vulnerabilidade, fortalecendo sua autonomia.",
+    "visao": "Ser referência comunitária em transformação social até 2030, erradicando a evasão escolar na nossa região.",
     "valores": [
       {
         "titulo": "Empatia e Amor",
@@ -85,9 +85,9 @@
   },
   "o_que_fazemos": {
     "titulo": "O Que Fazemos",
-    "subtitulo": "Nossos projetos são estruturados em pilares essenciais que desenvolvem todo o potencial das crianças e suas famílias.",
-    "publico_alvo": "Crianças e adolescentes de 6 a 17 anos matriculados na rede pública de ensino, além de suas famílias em situação de vulnerabilidade socioeconômica.",
-    "regiao_atuacao": "Comunidade Jardim Esperança e bairros adjacentes (Zona Leste), abrangendo um raio de atendimento com 3 polos descentralizados.",
+    "subtitulo": "Projetos práticos no contraturno escolar que desenvolvem o aprendizado e a cidadania.",
+    "publico_alvo": "Crianças e adolescentes de 6 a 17 anos da rede pública, com suporte contínuo para suas famílias.",
+    "regiao_atuacao": "Comunidade Jardim Esperança e bairros adjacentes (Zona Leste), com 3 polos de atendimento.",
     "projetos": [
       {
         "id": "reforco-escolar",
@@ -143,7 +143,7 @@
   },
   "impacto": {
     "titulo": "Nosso Impacto em Números",
-    "subtitulo": "Cada número representa uma vida impactada, um prato servido e uma oportunidade criada.",
+    "subtitulo": "Resultados transparentes e vidas transformadas através da educação e do acolhimento.",
     "metricas": [
       {
         "valor": "1.450+",
@@ -224,7 +224,7 @@
   },
   "como_ajudar": {
     "titulo": "Como Você Pode Ajudar",
-    "subtitulo": "Nenhuma ajuda é pequena demais. Veja as formas de fortalecer esse trabalho e transformar realidades.",
+    "subtitulo": "Contribua pelo PIX ou junte-se a nós como voluntário.",
     "pix": {
       "chave": "+5517988160761",
       "tipo_chave": "Telefone Celular",
@@ -314,8 +314,8 @@
     }
   },
   "transparencia": {
-    "titulo": "Portal da Transparência",
-    "subtitulo": "Nosso maior patrimônio é a confiança da comunidade e de quem acredita na nossa causa. Prestar contas é dever ético inegociável.",
+    "titulo": "Transparência",
+    "subtitulo": "Prestação de contas aberta e documentos oficiais acessíveis a qualquer cidadão.",
     "documentos_legais": [
       {
         "nome": "Estatuto Social Registrado",
@@ -380,8 +380,8 @@
     }
   },
   "noticias_blog": {
-    "titulo": "Notícias e Campanhas",
-    "subtitulo": "Fique por dentro das últimas novidades, eventos e conquistas da nossa comunidade.",
+    "titulo": "Últimas Notícias",
+    "subtitulo": "Acompanhe as ações, eventos e conquistas dos nossos educandos.",
     "artigos": [
       {
         "id": "volta-as-aulas-2026",
@@ -414,7 +414,7 @@
   },
   "contato": {
     "titulo": "Fale Conosco",
-    "subtitulo": "Quer nos conhecer de perto, propor uma parceria ou tirar dúvidas? Venha tomar um café conosco ou envie sua mensagem.",
+    "subtitulo": "Envie sua mensagem ou fale diretamente com a nossa equipe.",
     "endereco_completo": "Rua das Acácias, 450 - Bairro Jardim Esperança - São Paulo/SP - CEP 03980-000",
     "ponto_referencia": "Próximo à Escola Estadual Ayrton Senna e à UBS Jardim Esperança",
     "telefone": "(11) 3214-8765",

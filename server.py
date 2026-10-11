@@ -17,7 +17,10 @@ import re
 import json
 import sqlite3
 import mimetypes
-from datetime import datetime
+import hashlib
+import secrets
+from datetime import datetime, timedelta
+from http.cookies import SimpleCookie
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
@@ -32,15 +35,88 @@ DB_FILE = os.path.join(DATA_DIR, "ong.db")
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(PUBLIC_DIR, exist_ok=True)
 
+def load_env():
+    """Carrega variáveis de ambiente a partir do arquivo local .env (sem dependências externas)."""
+    env_file = os.path.join(BASE_DIR, ".env")
+    if os.path.exists(env_file):
+        try:
+            with open(env_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        key, val = line.split("=", 1)
+                        os.environ.setdefault(key.strip(), val.strip().strip('"').strip("'"))
+        except Exception as e:
+            print(f"[AVISO] Não foi possível ler o arquivo .env: {e}")
+
+load_env()
+
 def get_db_connection():
     conn = sqlite3.connect(DB_FILE, timeout=10.0)
     return conn
+
+def hash_password(password, salt=None):
+    if not salt:
+        salt = secrets.token_hex(16)
+    key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000)
+    return key.hex(), salt
+
+def verify_password(password, stored_hash, salt):
+    key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000)
+    return secrets.compare_digest(key.hex(), stored_hash)
+
+def create_admin_session(username):
+    token = secrets.token_hex(32)
+    criado_em = datetime.now()
+    expira_em = criado_em + timedelta(days=7)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO sessoes_admin (token, username, criado_em, expira_em)
+        VALUES (?, ?, ?, ?)
+    """, (token, username, criado_em.isoformat(), expira_em.isoformat()))
+    conn.commit()
+    conn.close()
+    return token
+
+def verify_session_token(token):
+    if not token:
+        return None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT username, expira_em FROM sessoes_admin WHERE token = ?", (token,))
+        row = cursor.fetchone()
+        conn.close()
+        if not row:
+            return None
+        username, expira_em_str = row[0], row[1]
+        expira_em = datetime.fromisoformat(expira_em_str)
+        if datetime.now() > expira_em:
+            conn = get_db_connection()
+            conn.execute("DELETE FROM sessoes_admin WHERE token = ?", (token,))
+            conn.commit()
+            conn.close()
+            return None
+        return username
+    except Exception:
+        return None
+
+def delete_admin_session(token):
+    if not token:
+        return
+    try:
+        conn = get_db_connection()
+        conn.execute("DELETE FROM sessoes_admin WHERE token = ?", (token,))
+        conn.commit()
+        conn.close()
+    except Exception:
+        pass
 
 # Inicializa banco de dados SQLite com suporte otimizado a concorrencia
 def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
-    # Modo WAL permite leituras e gravacoes simultaneas sem travamento
     cursor.execute("PRAGMA journal_mode=WAL;")
     cursor.execute("PRAGMA busy_timeout = 5000;")
     cursor.execute("""
@@ -68,6 +144,58 @@ def init_db():
             status TEXT DEFAULT 'Pendente'
         )
     """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS usuarios_admin (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            salt TEXT NOT NULL,
+            data_criacao TEXT NOT NULL
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sessoes_admin (
+            token TEXT PRIMARY KEY,
+            username TEXT NOT NULL,
+            criado_em TEXT NOT NULL,
+            expira_em TEXT NOT NULL
+        )
+    """)
+    # Gerenciamento de credenciais do administrador via variáveis de ambiente (.env)
+    admin_user = os.environ.get("ADMIN_USER", "admin").strip()
+    admin_pass = os.environ.get("ADMIN_PASSWORD", "").strip()
+
+    cursor.execute("SELECT id, username, password_hash, salt FROM usuarios_admin WHERE username = ?", (admin_user,))
+    row = cursor.fetchone()
+
+    if admin_pass:
+        # Se uma senha foi definida no .env/ambiente, sincroniza com o banco de dados
+        p_hash, salt = hash_password(admin_pass)
+        if row:
+            cursor.execute("UPDATE usuarios_admin SET password_hash = ?, salt = ? WHERE username = ?", (p_hash, salt, admin_user))
+        else:
+            data_criacao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            cursor.execute("""
+                INSERT INTO usuarios_admin (username, password_hash, salt, data_criacao)
+                VALUES (?, ?, ?, ?)
+            """, (admin_user, p_hash, salt, data_criacao))
+    elif not row:
+        cursor.execute("SELECT COUNT(*) FROM usuarios_admin")
+        if cursor.fetchone()[0] == 0:
+            temp_pass = secrets.token_urlsafe(10)
+            p_hash, salt = hash_password(temp_pass)
+            data_criacao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            cursor.execute("""
+                INSERT INTO usuarios_admin (username, password_hash, salt, data_criacao)
+                VALUES (?, ?, ?, ?)
+            """, (admin_user, p_hash, salt, data_criacao))
+            print("\n" + "=" * 65)
+            print("  [SEGURANÇA] Nenhum ADMIN_PASSWORD foi definido no .env!")
+            print(f"  -> Usuário inicial: {admin_user}")
+            print(f"  -> Senha gerada temporária: {temp_pass}")
+            print("  -> Dica: Crie o arquivo .env com ADMIN_PASSWORD=sua_senha")
+            print("=" * 65 + "\n")
+
     conn.commit()
     conn.close()
 
@@ -118,15 +246,57 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(f"Erro ao carregar arquivo: {str(e)}".encode('utf-8'))
 
+    def get_session_token(self):
+        cookie_header = self.headers.get('Cookie')
+        if cookie_header:
+            cookie = SimpleCookie()
+            try:
+                cookie.load(cookie_header)
+                if 'admin_token' in cookie:
+                    return cookie['admin_token'].value
+            except Exception:
+                pass
+        auth_header = self.headers.get('Authorization', '')
+        if auth_header.startswith('Bearer '):
+            return auth_header[7:].strip()
+        token_hdr = self.headers.get('X-Admin-Token')
+        if token_hdr:
+            return token_hdr.strip()
+        return None
+
+    def get_authenticated_user(self):
+        token = self.get_session_token()
+        if not token:
+            return None
+        return verify_session_token(token)
+
+    def is_authenticated(self):
+        return self.get_authenticated_user() is not None
+
     def do_GET(self):
         parsed = urlparse(self.path)
         path = parsed.path
 
-        # Rotas da Landing Page e Painel Admin
+        # Rotas da Landing Page, Login e Painel Admin
         if path == '/' or path == '/index.html':
             self.send_file(os.path.join(PUBLIC_DIR, 'index.html'))
             return
+        elif path == '/login' or path == '/login.html':
+            if self.is_authenticated():
+                self.send_response(302)
+                self.send_header('Location', '/admin')
+                self.send_header('Content-Length', '0')
+                self.end_headers()
+                return
+            self.send_file(os.path.join(PUBLIC_DIR, 'login.html'))
+            return
         elif path == '/admin' or path == '/admin.html':
+            if not self.is_authenticated():
+                self.send_response(302)
+                self.send_header('Location', '/login')
+                self.send_header('Content-Length', '0')
+                self.end_headers()
+                return
             self.send_file(os.path.join(PUBLIC_DIR, 'admin.html'))
             return
 
@@ -140,7 +310,18 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 self.send_json({"erro": f"Falha ao carregar configuracoes: {str(e)}"}, 500)
             return
 
+        elif path == '/api/admin/me':
+            user = self.get_authenticated_user()
+            if not user:
+                self.send_json({"sucesso": False, "erro": "Não autenticado."}, 401)
+                return
+            self.send_json({"sucesso": True, "username": user})
+            return
+
         elif path == '/api/stats':
+            if not self.is_authenticated():
+                self.send_json({"sucesso": False, "erro": "Acesso não autorizado. Faça login como administrador."}, 401)
+                return
             try:
                 conn = get_db_connection()
                 cursor = conn.cursor()
@@ -159,6 +340,9 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
             return
 
         elif path == '/api/mensagens':
+            if not self.is_authenticated():
+                self.send_json({"sucesso": False, "erro": "Acesso não autorizado. Faça login como administrador."}, 401)
+                return
             try:
                 conn = get_db_connection()
                 conn.row_factory = sqlite3.Row
@@ -172,6 +356,9 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
             return
 
         elif path == '/api/voluntarios':
+            if not self.is_authenticated():
+                self.send_json({"sucesso": False, "erro": "Acesso não autorizado. Faça login como administrador."}, 401)
+                return
             try:
                 conn = get_db_connection()
                 conn.row_factory = sqlite3.Row
@@ -212,7 +399,95 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
         except Exception:
             body_json = {}
 
-        if path == '/api/contato':
+        if path == '/api/admin/login':
+            username = body_json.get('username', '').strip()
+            password = body_json.get('password', '')
+            if not username or not password:
+                self.send_json({"sucesso": False, "erro": "Informe o usuário e a senha."}, 400)
+                return
+
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT password_hash, salt FROM usuarios_admin WHERE username = ?", (username,))
+            row = cursor.fetchone()
+            conn.close()
+
+            if not row or not verify_password(password, row[0], row[1]):
+                self.send_json({"sucesso": False, "erro": "Usuário ou senha incorretos."}, 401)
+                return
+
+            token = create_admin_session(username)
+            cookie_val = f"admin_token={token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800"
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Set-Cookie', cookie_val)
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "sucesso": True,
+                "token": token,
+                "username": username,
+                "mensagem": "Login realizado com sucesso!"
+            }, ensure_ascii=False).encode('utf-8'))
+            return
+
+        elif path == '/api/admin/logout':
+            token = self.get_session_token()
+            if token:
+                delete_admin_session(token)
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Set-Cookie', 'admin_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0')
+            self.end_headers()
+            self.wfile.write(json.dumps({"sucesso": True, "mensagem": "Logout efetuado com sucesso."}).encode('utf-8'))
+            return
+
+        elif path == '/api/admin/alterar-senha':
+            if not self.is_authenticated():
+                self.send_json({"sucesso": False, "erro": "Acesso não autorizado. Faça login primeiro."}, 401)
+                return
+
+            current_user = self.get_authenticated_user()
+            senha_atual = body_json.get('senha_atual', '')
+            nova_senha = body_json.get('nova_senha', '')
+            novo_username = body_json.get('novo_username', '').strip()
+
+            if not senha_atual or not nova_senha:
+                self.send_json({"sucesso": False, "erro": "Informe a senha atual e a nova senha."}, 400)
+                return
+
+            if len(nova_senha) < 6:
+                self.send_json({"sucesso": False, "erro": "A nova senha deve ter no mínimo 6 caracteres."}, 400)
+                return
+
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT password_hash, salt FROM usuarios_admin WHERE username = ?", (current_user,))
+            row = cursor.fetchone()
+
+            if not row or not verify_password(senha_atual, row[0], row[1]):
+                conn.close()
+                self.send_json({"sucesso": False, "erro": "A senha atual está incorreta."}, 400)
+                return
+
+            new_hash, new_salt = hash_password(nova_senha)
+            target_username = novo_username if novo_username and len(novo_username) >= 3 else current_user
+
+            cursor.execute("""
+                UPDATE usuarios_admin
+                SET username = ?, password_hash = ?, salt = ?
+                WHERE username = ?
+            """, (target_username, new_hash, new_salt, current_user))
+            conn.commit()
+            conn.close()
+
+            self.send_json({
+                "sucesso": True,
+                "mensagem": "Credenciais atualizadas com sucesso! Use a nova senha no próximo login.",
+                "username": target_username
+            })
+            return
+
+        elif path == '/api/contato':
             nome = body_json.get('nome', '').strip()
             email = body_json.get('email', '').strip()
             telefone = body_json.get('telefone', '').strip()
@@ -379,6 +654,9 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
             return
 
         elif path == '/api/voluntario/excluir':
+            if not self.is_authenticated():
+                self.send_json({"sucesso": False, "erro": "Acesso não autorizado. Faça login como administrador."}, 401)
+                return
             vol_id = body_json.get('id')
             if not vol_id:
                 self.send_json({"sucesso": False, "erro": "ID do voluntário não informado."}, 400)
@@ -395,6 +673,9 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
             return
 
         elif path == '/api/contato/excluir':
+            if not self.is_authenticated():
+                self.send_json({"sucesso": False, "erro": "Acesso não autorizado. Faça login como administrador."}, 401)
+                return
             contato_id = body_json.get('id')
             if not contato_id:
                 self.send_json({"sucesso": False, "erro": "ID da mensagem não informado."}, 400)
@@ -411,6 +692,9 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
             return
 
         elif path == '/api/config':
+            if not self.is_authenticated():
+                self.send_json({"sucesso": False, "erro": "Acesso não autorizado. Faça login como administrador."}, 401)
+                return
             # Atualiza o config.json com novas informações passadas pelo painel administrativo
             try:
                 if not body_json or not isinstance(body_json, dict):

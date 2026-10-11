@@ -185,10 +185,10 @@ function aplicarDadosNoDOM(config) {
     const metContainer = document.getElementById("imp-metricas-grid");
     if (metContainer && imp.metricas) {
       metContainer.innerHTML = imp.metricas.map(m => `
-        <div class="bg-emerald-900/40 border border-emerald-500/20 backdrop-blur-md rounded-2xl p-6 text-center text-white">
-          <div class="text-3xl md:text-5xl font-black text-emerald-300 font-heading mb-1">${m.valor}</div>
-          <div class="text-base font-bold text-white mb-1">${m.label}</div>
-          <p class="text-xs text-emerald-100/70 leading-relaxed">${m.detalhe}</p>
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-6 text-center shadow-sm hover-lift">
+          <div class="text-3xl md:text-5xl font-black text-emerald-600 font-heading mb-1">${m.valor}</div>
+          <div class="text-sm font-bold text-slate-800 mb-1">${m.label}</div>
+          <p class="text-xs text-slate-500 leading-relaxed">${m.detalhe}</p>
         </div>
       `).join("");
     }
@@ -196,7 +196,7 @@ function aplicarDadosNoDOM(config) {
     const depContainer = document.getElementById("imp-depoimentos-grid");
     if (depContainer && imp.depoimentos) {
       depContainer.innerHTML = imp.depoimentos.map(d => `
-        <div class="bg-white rounded-3xl p-7 border border-slate-100 shadow-sm hover-lift flex flex-col justify-between">
+        <div class="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm hover-lift flex flex-col justify-between">
           <div class="text-emerald-500 text-3xl font-serif mb-2 leading-none">“</div>
           <p class="text-sm text-slate-700 italic leading-relaxed mb-6">"${d.texto}"</p>
           <div class="flex items-center gap-4 pt-4 border-t border-slate-100">
@@ -217,10 +217,10 @@ function aplicarDadosNoDOM(config) {
       galContainer.innerHTML = imp.galeria.map(g => `
         <div class="group relative rounded-2xl overflow-hidden aspect-video bg-slate-100 cursor-pointer shadow-sm hover-lift" onclick="abrirLightbox('${g.url}', '${g.titulo}')">
           <img src="${g.url}" alt="${g.titulo}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
             <div>
-              <span class="text-[11px] font-semibold text-emerald-300 uppercase">${g.categoria}</span>
-              <p class="text-sm font-medium text-white">${g.titulo}</p>
+              <span class="text-[10px] font-semibold text-emerald-300 uppercase">${g.categoria}</span>
+              <p class="text-xs font-medium text-white">${g.titulo}</p>
             </div>
           </div>
         </div>

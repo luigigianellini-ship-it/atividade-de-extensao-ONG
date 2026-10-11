@@ -74,6 +74,27 @@ Acesse no seu navegador:
 
 ---
 
+## 🔒 Segurança e Credenciais (GitHub / Produção)
+
+O projeto usa **variáveis de ambiente** via arquivo `.env` para manter todas as senhas fora do GitHub:
+
+1. O arquivo `.env` está registrado no `.gitignore` e **nunca é enviado para o repositório**.
+2. O banco de dados SQLite (`data/ong.db`) com as mensagens e voluntários também está protegido pelo `.gitignore`.
+3. Para definir seu usuário e senha no servidor ou host:
+   - Copie o arquivo `.env.example` para `.env`:
+     ```bash
+     cp .env.example .env
+     ```
+   - Edite o `.env` com a sua senha desejada:
+     ```env
+     ADMIN_USER=admin
+     ADMIN_PASSWORD=sua_senha_secreta_aqui
+     PORT=8000
+     ```
+   - O servidor lerá automaticamente as credenciais ao iniciar!
+
+---
+
 ## ✏️ Como Colocar as Informações Corretas
 
 Você tem **duas formas super fáceis** de atualizar os textos, fotos e dados do site:

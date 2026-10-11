@@ -28,11 +28,15 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <a href="/" target="_blank" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition">
-          <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Ver Site ao Vivo
+        <span class="text-xs text-slate-300 hidden sm:inline">Admin: <strong id="admin-user-display" class="text-emerald-400">admin</strong></span>
+        <a href="/" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition">
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Ver Site
         </a>
-        <button id="btn-salvar-tudo" onclick="salvarConfiguracoes()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-md transition">
-          <i data-lucide="save" class="w-4 h-4"></i> Salvar Alterações
+        <button id="btn-salvar-tudo" onclick="salvarConfiguracoes()" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-md transition">
+          <i data-lucide="save" class="w-4 h-4"></i> Salvar
+        </button>
+        <button onclick="logoutAdmin()" class="px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-500/20 text-xs font-bold flex items-center gap-1.5 transition" title="Sair da conta de administrador">
+          <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Sair
         </button>
       </div>
     </div>
@@ -66,6 +70,9 @@
       </button>
       <button onclick="trocarAba('inbox')" class="aba-btn w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-3 transition text-slate-600 hover:bg-slate-50">
         <i data-lucide="inbox" class="w-4 h-4"></i> 8. Mensagens & Voluntários
+      </button>
+      <button onclick="trocarAba('seguranca')" class="aba-btn w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-3 transition text-slate-600 hover:bg-slate-50">
+        <i data-lucide="key-round" class="w-4 h-4"></i> 9. Segurança & Senha
       </button>
     </nav>
 
@@ -329,13 +336,143 @@
         </div>
       </section>
 
+      <!-- ABA 9: SEGURANÇA & SENHA -->
+      <section id="aba-seguranca" class="aba-conteudo space-y-6 hidden">
+        <div class="border-b border-slate-100 pb-4">
+          <h2 class="text-xl font-bold text-slate-900 font-heading">9. Segurança de Acesso</h2>
+          <p class="text-xs text-slate-500">Altere o nome de usuário ou a senha da conta de administrador do painel.</p>
+        </div>
+
+        <form id="form-alterar-senha" onsubmit="event.preventDefault(); alterarSenhaAdmin();" class="space-y-4 max-w-lg">
+          <div>
+            <label for="adm-novo-username" class="block text-xs font-bold text-slate-700 uppercase mb-1">Nome de Usuário</label>
+            <input type="text" id="adm-novo-username" placeholder="Deixe em branco para manter o atual" class="w-full p-2.5 border rounded-xl text-sm">
+            <span class="text-[10px] text-slate-400">Usuário logado no momento: <strong id="lbl-current-user" class="text-slate-700 font-bold">admin</strong></span>
+          </div>
+
+          <div>
+            <label for="adm-senha-atual" class="block text-xs font-bold text-slate-700 uppercase mb-1">Senha Atual *</label>
+            <input type="password" id="adm-senha-atual" required placeholder="Digite sua senha atual" class="w-full p-2.5 border rounded-xl text-sm">
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="adm-nova-senha" class="block text-xs font-bold text-slate-700 uppercase mb-1">Nova Senha *</label>
+              <input type="password" id="adm-nova-senha" required placeholder="Mínimo 6 caracteres" class="w-full p-2.5 border rounded-xl text-sm">
+            </div>
+            <div>
+              <label for="adm-confirma-senha" class="block text-xs font-bold text-slate-700 uppercase mb-1">Confirmar Nova Senha *</label>
+              <input type="password" id="adm-confirma-senha" required placeholder="Repita a nova senha" class="w-full p-2.5 border rounded-xl text-sm">
+            </div>
+          </div>
+
+          <button type="submit" id="btn-salvar-senha" class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition">
+            <i data-lucide="key" class="w-4 h-4 text-emerald-400"></i> Atualizar Credenciais
+          </button>
+        </form>
+      </section>
+
     </main>
   </div>
 
   <script>
     let globalConfig = null;
 
+    async function authFetch(url, options = {}) {
+      options.headers = options.headers || {};
+      options.credentials = 'same-origin';
+      const token = localStorage.getItem('admin_token');
+      if (token && !options.headers['X-Admin-Token']) {
+        options.headers['X-Admin-Token'] = token;
+      }
+      const res = await fetch(url, options);
+      if (res.status === 401) {
+        localStorage.removeItem('admin_token');
+        localStorage.removeItem('admin_user');
+        window.location.href = '/login';
+        throw new Error('Sessão expirada');
+      }
+      return res;
+    }
+
+    async function verificarAutenticacao() {
+      try {
+        const res = await authFetch('/api/admin/me');
+        const data = await res.json();
+        if (data.sucesso && data.username) {
+          const userLbl = document.getElementById("lbl-current-user");
+          if (userLbl) userLbl.textContent = data.username;
+          const navUser = document.getElementById("admin-user-display");
+          if (navUser) navUser.textContent = data.username;
+        }
+      } catch (err) {
+        window.location.href = '/login';
+      }
+    }
+
+    async function logoutAdmin() {
+      if (!confirm("Deseja realmente sair do painel administrativo?")) return;
+      try {
+        await authFetch('/api/admin/logout', { method: 'POST' });
+      } catch(e) {}
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_user');
+      window.location.href = '/login';
+    }
+
+    async function alterarSenhaAdmin() {
+      const btn = document.getElementById("btn-salvar-senha");
+      const txtOriginal = btn.innerHTML;
+      const novo_username = document.getElementById("adm-novo-username").value.trim();
+      const senha_atual = document.getElementById("adm-senha-atual").value;
+      const nova_senha = document.getElementById("adm-nova-senha").value;
+      const confirma = document.getElementById("adm-confirma-senha").value;
+
+      if (!senha_atual) {
+        showToast("Informe sua senha atual.", "erro");
+        return;
+      }
+      if (nova_senha.length < 6) {
+        showToast("A nova senha deve ter no mínimo 6 caracteres.", "erro");
+        return;
+      }
+      if (nova_senha !== confirma) {
+        showToast("A confirmação da nova senha não confere.", "erro");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = "Atualizando...";
+
+      try {
+        const res = await authFetch("/api/admin/alterar-senha", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ senha_atual, nova_senha, novo_username })
+        });
+        const data = await res.json();
+        if (data.sucesso) {
+          showToast(data.mensagem || "Senha atualizada com sucesso!");
+          document.getElementById("form-alterar-senha").reset();
+          if (data.username) {
+            document.getElementById("lbl-current-user").textContent = data.username;
+            document.getElementById("admin-user-display").textContent = data.username;
+            localStorage.setItem("admin_user", data.username);
+          }
+        } else {
+          showToast(data.erro || "Erro ao atualizar senha.", "erro");
+        }
+      } catch (err) {
+        showToast("Erro ao comunicar com o servidor.", "erro");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = txtOriginal;
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
+      await verificarAutenticacao();
       await carregarDadosConfig();
       if (window.lucide) lucide.createIcons();
     });
@@ -359,7 +496,7 @@
 
     async function carregarDadosConfig() {
       try {
-        const res = await fetch("/api/config");
+        const res = await authFetch("/api/config");
         globalConfig = await res.json();
 
         // Preenche campos
@@ -533,7 +670,7 @@
       globalConfig.contato.redes_sociais.facebook = document.getElementById("adm-facebook").value;
 
       try {
-        const res = await fetch("/api/config", {
+        const res = await authFetch("/api/config", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(globalConfig)
@@ -556,8 +693,8 @@
     async function carregarInbox() {
       try {
         const [resM, resV] = await Promise.all([
-          fetch("/api/mensagens"),
-          fetch("/api/voluntarios")
+          authFetch("/api/mensagens"),
+          authFetch("/api/voluntarios")
         ]);
 
         const msgs = await resM.json();
@@ -621,7 +758,7 @@
     async function excluirVoluntario(id, nome) {
       if (!confirm(`Tem certeza que deseja apagar a inscrição de voluntariado de "${nome}"?`)) return;
       try {
-        const res = await fetch("/api/voluntario/excluir", {
+        const res = await authFetch("/api/voluntario/excluir", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id })
@@ -641,7 +778,7 @@
     async function excluirContato(id, nome) {
       if (!confirm(`Tem certeza que deseja apagar a mensagem de "${nome}"?`)) return;
       try {
-        const res = await fetch("/api/contato/excluir", {
+        const res = await authFetch("/api/contato/excluir", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id })
