@@ -70,6 +70,10 @@
 
         <!-- Botões de Ação do Topo -->
         <div class="hidden md:flex items-center gap-3">
+          <a href="/admin" title="Painel do Administrador" class="px-3 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-slate-50 font-bold text-xs uppercase tracking-wider transition hover-lift flex items-center gap-1.5">
+            <i data-lucide="lock" class="w-3.5 h-3.5 text-emerald-600"></i>
+            Admin
+          </a>
           <button onclick="abrirModalVoluntario()" class="px-4 py-2.5 rounded-xl border border-emerald-600/30 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100 font-bold text-xs uppercase tracking-wider transition hover-lift">
             Seja Voluntário
           </button>
@@ -95,6 +99,9 @@
         <a href="#transparencia" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700">Transparência e Contas</a>
         <a href="#noticias" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700">Notícias e Blog</a>
         <a href="#contato" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700">Contato</a>
+        <a href="/admin" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100">
+          <i data-lucide="lock" class="w-4 h-4"></i> Painel do Admin
+        </a>
         <div class="pt-3 flex gap-2">
           <button onclick="abrirModalVoluntario()" class="flex-1 py-2 rounded-lg text-xs font-bold border border-emerald-600 text-emerald-700">Voluntariado</button>
           <button onclick="abrirModalDoacao()" class="flex-1 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white">Doe Agora</button>
