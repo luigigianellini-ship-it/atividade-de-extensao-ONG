@@ -122,10 +122,15 @@
 
         <div>
           <label for="adm-hero-foto" class="block text-xs font-bold text-slate-700 uppercase mb-1">URL da Foto Principal (Hero)</label>
-          <input type="text" id="adm-hero-foto" oninput="document.getElementById('preview-hero-foto').src = this.value" class="w-full p-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500">
+          <div class="flex items-center gap-2">
+            <input type="text" id="adm-hero-foto" oninput="document.getElementById('preview-hero-foto').src = this.value" class="flex-1 p-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 font-mono">
+            <button type="button" onclick="abrirSeletorArquivo(this, 'imagem', '#adm-hero-foto')" class="px-3 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 whitespace-nowrap shadow-sm transition">
+              <i data-lucide="upload" class="w-4 h-4"></i> Subir Imagem
+            </button>
+          </div>
           <div class="mt-2 flex items-center gap-3">
             <img id="preview-hero-foto" src="" alt="Preview Hero" class="w-24 h-16 rounded-lg object-cover bg-slate-100 border border-slate-200">
-            <span class="text-xs text-slate-500">Prévia da imagem acima. Cole o link direto (.jpg ou .png).</span>
+            <span class="text-xs text-slate-500">Escolha uma foto do seu computador ou cole o link direto (.jpg ou .png).</span>
           </div>
         </div>
 
@@ -567,6 +572,9 @@
     </main>
   </div>
 
+  <!-- Input de arquivo invisível para uploads do computador -->
+  <input type="file" id="global-file-uploader" class="hidden" style="display:none;" onchange="handleGlobalFileChange(event)">
+
   <!-- Javascript -->
   <script>
     let globalConfig = null;
@@ -586,6 +594,241 @@
         throw new Error('Sessão expirada');
       }
       return res;
+    }
+
+    // ==============================================================
+    // SISTEMA DE UPLOAD DE ARQUIVOS (PDFs E FOTOS) & AUXILIARES
+    // ==============================================================
+    let currentUploadContext = null;
+
+    function testarAbrirLink(url) {
+      if (!url || !url.trim()) {
+        showToast("Nenhum link ou arquivo informado.", "aviso");
+        return;
+      }
+      window.open(url.trim(), "_blank");
+    }
+
+    function abrirSeletorArquivo(btnElement, tipo, targetInputSelector) {
+      const fileInput = document.getElementById("global-file-uploader");
+      if (!fileInput) return;
+
+      if (tipo === 'documento') {
+        fileInput.accept = ".pdf,.doc,.docx,.xls,.xlsx,.odt,.ods,.txt,.csv,application/pdf";
+      } else {
+        fileInput.accept = "image/png,image/jpeg,image/webp,image/svg+xml,image/gif";
+      }
+
+      currentUploadContext = {
+        btn: btnElement,
+        tipo: tipo,
+        targetInputSelector: targetInputSelector,
+        parentCard: btnElement ? btnElement.closest('.space-y-3, .space-y-4, .p-3, .p-4, div') : null
+      };
+
+      fileInput.value = "";
+      fileInput.click();
+    }
+
+    async function uploadArquivo(file, tipo = 'documento') {
+      return new Promise((resolve, reject) => {
+        if (!file) return reject(new Error('Nenhum arquivo selecionado.'));
+        if (file.size > 25 * 1024 * 1024) {
+          return reject(new Error('O arquivo excede o limite máximo de 25MB.'));
+        }
+
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            const base64Data = reader.result;
+            const res = await authFetch('/api/upload', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                nome_arquivo: file.name,
+                conteudo_b64: base64Data,
+                tipo: tipo
+              })
+            });
+            const data = await res.json();
+            if (!res.ok || !data.sucesso) {
+              throw new Error(data.erro || 'Falha ao fazer upload do arquivo.');
+            }
+            resolve(data);
+          } catch (err) {
+            reject(err);
+          }
+        };
+        reader.onerror = () => reject(new Error('Erro ao ler arquivo do computador.'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handleGlobalFileChange(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file || !currentUploadContext) return;
+
+      const { btn, tipo, targetInputSelector, parentCard } = currentUploadContext;
+      let originalBtnHtml = "";
+      if (btn) {
+        originalBtnHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Enviando...`;
+        if (window.lucide) lucide.createIcons();
+      }
+
+      showToast(`Enviando "${file.name}"...`, "info");
+
+      try {
+        const res = await uploadArquivo(file, tipo);
+        if (res.sucesso && res.url) {
+          let targetInput = null;
+          if (targetInputSelector && targetInputSelector.startsWith('#')) {
+            targetInput = document.querySelector(targetInputSelector);
+          } else if (parentCard && targetInputSelector) {
+            targetInput = parentCard.querySelector(targetInputSelector);
+          }
+
+          if (targetInput) {
+            targetInput.value = res.url;
+            targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+
+          // Se for documento e o título estiver genérico ou vazio, sugere nome limpo
+          if (tipo === 'documento' && parentCard) {
+            const nomeInput = parentCard.querySelector('.doc-nome, .rel-titulo');
+            if (nomeInput && (!nomeInput.value || nomeInput.value.includes("Novo Documento"))) {
+              let sugestao = file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
+              nomeInput.value = sugestao.charAt(0).toUpperCase() + sugestao.slice(1);
+            }
+          }
+
+          // Se for imagem, atualiza o preview visual no card
+          if (targetInputSelector === '#adm-hero-foto') {
+            const heroPrev = document.getElementById('preview-hero-foto');
+            if (heroPrev) heroPrev.src = res.url;
+          } else if (parentCard) {
+            const imgPreview = parentCard.querySelector('.eq-img-preview, .proj-img-preview, .dep-img-preview, .gal-img-preview, .art-img-preview');
+            if (imgPreview) {
+              imgPreview.src = res.url;
+            }
+          }
+
+          showToast(`Arquivo "${file.name}" enviado com sucesso! Lembre-se de clicar em "Salvar Alterações".`, "sucesso");
+        } else {
+          showToast(res.erro || "Falha no envio do arquivo.", "erro");
+        }
+      } catch (err) {
+        showToast(err.message || "Erro ao conectar com o servidor.", "erro");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalBtnHtml;
+          if (window.lucide) lucide.createIcons();
+        }
+        currentUploadContext = null;
+        event.target.value = "";
+      }
+    }
+
+    // ==============================================================
+    // SINCRONIZADORES DO DOM (PREVINE PERDA DE DADOS AO ADICIONAR/REMOVER)
+    // ==============================================================
+    function syncDocumentosLegaisFromDOM() {
+      const docCards = document.querySelectorAll("#adm-docs-legais-lista > div");
+      if (docCards.length > 0 && globalConfig) {
+        if (!globalConfig.transparencia) globalConfig.transparencia = {};
+        globalConfig.transparencia.documentos_legais = Array.from(docCards).map(card => ({
+          nome: card.querySelector(".doc-nome")?.value || "",
+          descricao: card.querySelector(".doc-desc")?.value || "",
+          arquivo: card.querySelector(".doc-arquivo")?.value || ""
+        }));
+      }
+    }
+
+    function syncRelatoriosAtividadesFromDOM() {
+      const relCards = document.querySelectorAll("#adm-relatorios-lista > div");
+      if (relCards.length > 0 && globalConfig) {
+        if (!globalConfig.transparencia) globalConfig.transparencia = {};
+        globalConfig.transparencia.relatorios_atividades = Array.from(relCards).map(card => ({
+          ano: card.querySelector(".rel-ano")?.value || "",
+          titulo: card.querySelector(".rel-titulo")?.value || "",
+          status: card.querySelector(".rel-status")?.value || "",
+          link: card.querySelector(".rel-link")?.value || ""
+        }));
+      }
+    }
+
+    function syncEquipeFromDOM() {
+      const eqCards = document.querySelectorAll("#adm-equipe-lista > div");
+      if (eqCards.length > 0 && globalConfig) {
+        if (!globalConfig.quem_somos) globalConfig.quem_somos = {};
+        globalConfig.quem_somos.equipe = Array.from(eqCards).map(card => ({
+          nome: card.querySelector(".eq-nome")?.value || "",
+          cargo: card.querySelector(".eq-cargo")?.value || "",
+          foto: card.querySelector(".eq-foto")?.value || "",
+          bio: card.querySelector(".eq-bio")?.value || ""
+        }));
+      }
+    }
+
+    function syncProjetosFromDOM() {
+      const projCards = document.querySelectorAll("#adm-projetos-lista > div");
+      if (projCards.length > 0 && globalConfig) {
+        if (!globalConfig.o_que_fazemos) globalConfig.o_que_fazemos = {};
+        globalConfig.o_que_fazemos.projetos = Array.from(projCards).map((card, idx) => ({
+          id: globalConfig.o_que_fazemos.projetos?.[idx]?.id || ("proj-" + idx),
+          titulo: card.querySelector(".proj-titulo")?.value || "",
+          categoria: card.querySelector(".proj-cat")?.value || "",
+          faixa_etaria: card.querySelector(".proj-idade")?.value || "",
+          horario: card.querySelector(".proj-horario")?.value || "",
+          foto: card.querySelector(".proj-foto")?.value || "",
+          descricao: card.querySelector(".proj-desc")?.value || "",
+          icone: globalConfig.o_que_fazemos.projetos?.[idx]?.icone || "book-open"
+        }));
+      }
+    }
+
+    function syncDepoimentosFromDOM() {
+      const depCards = document.querySelectorAll("#adm-depoimentos-lista > div");
+      if (depCards.length > 0 && globalConfig) {
+        if (!globalConfig.impacto) globalConfig.impacto = {};
+        globalConfig.impacto.depoimentos = Array.from(depCards).map((card, idx) => ({
+          nome: card.querySelector(".dep-nome")?.value || "",
+          cargo: card.querySelector(".dep-cargo")?.value || "",
+          foto: card.querySelector(".dep-foto")?.value || "",
+          texto: card.querySelector(".dep-texto")?.value || "",
+          autorizacao: globalConfig.impacto.depoimentos?.[idx]?.autorizacao || "Depoimento autorizado"
+        }));
+      }
+    }
+
+    function syncGaleriaFromDOM() {
+      const galCards = document.querySelectorAll("#adm-galeria-lista > div");
+      if (galCards.length > 0 && globalConfig) {
+        if (!globalConfig.impacto) globalConfig.impacto = {};
+        globalConfig.impacto.galeria = Array.from(galCards).map(card => ({
+          titulo: card.querySelector(".gal-titulo")?.value || "",
+          categoria: card.querySelector(".gal-cat")?.value || "",
+          url: card.querySelector(".gal-url")?.value || ""
+        }));
+      }
+    }
+
+    function syncNoticiasFromDOM() {
+      const artCards = document.querySelectorAll("#adm-blog-artigos-lista > div");
+      if (artCards.length > 0 && globalConfig) {
+        if (!globalConfig.noticias_blog) globalConfig.noticias_blog = {};
+        globalConfig.noticias_blog.artigos = Array.from(artCards).map((card, idx) => ({
+          id: globalConfig.noticias_blog.artigos?.[idx]?.id || ("noticia-" + idx),
+          titulo: card.querySelector(".art-titulo")?.value || "",
+          data: card.querySelector(".art-data")?.value || "",
+          categoria: card.querySelector(".art-cat")?.value || "",
+          foto: card.querySelector(".art-foto")?.value || "",
+          resumo: card.querySelector(".art-resumo")?.value || "",
+          conteudo_completo: card.querySelector(".art-conteudo")?.value || ""
+        }));
+      }
     }
 
     async function verificarAutenticacao() {
@@ -732,30 +975,46 @@
       if (!container) return;
       const docs = globalConfig.transparencia?.documentos_legais || [];
       if (docs.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-400 italic">Nenhum documento legal cadastrado.</p>`;
+        container.innerHTML = `<div class="p-6 text-center bg-slate-50 rounded-xl border border-dashed border-slate-300">
+          <p class="text-xs text-slate-500 font-medium mb-2">Nenhum documento cadastrado ainda.</p>
+          <button type="button" onclick="adicionarDocumentoLegal()" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold inline-flex items-center gap-1 shadow-sm">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Adicionar Primeiro Documento
+          </button>
+        </div>`;
+        if (window.lucide) lucide.createIcons();
         return;
       }
       container.innerHTML = docs.map((doc, idx) => `
-        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 relative space-y-3">
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 relative space-y-3 doc-card-item transition-all hover:border-slate-300">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-700 uppercase">Documento #${idx + 1}</span>
-            <button type="button" onclick="removerDocumentoLegal(${idx})" class="text-red-600 hover:text-red-800 text-xs font-bold flex items-center gap-1">
+            <span class="text-xs font-bold text-slate-700 uppercase flex items-center gap-1.5">
+              <i data-lucide="file-text" class="w-4 h-4 text-emerald-600"></i> Documento Oficial #${idx + 1}
+            </span>
+            <button type="button" onclick="removerDocumentoLegal(${idx})" class="text-red-600 hover:text-red-800 text-xs font-bold flex items-center gap-1 px-2 py-1 rounded hover:bg-red-50 transition" title="Excluir este documento">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Excluir
             </button>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Nome do Documento</label>
-              <input type="text" class="doc-nome w-full p-2 border rounded-lg text-xs bg-white" value="${doc.nome || ''}" placeholder="Ex.: Estatuto Social Registrado">
+              <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Nome do Documento Oficial</label>
+              <input type="text" class="doc-nome w-full p-2 border rounded-lg text-xs bg-white font-bold text-slate-800" value="${doc.nome || ''}" placeholder="Ex.: Estatuto Social Registrado">
             </div>
             <div>
-              <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Link / Arquivo do PDF</label>
-              <input type="text" class="doc-arquivo w-full p-2 border rounded-lg text-xs bg-white font-mono" value="${doc.arquivo || ''}" placeholder="Ex.: /public/docs/estatuto.pdf ou link do Google Drive">
+              <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Arquivo do PDF ou Link</label>
+              <div class="flex items-center gap-1.5">
+                <input type="text" class="doc-arquivo flex-1 p-2 border rounded-lg text-xs bg-white font-mono" value="${doc.arquivo || ''}" placeholder="/docs/estatuto.pdf ou link Google Drive">
+                <button type="button" onclick="abrirSeletorArquivo(this, 'documento', '.doc-arquivo')" class="px-2.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 whitespace-nowrap shadow-sm transition" title="Subir arquivo PDF do seu computador">
+                  <i data-lucide="upload" class="w-3.5 h-3.5"></i> Subir PDF
+                </button>
+                <button type="button" onclick="testarAbrirLink(this.closest('.space-y-3').querySelector('.doc-arquivo').value)" class="p-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-bold flex items-center justify-center transition" title="Testar e abrir arquivo em nova aba">
+                  <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
             </div>
           </div>
           <div>
-            <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Descrição Curta</label>
-            <input type="text" class="doc-desc w-full p-2 border rounded-lg text-xs bg-white" value="${doc.descricao || ''}" placeholder="Ex.: Registrado no 4º Cartório de Registro Civil">
+            <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Descrição Curta / Órgão Emissor</label>
+            <input type="text" class="doc-desc w-full p-2 border rounded-lg text-xs bg-white text-slate-700" value="${doc.descricao || ''}" placeholder="Ex.: Registrado no 4º Cartório de Registro Civil de Pessoas Jurídicas">
           </div>
         </div>
       `).join("");
@@ -763,19 +1022,40 @@
     }
 
     function adicionarDocumentoLegal() {
+      if (!globalConfig) {
+        showToast("Aguarde o carregamento dos dados...", "aviso");
+        return;
+      }
+      syncDocumentosLegaisFromDOM();
       if (!globalConfig.transparencia) globalConfig.transparencia = {};
       if (!globalConfig.transparencia.documentos_legais) globalConfig.transparencia.documentos_legais = [];
-      globalConfig.transparencia.documentos_legais.push({
+
+      // Insere no topo da lista para ficar visível imediatamente
+      globalConfig.transparencia.documentos_legais.unshift({
         nome: "Novo Documento Oficial",
         descricao: "Descrição do documento e órgão emissor",
-        arquivo: "/public/docs/documento.pdf"
+        arquivo: ""
       });
       renderizarDocumentosLegais();
+      showToast("Novo documento adicionado no topo da lista!", "sucesso");
+
+      const primeiroCard = document.querySelector("#adm-docs-legais-lista .doc-card-item");
+      if (primeiroCard) {
+        primeiroCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        const inputNome = primeiroCard.querySelector('.doc-nome');
+        if (inputNome) {
+          inputNome.focus();
+          inputNome.select();
+        }
+      }
     }
 
     function removerDocumentoLegal(idx) {
+      if (!confirm("Tem certeza que deseja excluir este documento da página?")) return;
+      syncDocumentosLegaisFromDOM();
       globalConfig.transparencia.documentos_legais.splice(idx, 1);
       renderizarDocumentosLegais();
+      showToast("Documento removido da lista.", "info");
     }
 
     // Transparência: Relatórios Anuais
@@ -784,34 +1064,50 @@
       if (!container) return;
       const rels = globalConfig.transparencia?.relatorios_atividades || [];
       if (rels.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-400 italic">Nenhum relatório cadastrado.</p>`;
+        container.innerHTML = `<div class="p-6 text-center bg-slate-50 rounded-xl border border-dashed border-slate-300">
+          <p class="text-xs text-slate-500 font-medium mb-2">Nenhum relatório anual cadastrado ainda.</p>
+          <button type="button" onclick="adicionarRelatorioAtividade()" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold inline-flex items-center gap-1 shadow-sm">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Adicionar Relatório Anual
+          </button>
+        </div>`;
+        if (window.lucide) lucide.createIcons();
         return;
       }
       container.innerHTML = rels.map((r, idx) => `
-        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 relative space-y-3">
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 relative space-y-3 rel-card-item transition-all hover:border-slate-300">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-700 uppercase">Relatório #${idx + 1} (${r.ano || ''})</span>
-            <button type="button" onclick="removerRelatorioAtividade(${idx})" class="text-red-600 hover:text-red-800 text-xs font-bold flex items-center gap-1">
+            <span class="text-xs font-bold text-slate-700 uppercase flex items-center gap-1.5">
+              <i data-lucide="file-bar-chart" class="w-4 h-4 text-emerald-600"></i> Relatório #${idx + 1} (${r.ano || 'Ano'})
+            </span>
+            <button type="button" onclick="removerRelatorioAtividade(${idx})" class="text-red-600 hover:text-red-800 text-xs font-bold flex items-center gap-1 px-2 py-1 rounded hover:bg-red-50 transition" title="Excluir este relatório">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Excluir
             </button>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Ano</label>
-              <input type="text" class="rel-ano w-full p-2 border rounded-lg text-xs bg-white font-bold" value="${r.ano || ''}" placeholder="2025">
+              <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Ano de Exercício</label>
+              <input type="text" class="rel-ano w-full p-2 border rounded-lg text-xs bg-white font-bold" value="${r.ano || ''}" placeholder="Ex.: 2026">
             </div>
             <div>
-              <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Status</label>
-              <input type="text" class="rel-status w-full p-2 border rounded-lg text-xs bg-white" value="${r.status || ''}" placeholder="Auditado e Aprovado">
+              <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Status da Auditoria</label>
+              <input type="text" class="rel-status w-full p-2 border rounded-lg text-xs bg-white" value="${r.status || ''}" placeholder="Ex.: Auditado e Aprovado">
             </div>
             <div>
-              <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Link do PDF</label>
-              <input type="text" class="rel-link w-full p-2 border rounded-lg text-xs bg-white font-mono" value="${r.link || ''}" placeholder="/public/docs/relatorio_2025.pdf">
+              <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Arquivo PDF ou Link</label>
+              <div class="flex items-center gap-1.5">
+                <input type="text" class="rel-link flex-1 p-2 border rounded-lg text-xs bg-white font-mono" value="${r.link || ''}" placeholder="/docs/relatorio.pdf ou link">
+                <button type="button" onclick="abrirSeletorArquivo(this, 'documento', '.rel-link')" class="px-2.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 whitespace-nowrap shadow-sm transition" title="Subir arquivo PDF do seu computador">
+                  <i data-lucide="upload" class="w-3.5 h-3.5"></i> Subir PDF
+                </button>
+                <button type="button" onclick="testarAbrirLink(this.closest('.space-y-3').querySelector('.rel-link').value)" class="p-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-bold flex items-center justify-center transition" title="Testar e abrir arquivo em nova aba">
+                  <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
             </div>
           </div>
           <div>
             <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Título do Relatório</label>
-            <input type="text" class="rel-titulo w-full p-2 border rounded-lg text-xs bg-white" value="${r.titulo || ''}" placeholder="Relatório Anual de Atividades e DRE 2025">
+            <input type="text" class="rel-titulo w-full p-2 border rounded-lg text-xs bg-white text-slate-800 font-medium" value="${r.titulo || ''}" placeholder="Ex.: Relatório Anual de Atividades e DRE 2026">
           </div>
         </div>
       `).join("");
@@ -819,6 +1115,11 @@
     }
 
     function adicionarRelatorioAtividade() {
+      if (!globalConfig) {
+        showToast("Aguarde o carregamento dos dados...", "aviso");
+        return;
+      }
+      syncRelatoriosAtividadesFromDOM();
       if (!globalConfig.transparencia) globalConfig.transparencia = {};
       if (!globalConfig.transparencia.relatorios_atividades) globalConfig.transparencia.relatorios_atividades = [];
       const anoAtual = new Date().getFullYear();
@@ -826,14 +1127,28 @@
         ano: String(anoAtual),
         titulo: `Relatório Anual de Atividades e DRE ${anoAtual}`,
         status: "Auditado e Aprovado",
-        link: `/public/docs/relatorio_anual_${anoAtual}.pdf`
+        link: ""
       });
       renderizarRelatoriosAtividades();
+      showToast("Novo relatório anual adicionado no topo da lista!", "sucesso");
+
+      const primeiroCard = document.querySelector("#adm-relatorios-lista .rel-card-item");
+      if (primeiroCard) {
+        primeiroCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        const inputAno = primeiroCard.querySelector('.rel-ano');
+        if (inputAno) {
+          inputAno.focus();
+          inputAno.select();
+        }
+      }
     }
 
     function removerRelatorioAtividade(idx) {
+      if (!confirm("Tem certeza que deseja excluir este relatório da página?")) return;
+      syncRelatoriosAtividadesFromDOM();
       globalConfig.transparencia.relatorios_atividades.splice(idx, 1);
       renderizarRelatoriosAtividades();
+      showToast("Relatório anual removido.", "info");
     }
 
     // Transparência: Destinação Recursos
@@ -884,8 +1199,13 @@
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
             <div class="sm:col-span-10">
-              <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">URL da Foto</label>
-              <input type="text" oninput="this.closest('.space-y-3').querySelector('.eq-img-preview').src = this.value" class="eq-foto w-full p-2 border rounded-lg text-xs bg-white font-mono" value="${m.foto || ''}">
+              <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">URL da Foto ou Upload</label>
+              <div class="flex items-center gap-1.5">
+                <input type="text" oninput="this.closest('.space-y-3').querySelector('.eq-img-preview').src = this.value" class="eq-foto flex-1 p-2 border rounded-lg text-xs bg-white font-mono" value="${m.foto || ''}" placeholder="/assets/img/membro.jpg ou link">
+                <button type="button" onclick="abrirSeletorArquivo(this, 'imagem', '.eq-foto')" class="px-2.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 whitespace-nowrap shadow-sm transition" title="Subir foto do seu computador">
+                  <i data-lucide="upload" class="w-3.5 h-3.5"></i> Subir Foto
+                </button>
+              </div>
             </div>
             <div class="sm:col-span-2 flex justify-center">
               <img src="${m.foto || ''}" alt="Foto" class="eq-img-preview w-12 h-12 rounded-full object-cover bg-slate-200 border border-slate-300">
@@ -901,20 +1221,26 @@
     }
 
     function adicionarMembroEquipe() {
+      if (!globalConfig) return;
+      syncEquipeFromDOM();
       if (!globalConfig.quem_somos) globalConfig.quem_somos = {};
       if (!globalConfig.quem_somos.equipe) globalConfig.quem_somos.equipe = [];
-      globalConfig.quem_somos.equipe.push({
+      globalConfig.quem_somos.equipe.unshift({
         nome: "Novo Membro",
         cargo: "Educador(a) / Voluntário(a)",
         foto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop",
         bio: "Dedicação e experiência no atendimento socioeducativo comunitário."
       });
       renderizarEquipe();
+      showToast("Novo membro adicionado no topo da lista!", "sucesso");
     }
 
     function removerMembroEquipe(idx) {
+      if (!confirm("Deseja remover este membro da equipe?")) return;
+      syncEquipeFromDOM();
       globalConfig.quem_somos.equipe.splice(idx, 1);
       renderizarEquipe();
+      showToast("Membro removido.", "info");
     }
 
     // Projetos
@@ -952,8 +1278,13 @@
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
             <div class="sm:col-span-10">
-              <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">URL da Foto do Projeto</label>
-              <input type="text" oninput="this.closest('.space-y-3').querySelector('.proj-img-preview').src = this.value" class="proj-foto w-full p-2 border rounded-lg text-xs bg-white font-mono" value="${p.foto || ''}">
+              <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Foto do Projeto</label>
+              <div class="flex items-center gap-1.5">
+                <input type="text" oninput="this.closest('.space-y-3').querySelector('.proj-img-preview').src = this.value" class="proj-foto flex-1 p-2 border rounded-lg text-xs bg-white font-mono" value="${p.foto || ''}" placeholder="/assets/img/projeto.jpg ou link">
+                <button type="button" onclick="abrirSeletorArquivo(this, 'imagem', '.proj-foto')" class="px-2.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 whitespace-nowrap shadow-sm transition" title="Subir foto do seu computador">
+                  <i data-lucide="upload" class="w-3.5 h-3.5"></i> Subir Foto
+                </button>
+              </div>
             </div>
             <div class="sm:col-span-2 flex justify-center">
               <img src="${p.foto || ''}" alt="Foto" class="proj-img-preview w-16 h-12 rounded-lg object-cover bg-slate-200 border border-slate-300">
@@ -969,9 +1300,11 @@
     }
 
     function adicionarProjeto() {
+      if (!globalConfig) return;
+      syncProjetosFromDOM();
       if (!globalConfig.o_que_fazemos) globalConfig.o_que_fazemos = {};
       if (!globalConfig.o_que_fazemos.projetos) globalConfig.o_que_fazemos.projetos = [];
-      globalConfig.o_que_fazemos.projetos.push({
+      globalConfig.o_que_fazemos.projetos.unshift({
         id: "novo-projeto-" + Date.now(),
         titulo: "Novo Projeto Comunitário",
         categoria: "Educação & Cultura",
@@ -982,11 +1315,15 @@
         foto: "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=600&auto=format&fit=crop"
       });
       renderizarProjetos();
+      showToast("Novo projeto adicionado no topo da lista!", "sucesso");
     }
 
     function removerProjeto(idx) {
+      if (!confirm("Deseja remover este projeto?")) return;
+      syncProjetosFromDOM();
       globalConfig.o_que_fazemos.projetos.splice(idx, 1);
       renderizarProjetos();
+      showToast("Projeto removido.", "info");
     }
 
     // Métricas
@@ -1038,8 +1375,13 @@
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
             <div class="sm:col-span-10">
-              <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">URL da Foto</label>
-              <input type="text" oninput="this.closest('.space-y-3').querySelector('.dep-img-preview').src = this.value" class="dep-foto w-full p-2 border rounded-lg text-xs bg-white font-mono" value="${d.foto || ''}">
+              <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Foto da Pessoa</label>
+              <div class="flex items-center gap-1.5">
+                <input type="text" oninput="this.closest('.space-y-3').querySelector('.dep-img-preview').src = this.value" class="dep-foto flex-1 p-2 border rounded-lg text-xs bg-white font-mono" value="${d.foto || ''}" placeholder="/assets/img/pessoa.jpg ou link">
+                <button type="button" onclick="abrirSeletorArquivo(this, 'imagem', '.dep-foto')" class="px-2.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 whitespace-nowrap shadow-sm transition" title="Subir foto do seu computador">
+                  <i data-lucide="upload" class="w-3.5 h-3.5"></i> Subir Foto
+                </button>
+              </div>
             </div>
             <div class="sm:col-span-2 flex justify-center">
               <img src="${d.foto || ''}" alt="Foto" class="dep-img-preview w-10 h-10 rounded-full object-cover bg-slate-200 border border-slate-300">
@@ -1055,9 +1397,11 @@
     }
 
     function adicionarDepoimento() {
+      if (!globalConfig) return;
+      syncDepoimentosFromDOM();
       if (!globalConfig.impacto) globalConfig.impacto = {};
       if (!globalConfig.impacto.depoimentos) globalConfig.impacto.depoimentos = [];
-      globalConfig.impacto.depoimentos.push({
+      globalConfig.impacto.depoimentos.unshift({
         nome: "Nome do Apoiador / Mãe",
         cargo: "Comunidade Jardim Esperança",
         texto: "O projeto transformou o dia a dia e o aprendizado das nossas crianças.",
@@ -1065,11 +1409,15 @@
         autorizacao: "Depoimento e imagem autorizados"
       });
       renderizarDepoimentos();
+      showToast("Novo depoimento adicionado no topo da lista!", "sucesso");
     }
 
     function removerDepoimento(idx) {
+      if (!confirm("Deseja remover este depoimento?")) return;
+      syncDepoimentosFromDOM();
       globalConfig.impacto.depoimentos.splice(idx, 1);
       renderizarDepoimentos();
+      showToast("Depoimento removido.", "info");
     }
 
     // Galeria de Fotos
@@ -1090,8 +1438,13 @@
               <input type="text" class="gal-cat w-full p-1.5 border rounded-lg text-xs bg-white" value="${g.categoria || ''}">
             </div>
             <div class="sm:col-span-2">
-              <label class="block text-[10px] font-bold text-slate-500 uppercase">URL da Imagem (.jpg / .png)</label>
-              <input type="text" oninput="this.closest('.p-3').querySelector('.gal-img-preview').src = this.value" class="gal-url w-full p-1.5 border rounded-lg text-xs bg-white font-mono" value="${g.url || ''}">
+              <label class="block text-[10px] font-bold text-slate-500 uppercase">Arquivo da Imagem ou Link</label>
+              <div class="flex items-center gap-1.5">
+                <input type="text" oninput="this.closest('.p-3').querySelector('.gal-img-preview').src = this.value" class="gal-url flex-1 p-1.5 border rounded-lg text-xs bg-white font-mono" value="${g.url || ''}" placeholder="/assets/img/acao.jpg ou link">
+                <button type="button" onclick="abrirSeletorArquivo(this, 'imagem', '.gal-url')" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 whitespace-nowrap shadow-sm transition" title="Subir foto do seu computador">
+                  <i data-lucide="upload" class="w-3.5 h-3.5"></i> Subir Foto
+                </button>
+              </div>
             </div>
           </div>
           <button type="button" onclick="removerFotoGaleria(${idx})" class="p-2 text-red-600 hover:text-red-800 rounded-lg hover:bg-red-50" title="Excluir imagem">
@@ -1103,19 +1456,25 @@
     }
 
     function adicionarFotoGaleria() {
+      if (!globalConfig) return;
+      syncGaleriaFromDOM();
       if (!globalConfig.impacto) globalConfig.impacto = {};
       if (!globalConfig.impacto.galeria) globalConfig.impacto.galeria = [];
-      globalConfig.impacto.galeria.push({
+      globalConfig.impacto.galeria.unshift({
         titulo: "Nova Ação em Campo",
         categoria: "Oficinas",
         url: "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=800&auto=format&fit=crop"
       });
       renderizarGaleria();
+      showToast("Nova foto adicionada no topo da galeria!", "sucesso");
     }
 
     function removerFotoGaleria(idx) {
+      if (!confirm("Deseja remover esta foto da galeria?")) return;
+      syncGaleriaFromDOM();
       globalConfig.impacto.galeria.splice(idx, 1);
       renderizarGaleria();
+      showToast("Foto removida da galeria.", "info");
     }
 
     // Notícias & Blog
@@ -1147,8 +1506,13 @@
               <input type="text" class="art-cat w-full p-2 border rounded-lg text-xs bg-white" value="${a.categoria || ''}">
             </div>
             <div class="sm:col-span-6">
-              <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">URL da Foto</label>
-              <input type="text" oninput="this.closest('.space-y-3').querySelector('.art-img-preview').src = this.value" class="art-foto w-full p-2 border rounded-lg text-xs bg-white font-mono" value="${a.foto || ''}">
+              <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Foto da Notícia</label>
+              <div class="flex items-center gap-1.5">
+                <input type="text" oninput="this.closest('.space-y-3').querySelector('.art-img-preview').src = this.value" class="art-foto flex-1 p-2 border rounded-lg text-xs bg-white font-mono" value="${a.foto || ''}" placeholder="/assets/img/noticia.jpg ou link">
+                <button type="button" onclick="abrirSeletorArquivo(this, 'imagem', '.art-foto')" class="px-2.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 whitespace-nowrap shadow-sm transition" title="Subir foto do seu computador">
+                  <i data-lucide="upload" class="w-3.5 h-3.5"></i> Subir Foto
+                </button>
+              </div>
             </div>
             <div class="sm:col-span-2 flex justify-center">
               <img src="${a.foto || ''}" alt="Foto" class="art-img-preview w-16 h-12 rounded-lg object-cover bg-slate-200 border border-slate-300">
@@ -1168,6 +1532,8 @@
     }
 
     function adicionarNoticia() {
+      if (!globalConfig) return;
+      syncNoticiasFromDOM();
       if (!globalConfig.noticias_blog) globalConfig.noticias_blog = {};
       if (!globalConfig.noticias_blog.artigos) globalConfig.noticias_blog.artigos = [];
       globalConfig.noticias_blog.artigos.unshift({
@@ -1180,11 +1546,15 @@
         foto: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=600&auto=format&fit=crop"
       });
       renderizarNoticiasBlog();
+      showToast("Nova notícia adicionada no topo!", "sucesso");
     }
 
     function removerNoticia(idx) {
+      if (!confirm("Deseja remover esta notícia?")) return;
+      syncNoticiasFromDOM();
       globalConfig.noticias_blog.artigos.splice(idx, 1);
       renderizarNoticiasBlog();
+      showToast("Notícia removida.", "info");
     }
 
     // PIX Preview Generator
@@ -1539,11 +1909,24 @@
       if (!container) return;
 
       const toast = document.createElement("div");
-      const bgCor = tipo === "sucesso" ? "bg-emerald-600 text-white" : "bg-red-600 text-white";
+      let bgCor = "bg-emerald-600 text-white";
+      let icone = "check-circle-2";
 
-      toast.className = `flex items-center gap-3 p-4 rounded-xl shadow-xl ${bgCor} text-sm font-medium transition-all duration-300`;
-      toast.innerHTML = `<div class="flex-1">${mensagem}</div>`;
+      if (tipo === "erro") {
+        bgCor = "bg-red-600 text-white";
+        icone = "alert-circle";
+      } else if (tipo === "aviso") {
+        bgCor = "bg-amber-600 text-white";
+        icone = "alert-triangle";
+      } else if (tipo === "info") {
+        bgCor = "bg-slate-800 text-white";
+        icone = "info";
+      }
+
+      toast.className = `flex items-center gap-3 p-4 rounded-xl shadow-xl ${bgCor} text-sm font-medium transition-all duration-300 border border-white/10`;
+      toast.innerHTML = `<i data-lucide="${icone}" class="w-4 h-4 flex-shrink-0"></i><div class="flex-1">${mensagem}</div>`;
       container.appendChild(toast);
+      if (window.lucide) lucide.createIcons();
 
       setTimeout(() => {
         toast.style.opacity = "0";

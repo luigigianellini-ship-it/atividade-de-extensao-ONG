@@ -15,6 +15,7 @@ import os
 import sys
 import re
 import json
+import base64
 import sqlite3
 import mimetypes
 import hashlib
@@ -32,8 +33,12 @@ CONFIG_FILE = os.path.join(DATA_DIR, "config.json")
 DB_FILE = os.path.join(DATA_DIR, "ong.db")
 
 # Garante diretórios
+DOCS_DIR = os.path.join(PUBLIC_DIR, "docs")
+IMG_DIR = os.path.join(PUBLIC_DIR, "assets", "img")
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(PUBLIC_DIR, exist_ok=True)
+os.makedirs(DOCS_DIR, exist_ok=True)
+os.makedirs(IMG_DIR, exist_ok=True)
 
 def load_env():
     """Carrega variáveis de ambiente a partir do arquivo local .env (sem dependências externas)."""
@@ -675,6 +680,81 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 })
             except Exception as e:
                 self.send_json({"sucesso": False, "erro": f"Erro ao salvar configurações: {str(e)}"}, 500)
+            return
+
+        elif path == '/api/upload':
+            if not self.is_authenticated():
+                self.send_json({"sucesso": False, "erro": "Acesso não autorizado. Faça login como administrador."}, 401)
+                return
+
+            nome_arquivo = body_json.get('nome_arquivo', '').strip()
+            conteudo_b64 = body_json.get('conteudo_b64', '').strip()
+            tipo = body_json.get('tipo', 'documento').strip().lower()
+
+            if not nome_arquivo or not conteudo_b64:
+                self.send_json({"sucesso": False, "erro": "Arquivo ou conteúdo não fornecido."}, 400)
+                return
+
+            # Remove prefixo data URI se presente (ex.: data:application/pdf;base64,....)
+            if ',' in conteudo_b64 and 'base64' in conteudo_b64.split(',', 1)[0]:
+                conteudo_b64 = conteudo_b64.split(',', 1)[1]
+
+            # Sanitização e validação da extensão
+            _, ext = os.path.splitext(nome_arquivo.lower())
+            extensoes_permitidas_docs = {'.pdf', '.doc', '.docx', '.xls', '.xlsx', '.odt', '.ods', '.txt', '.csv'}
+            extensoes_permitidas_imgs = {'.png', '.jpg', '.jpeg', '.webp', '.svg', '.gif'}
+            todas_extensoes_permitidas = extensoes_permitidas_docs | extensoes_permitidas_imgs
+
+            if ext not in todas_extensoes_permitidas:
+                self.send_json({
+                    "sucesso": False,
+                    "erro": f"Extensão '{ext}' não permitida. Envie arquivos PDF, documentos ou imagens."
+                }, 400)
+                return
+
+            # Sanitiza nome do arquivo
+            base_nome = os.path.splitext(os.path.basename(nome_arquivo))[0]
+            base_nome = re.sub(r'[^a-zA-Z0-9_\-]', '_', base_nome)
+            if not base_nome:
+                base_nome = "arquivo"
+
+            # Gera sufixo único com timestamp para não sobrescrever arquivos antigos
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            nome_limpo = f"{base_nome}_{timestamp}{ext}"
+
+            # Determina pasta de destino e URL pública
+            if ext in extensoes_permitidas_imgs or tipo == 'imagem':
+                destino_dir = IMG_DIR
+                url_publica = f"/assets/img/{nome_limpo}"
+            else:
+                destino_dir = DOCS_DIR
+                url_publica = f"/docs/{nome_limpo}"
+
+            try:
+                dados_binarios = base64.b64decode(conteudo_b64)
+            except Exception as e:
+                self.send_json({"sucesso": False, "erro": f"Falha ao decodificar arquivo base64: {str(e)}"}, 400)
+                return
+
+            # Limite de tamanho (25 MB)
+            if len(dados_binarios) > 25 * 1024 * 1024:
+                self.send_json({"sucesso": False, "erro": "Arquivo muito grande. O limite máximo é de 25MB."}, 400)
+                return
+
+            caminho_final = os.path.join(destino_dir, nome_limpo)
+            try:
+                with open(caminho_final, 'wb') as f:
+                    f.write(dados_binarios)
+
+                self.send_json({
+                    "sucesso": True,
+                    "mensagem": "Arquivo enviado e salvo com sucesso!",
+                    "url": url_publica,
+                    "nome_arquivo": nome_limpo,
+                    "tamanho_bytes": len(dados_binarios)
+                })
+            except Exception as e:
+                self.send_json({"sucesso": False, "erro": f"Erro ao salvar arquivo no servidor: {str(e)}"}, 500)
             return
 
         self.send_json({"sucesso": False, "erro": "Rota POST não encontrada"}, 404)
