@@ -73,7 +73,7 @@ def verify_password(password, stored_hash, salt):
 def create_admin_session(username):
     token = secrets.token_hex(32)
     criado_em = datetime.now()
-    expira_em = criado_em + timedelta(days=7)
+    expira_em = criado_em + timedelta(days=1)  # Token expira em exatamente 1 dia (24 horas)
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -416,7 +416,7 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 return
 
             token = create_admin_session(username)
-            cookie_val = f"admin_token={token}; Path=/; HttpOnly; SameSite=Lax"
+            cookie_val = f"admin_token={token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400"
             self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.send_header('Set-Cookie', cookie_val)
