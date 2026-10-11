@@ -14,9 +14,9 @@
     "utilidade_publica": "Declaração de Utilidade Pública Municipal Lei nº 5.821/2021"
   },
   "hero": {
-    "badge": "🌱 Atuação em campo com amor e transparência",
-    "titulo_destaque": "Reforço escolar gratuito, cultura e acolhimento para crianças da comunidade.",
-    "subtitulo": "Acreditamos que a educação transforma realidades. Atendemos mais de 450 crianças e suas famílias no contraturno escolar com alimentação, apoio pedagógico e oficinas extracurriculares.",
+    "badge": "🌱 Educação e Futuro para Crianças",
+    "titulo_destaque": "Educação, acolhimento e futuro para crianças da comunidade.",
+    "subtitulo": "Apoio pedagógico, alimentação saudável e oficinas gratuitas no contraturno escolar para mais de 450 crianças e suas famílias.",
     "foto_url": "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=1200&auto=format&fit=crop",
     "foto_legenda": "Oficina de leitura e contação de histórias com nossos educandos",
     "video_url": "",
@@ -27,17 +27,17 @@
       "link_acao": "#como-ajudar"
     },
     "botoes": {
-      "doar": "Doe Agora",
+      "doar": "Doe pelo PIX",
       "voluntario": "Seja Voluntário",
-      "contato": "Fale Conosco"
+      "contato": "Contato"
     }
   },
   "quem_somos": {
     "titulo": "Quem Somos",
-    "subtitulo": "Nossa trajetória, nossos princípios e as pessoas dedicadas a fazer a diferença todos os dias.",
-    "historia": "O Instituto Sementes do Amanhã nasceu em maio de 2018 na garagem de uma professora aposentada da comunidade, preocupada com as crianças que ficavam sozinhas nas ruas após a escola. O que começou com 12 alunos e doações de cadernos usados cresceu com a força da união de voluntários, educadores e apoiadores. Hoje contamos com sede comunitária própria, biblioteca com mais de 3.000 títulos e uma cozinha industrial solidária.",
-    "missao": "Garantir educação complementar de excelência, nutrição adequada e acolhimento socioemocional a crianças e jovens em situação de vulnerabilidade, fomentando sua autonomia e cidadania.",
-    "visao": "Ser polo de referência comunitária em transformação social até 2030, erradicando a evasão escolar e impulsionando 100% de nossos jovens concluintes ao ensino técnico ou superior.",
+    "subtitulo": "Conheça nosso compromisso em acolher e educar crianças para um futuro com mais oportunidades.",
+    "historia": "O Instituto Sementes do Amanhã nasceu da união de educadores voluntários para acolher crianças no contraturno escolar. O que começou com aulas de reforço e cadernos doados hoje é um polo comunitário com biblioteca, oficinas pedagógicas e alimentação saudável diária para centenas de famílias.",
+    "missao": "Oferecer educação complementar, alimentação de qualidade e acolhimento socioemocional a crianças em vulnerabilidade, fortalecendo sua autonomia.",
+    "visao": "Ser referência comunitária em transformação social até 2030, erradicando a evasão escolar na nossa região.",
     "valores": [
       {
         "titulo": "Empatia e Amor",
@@ -60,34 +60,34 @@
       {
         "nome": "Maria Antônia Silveira",
         "cargo": "Fundadora e Diretora Pedagógica",
-        "bio": "Pedagoga com mais de 30 anos de docência pública, especialista em alfabetização e gestão social.",
-        "foto": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400&auto=format&fit=crop"
+        "foto": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400&auto=format&fit=crop",
+        "bio": "Pedagoga com mais de 30 anos de docência pública, especialista em alfabetização e gestão social."
       },
       {
         "nome": "Carlos Eduardo Ribeiro",
         "cargo": "Coordenador de Projetos e Esporte",
-        "bio": "Educador físico e ex-atleta social, coordena os polos esportivos e o programa de artes marciais.",
-        "foto": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop"
+        "foto": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop",
+        "bio": "Educador físico e ex-atleta social, coordena os polos esportivos e o programa de artes marciais."
       },
       {
         "nome": "Camila Guimarães",
         "cargo": "Assistente Social & Relações Comunitárias",
-        "bio": "Mestre em Políticas Públicas, responsável pelo acolhimento familiar e triagem de vulnerabilidade.",
-        "foto": "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=400&auto=format&fit=crop"
+        "foto": "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=400&auto=format&fit=crop",
+        "bio": "Mestre em Políticas Públicas, responsável pelo acolhimento familiar e triagem de vulnerabilidade."
       },
       {
         "nome": "Rodrigo Mendes",
         "cargo": "Gestor Financeiro e Parcerias",
-        "bio": "Administrador de empresas e voluntário executivo, responsável pela prestação de contas e editais.",
-        "foto": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&auto=format&fit=crop"
+        "foto": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&auto=format&fit=crop",
+        "bio": "Administrador de empresas e voluntário executivo, responsável pela prestação de contas e editais."
       }
     ]
   },
   "o_que_fazemos": {
     "titulo": "O Que Fazemos",
-    "subtitulo": "Nossos projetos são estruturados em pilares essenciais que desenvolvem todo o potencial das crianças e suas famílias.",
-    "publico_alvo": "Crianças e adolescentes de 6 a 17 anos matriculados na rede pública de ensino, além de suas famílias em situação de vulnerabilidade socioeconômica.",
-    "regiao_atuacao": "Comunidade Jardim Esperança e bairros adjacentes (Zona Leste), abrangendo um raio de atendimento com 3 polos descentralizados.",
+    "subtitulo": "Projetos práticos no contraturno escolar que desenvolvem o aprendizado e a cidadania.",
+    "publico_alvo": "Crianças e adolescentes de 6 a 17 anos da rede pública, com suporte contínuo para suas famílias.",
+    "regiao_atuacao": "Comunidade Jardim Esperança e bairros adjacentes (Zona Leste), com 3 polos de atendimento.",
     "projetos": [
       {
         "id": "reforco-escolar",
@@ -95,9 +95,9 @@
         "categoria": "Educação",
         "faixa_etaria": "6 a 14 anos",
         "horario": "Contraturno escolar (manhã e tarde)",
+        "foto": "/assets/img/Sociedade_Esportiva_Palmeiras_logo__1_red_star__svg_20261011_192029.webp",
         "descricao": "Acompanhamento pedagógico individualizado em Português e Matemática, alfabetização lúdica e oficina de incentivo à leitura com acervo de livros infantojuvenis.",
-        "icone": "book-open",
-        "foto": "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=600&auto=format&fit=crop"
+        "icone": "book-open"
       },
       {
         "id": "esporte-cidadania",
@@ -105,9 +105,9 @@
         "categoria": "Esporte e Saúde",
         "faixa_etaria": "7 a 17 anos",
         "horario": "Terças, quintas e sábados",
+        "foto": "https://images.unsplash.com/photo-1517649763962-0c623266ddc0?q=80&w=600&auto=format&fit=crop",
         "descricao": "Prática esportiva com foco em disciplina, cooperação, autocuidado e respeito mútuo, com acompanhamento fisioterapêutico voluntário.",
-        "icone": "trophy",
-        "foto": "https://images.unsplash.com/photo-1517649763962-0c623266ddc0?q=80&w=600&auto=format&fit=crop"
+        "icone": "trophy"
       },
       {
         "id": "artes-cultura",
@@ -115,9 +115,9 @@
         "categoria": "Cultura",
         "faixa_etaria": "Livre",
         "horario": "Quartas e sextas",
+        "foto": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=600&auto=format&fit=crop",
         "descricao": "Aulas de violão, flauta doce, teatro e dança contemporânea, resgatando a autoestima e a expressão artística das nossas crianças.",
-        "icone": "music",
-        "foto": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=600&auto=format&fit=crop"
+        "icone": "music"
       },
       {
         "id": "nutricao-solidaria",
@@ -125,9 +125,9 @@
         "categoria": "Acolhimento",
         "faixa_etaria": "Todas as famílias",
         "horario": "Diário (refeições balanceadas)",
+        "foto": "https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=600&auto=format&fit=crop",
         "descricao": "Refeições quentes e balanceadas servidas diariamente para todos os atendidos, além de distribuição mensal de cestas de alimentos orgânicos para as famílias.",
-        "icone": "utensils",
-        "foto": "https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=600&auto=format&fit=crop"
+        "icone": "utensils"
       },
       {
         "id": "jovem-futuro",
@@ -135,15 +135,15 @@
         "categoria": "Juventude",
         "faixa_etaria": "14 a 18 anos",
         "horario": "Sábados intensivos",
+        "foto": "https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=600&auto=format&fit=crop",
         "descricao": "Aulas de informática prática, programação básica, elaboração de currículos, postura profissional e mentoria para processos seletivos de Jovem Aprendiz.",
-        "icone": "laptop",
-        "foto": "https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=600&auto=format&fit=crop"
+        "icone": "laptop"
       }
     ]
   },
   "impacto": {
     "titulo": "Nosso Impacto em Números",
-    "subtitulo": "Cada número representa uma vida impactada, um prato servido e uma oportunidade criada.",
+    "subtitulo": "Resultados transparentes e vidas transformadas através da educação e do acolhimento.",
     "metricas": [
       {
         "valor": "1.450+",
@@ -170,22 +170,22 @@
       {
         "nome": "Dona Cleide Souza",
         "cargo": "Mãe do Pedro (9 anos) e da Júlia (12 anos)",
-        "texto": "Antes do Instituto, eu saía para trabalhar apreensiva. Hoje meus filhos têm onde almoçar, fazem reforço escolar e o Pedro até aprendeu a tocar violão! Eles melhoraram as notas e eu tenho paz no coração.",
         "foto": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop",
+        "texto": "Antes do Instituto, eu saía para trabalhar apreensiva. Hoje meus filhos têm onde almoçar, fazem reforço escolar e o Pedro até aprendeu a tocar violão! Eles melhoraram as notas e eu tenho paz no coração.",
         "autorizacao": "Depoimento e imagem autorizados conforme termo de consentimento"
       },
       {
         "nome": "Lucas Gabriel",
         "cargo": "Ex-aluno, hoje Jovem Aprendiz em TI (17 anos)",
-        "texto": "Eu participei do laboratório de informática do projeto durante dois anos. Foi lá que montei meu primeiro currículo e aprendi lógica de programação. Semana passada fui efetivado na minha empresa!",
         "foto": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop",
+        "texto": "Eu participei do laboratório de informática do projeto durante dois anos. Foi lá que montei meu primeiro currículo e aprendi lógica de programação. Semana passada fui efetivado na minha empresa!",
         "autorizacao": "Depoimento e imagem autorizados conforme termo de consentimento"
       },
       {
         "nome": "Prof. Ana Beatriz Lima",
         "cargo": "Voluntária de Alfabetização há 3 anos",
-        "texto": "Ser voluntária aqui mudou minha visão de mundo. Ver o brilho nos olhos de uma criança que decifrou as primeiras palavras não tem preço. É um trabalho sério, transparente e feito de coração.",
         "foto": "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=200&auto=format&fit=crop",
+        "texto": "Ser voluntária aqui mudou minha visão de mundo. Ver o brilho nos olhos de uma criança que decifrou as primeiras palavras não tem preço. É um trabalho sério, transparente e feito de coração.",
         "autorizacao": "Depoimento e imagem autorizados"
       }
     ],
@@ -224,14 +224,13 @@
   },
   "como_ajudar": {
     "titulo": "Como Você Pode Ajudar",
-    "subtitulo": "Nenhuma ajuda é pequena demais. Veja as formas de fortalecer esse trabalho e transformar realidades.",
+    "subtitulo": "Contribua pelo PIX ou junte-se a nós como voluntário.",
     "pix": {
-      "chave": "17988160761",
-      "tipo_chave": "Chave E-mail",
+      "chave": "+5517988160761",
+      "tipo_chave": "Telefone Celular",
       "favorecido": "Instituto Sementes do Amanhã",
-      "banco": "Banco Cooperativo Sicredi (748)",
-      "cnpj": "12.345.678/0001-90",
-      "qrcode_img": "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=00020126580014BR.GOV.BCB.PIX0127pix@sementesdoamanha.org.br5204000053039865802BR5928Instituto%20Sementes%20Amanha6009Sao%20Paulo62070503***6304E2B1"
+      "banco": "Banco Inter",
+      "cnpj": "12.345.678/0001-90"
     },
     "dados_bancarios": {
       "banco": "Banco do Brasil (001)",
@@ -315,13 +314,13 @@
     }
   },
   "transparencia": {
-    "titulo": "Portal da Transparência",
-    "subtitulo": "Nosso maior patrimônio é a confiança da comunidade e de quem acredita na nossa causa. Prestar contas é dever ético inegociável.",
+    "titulo": "Transparência",
+    "subtitulo": "Prestação de contas aberta e documentos oficiais acessíveis a qualquer cidadão.",
     "documentos_legais": [
       {
         "nome": "Estatuto Social Registrado",
         "descricao": "Registrado no 4º Cartório de Registro Civil de Pessoas Jurídicas",
-        "arquivo": "/public/docs/estatuto_social_exemplo.pdf"
+        "arquivo": "/docs/Material_Aula_Estruturas_Programacao_C_UNIP__1__20261011_191928.pdf"
       },
       {
         "nome": "Cartão CNPJ e Comprovante de Inscrição",
@@ -365,57 +364,57 @@
         {
           "categoria": "Atividades Pedagógicas, Oficinas e Materiais",
           "percentual": 72,
-          "cor": "#10B981"
+          "cor": "#10b981"
         },
         {
           "categoria": "Alimentação Diária e Cestas Nutricionais",
           "percentual": 16,
-          "cor": "#3B82F6"
+          "cor": "#3b82f6"
         },
         {
           "categoria": "Administração, Manutenção e Prestação de Contas",
           "percentual": 12,
-          "cor": "#F59E0B"
+          "cor": "#f59e0b"
         }
       ]
     }
   },
   "noticias_blog": {
-    "titulo": "Notícias e Campanhas",
-    "subtitulo": "Fique por dentro das últimas novidades, eventos e conquistas da nossa comunidade.",
+    "titulo": "Últimas Notícias",
+    "subtitulo": "Acompanhe as ações, eventos e conquistas dos nossos educandos.",
     "artigos": [
       {
         "id": "volta-as-aulas-2026",
         "titulo": "Lançamento da Campanha Volta às Aulas: Doe um Kit Escolar",
         "data": "10 de Outubro de 2026",
         "categoria": "Campanhas",
+        "foto": "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=600&auto=format&fit=crop",
         "resumo": "Nosso objetivo é arrecadar 300 kits completos contendo mochila, cadernos, lápis de cor e uniforme para nossos educandos.",
-        "conteudo_completo": "Com o início do novo período de matrículas, iniciamos oficialmente a Campanha Volta às Aulas 2026. Um kit escolar completo custa em média R$ 60,00 e faz toda a diferença para motivar uma criança a permanecer nos estudos. Você pode doar tanto o valor pelo PIX quanto entregar materiais físicos na nossa sede até o final deste mês.",
-        "foto": "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=600&auto=format&fit=crop"
+        "conteudo_completo": "Com o início do novo período de matrículas, iniciamos oficialmente a Campanha Volta às Aulas 2026. Um kit escolar completo custa em média R$ 60,00 e faz toda a diferença para motivar uma criança a permanecer nos estudos. Você pode doar tanto o valor pelo PIX quanto entregar materiais físicos na nossa sede até o final deste mês."
       },
       {
         "id": "feira-ciencias-comunidade",
         "titulo": "Educandos conquistam 2º lugar na Feira Regional de Ciências",
         "data": "28 de Setembro de 2026",
         "categoria": "Conquistas",
+        "foto": "https://images.unsplash.com/photo-1581092921461-eab62e97a780?q=80&w=600&auto=format&fit=crop",
         "resumo": "A turma de robótica com sucata apresentou um sistema inteligente de irrigação para hortas verticais comunitárias.",
-        "conteudo_completo": "Com muito orgulho, compartilhamos que a turma orientada pelo nosso voluntário de informática conquistou o segundo lugar na Feira de Ciências da região leste. O projeto foi construído inteiramente com sensores reutilizados de eletrônicos descartados e garrafas pet. Parabéns aos jovens participantes!",
-        "foto": "https://images.unsplash.com/photo-1581092921461-eab62e97a780?q=80&w=600&auto=format&fit=crop"
+        "conteudo_completo": "Com muito orgulho, compartilhamos que a turma orientada pelo nosso voluntário de informática conquistou o segundo lugar na Feira de Ciências da região leste. O projeto foi construído inteiramente com sensores reutilizados de eletrônicos descartados e garrafas pet. Parabéns aos jovens participantes!"
       },
       {
         "id": "mutirao-saude-comunitaria",
         "titulo": "Mutirão da Saúde realiza mais de 180 atendimentos na sede",
         "data": "15 de Setembro de 2026",
         "categoria": "Eventos",
+        "foto": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=600&auto=format&fit=crop",
         "resumo": "Em parceria com estudantes universitários, oferecemos testes oftalmológicos, orientação nutricional e triagem odontológica.",
-        "conteudo_completo": "No último sábado, realizamos o nosso tradicional Mutirão da Saúde Solidária. Contamos com a participação de mais de 25 profissionais voluntários das áreas de medicina, enfermagem e odontologia. As crianças diagnosticadas com necessidade de óculos receberão armações e lentes gratuitas viabilizadas por nossa rede de padrinhos.",
-        "foto": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=600&auto=format&fit=crop"
+        "conteudo_completo": "No último sábado, realizamos o nosso tradicional Mutirão da Saúde Solidária. Contamos com a participação de mais de 25 profissionais voluntários das áreas de medicina, enfermagem e odontologia. As crianças diagnosticadas com necessidade de óculos receberão armações e lentes gratuitas viabilizadas por nossa rede de padrinhos."
       }
     ]
   },
   "contato": {
     "titulo": "Fale Conosco",
-    "subtitulo": "Quer nos conhecer de perto, propor uma parceria ou tirar dúvidas? Venha tomar um café conosco ou envie sua mensagem.",
+    "subtitulo": "Envie sua mensagem ou fale diretamente com a nossa equipe.",
     "endereco_completo": "Rua das Acácias, 450 - Bairro Jardim Esperança - São Paulo/SP - CEP 03980-000",
     "ponto_referencia": "Próximo à Escola Estadual Ayrton Senna e à UBS Jardim Esperança",
     "telefone": "(11) 3214-8765",

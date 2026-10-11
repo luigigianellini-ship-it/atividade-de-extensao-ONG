@@ -859,6 +859,16 @@
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
+      // Captura token da URL (fallback robusto para navegadores mobile que bloqueiam cookies)
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlToken = urlParams.get('token');
+      if (urlToken) {
+        sessionStorage.setItem('admin_token', urlToken);
+        localStorage.setItem('admin_token', urlToken);
+        // Remove o token da URL para não poluir a barra de endereço
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
       await verificarAutenticacao();
       await carregarDadosConfig();
       if (window.lucide) lucide.createIcons();

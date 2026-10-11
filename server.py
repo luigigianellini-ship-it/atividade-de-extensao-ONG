@@ -21,6 +21,7 @@ import mimetypes
 import hashlib
 import secrets
 from datetime import datetime, timedelta
+import socket
 from http.cookies import SimpleCookie
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
@@ -252,6 +253,7 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(f"Erro ao carregar arquivo: {str(e)}".encode('utf-8'))
 
     def get_session_token(self):
+        # 1. Verifica Cookie HTTP
         cookie_header = self.headers.get('Cookie')
         if cookie_header:
             cookie = SimpleCookie()
@@ -261,12 +263,28 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                     return cookie['admin_token'].value
             except Exception:
                 pass
+
+        # 2. Verifica Authorization Header (Bearer)
         auth_header = self.headers.get('Authorization', '')
         if auth_header.startswith('Bearer '):
             return auth_header[7:].strip()
+
+        # 3. Verifica Header Customizado
         token_hdr = self.headers.get('X-Admin-Token')
         if token_hdr:
             return token_hdr.strip()
+
+        # 4. Fallback de compatibilidade via query param (essencial para mobile/Safari/iOS)
+        try:
+            parsed = urlparse(self.path)
+            q_params = parse_qs(parsed.query)
+            if 'token' in q_params and q_params['token']:
+                return q_params['token'][0].strip()
+            if 'admin_token' in q_params and q_params['admin_token']:
+                return q_params['admin_token'][0].strip()
+        except Exception:
+            pass
+
         return None
 
     def get_authenticated_user(self):
@@ -290,13 +308,41 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
             self.send_file(os.path.join(PUBLIC_DIR, 'login.html'))
             return
         elif path == '/admin' or path == '/admin.html':
-            if not self.is_authenticated():
+            token = self.get_session_token()
+            user = verify_session_token(token) if token else None
+            if not user:
                 self.send_response(302)
                 self.send_header('Location', '/login')
                 self.send_header('Content-Length', '0')
                 self.end_headers()
                 return
-            self.send_file(os.path.join(PUBLIC_DIR, 'admin.html'))
+
+            # Renova ou garante o cookie seguro caso tenha vindo via parâmetro no celular
+            is_https = (
+                self.headers.get('X-Forwarded-Proto', '').lower() == 'https' or
+                self.headers.get('X-Forwarded-Ssl', '').lower() == 'on'
+            )
+            secure_flag = "; Secure" if is_https else ""
+            cookie_val = f"admin_token={token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400{secure_flag}"
+
+            file_path = os.path.join(PUBLIC_DIR, 'admin.html')
+            if not os.path.isfile(file_path):
+                self.send_response(404)
+                self.end_headers()
+                return
+            try:
+                with open(file_path, 'rb') as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/html; charset=utf-8')
+                self.send_header('Set-Cookie', cookie_val)
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(f"Erro ao carregar admin.html: {str(e)}".encode('utf-8'))
             return
 
         # Rotas de API
@@ -407,16 +453,24 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
 
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("SELECT password_hash, salt FROM usuarios_admin WHERE username = ?", (username,))
+            cursor.execute("SELECT username, password_hash, salt FROM usuarios_admin WHERE LOWER(username) = LOWER(?)", (username,))
             row = cursor.fetchone()
             conn.close()
 
-            if not row or not verify_password(password, row[0], row[1]):
+            if not row or not verify_password(password, row[1], row[2]):
                 self.send_json({"sucesso": False, "erro": "Usuário ou senha incorretos."}, 401)
                 return
 
-            token = create_admin_session(username)
-            cookie_val = f"admin_token={token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400"
+            db_username = row[0]
+            token = create_admin_session(db_username)
+
+            is_https = (
+                self.headers.get('X-Forwarded-Proto', '').lower() == 'https' or
+                self.headers.get('X-Forwarded-Ssl', '').lower() == 'on'
+            )
+            secure_flag = "; Secure" if is_https else ""
+            cookie_val = f"admin_token={token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400{secure_flag}"
+
             self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.send_header('Set-Cookie', cookie_val)
@@ -424,7 +478,7 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps({
                 "sucesso": True,
                 "token": token,
-                "username": username,
+                "username": db_username,
                 "mensagem": "Login realizado com sucesso!"
             }, ensure_ascii=False).encode('utf-8'))
             return
@@ -433,9 +487,14 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
             token = self.get_session_token()
             if token:
                 delete_admin_session(token)
+            is_https = (
+                self.headers.get('X-Forwarded-Proto', '').lower() == 'https' or
+                self.headers.get('X-Forwarded-Ssl', '').lower() == 'on'
+            )
+            secure_flag = "; Secure" if is_https else ""
             self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
-            self.send_header('Set-Cookie', 'admin_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0')
+            self.send_header('Set-Cookie', f'admin_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0{secure_flag}')
             self.end_headers()
             self.wfile.write(json.dumps({"sucesso": True, "mensagem": "Logout efetuado com sucesso."}).encode('utf-8'))
             return
@@ -763,10 +822,22 @@ def run_server(port=8000):
 
     server_address = ('', port)
     httpd = HTTPServer(server_address, ONGRequestHandler)
+
+    local_ip = "localhost"
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+    except Exception:
+        pass
+
     print("=" * 65)
     print(f"  [OK] Servidor da ONG / Projeto Social iniciado com sucesso!")
-    print(f"  -> Landing Page: http://localhost:{port}")
-    print(f"  -> Painel de Edicao (Admin): http://localhost:{port}/admin")
+    print(f"  -> Landing Page no Computador: http://localhost:{port}")
+    print(f"  -> Painel de Edição no Computador: http://localhost:{port}/admin")
+    if local_ip != "localhost":
+        print(f"  -> Acesso no Celular (mesmo Wi-Fi): http://{local_ip}:{port}/login")
     print(f"  -> Arquivo de dados: {CONFIG_FILE}")
     print("=" * 65)
     try:
