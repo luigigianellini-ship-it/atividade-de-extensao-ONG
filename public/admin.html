@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Edição & Gestão | Landing Page ONG</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="/assets/css/custom.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- Toast -->
+  <div id="toast-container"></div>
+
+  <!-- Header Admin -->
+  <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center font-bold">
+          <i data-lucide="settings" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h1 class="text-base font-bold leading-none">Painel de Edição da ONG</h1>
+          <span class="text-[11px] text-emerald-400">Edite todos os textos, fotos e chaves do site</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a href="/" target="_blank" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition">
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Ver Site ao Vivo
+        </a>
+        <button id="btn-salvar-tudo" onclick="salvarConfiguracoes()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-md transition">
+          <i data-lucide="save" class="w-4 h-4"></i> Salvar Alterações
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Conteúdo Principal -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- Sidebar de Navegação de Abas -->
+    <nav aria-label="Abas de configuração" class="lg:col-span-3 space-y-1 bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 h-fit sticky top-24">
+      <button onclick="trocarAba('geral')" class="aba-btn w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-3 transition bg-emerald-50 text-emerald-800">
+        <i data-lucide="home" class="w-4 h-4"></i> 1. Página Inicial (Hero)
+      </button>
+      <button onclick="trocarAba('quem-somos')" class="aba-btn w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-3 transition text-slate-600 hover:bg-slate-50">
+        <i data-lucide="users" class="w-4 h-4"></i> 2. Quem Somos
+      </button>
+      <button onclick="trocarAba('o-que-fazemos')" class="aba-btn w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-3 transition text-slate-600 hover:bg-slate-50">
+        <i data-lucide="book-open" class="w-4 h-4"></i> 3. O Que Fazemos
+      </button>
+      <button onclick="trocarAba('impacto')" class="aba-btn w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-3 transition text-slate-600 hover:bg-slate-50">
+        <i data-lucide="trending-up" class="w-4 h-4"></i> 4. Impacto & Números
+      </button>
+      <button onclick="trocarAba('como-ajudar')" class="aba-btn w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-3 transition text-slate-600 hover:bg-slate-50">
+        <i data-lucide="heart" class="w-4 h-4"></i> 5. Doações & PIX
+      </button>
+      <button onclick="trocarAba('transparencia')" class="aba-btn w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-3 transition text-slate-600 hover:bg-slate-50">
+        <i data-lucide="shield-check" class="w-4 h-4"></i> 6. Transparência & CNPJ
+      </button>
+      <button onclick="trocarAba('contato')" class="aba-btn w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-3 transition text-slate-600 hover:bg-slate-50">
+        <i data-lucide="mail" class="w-4 h-4"></i> 7. Contato & Redes
+      </button>
+      <button onclick="trocarAba('inbox')" class="aba-btn w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-3 transition text-slate-600 hover:bg-slate-50">
+        <i data-lucide="inbox" class="w-4 h-4"></i> 8. Mensagens & Voluntários
+      </button>
+    </nav>
+
+    <!-- Área de Edição dos Formulários -->
+    <main class="lg:col-span-9 bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200/80">
+
+      <!-- ABA 1: PÁGINA INICIAL / GERAL -->
+      <section id="aba-geral" class="aba-conteudo space-y-6">
+        <div class="border-b border-slate-100 pb-4">
+          <h2 class="text-xl font-bold text-slate-900 font-heading">1. Página Inicial & Identidade</h2>
+          <p class="text-xs text-slate-500">Configure o nome da ONG, a frase de impacto principal e a imagem de destaque.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="adm-nome" class="block text-xs font-bold text-slate-700 uppercase mb-1">Nome da Organização</label>
+            <input type="text" id="adm-nome" class="w-full p-2.5 border rounded-xl text-sm">
+          </div>
+          <div>
+            <label for="adm-slogan" class="block text-xs font-bold text-slate-700 uppercase mb-1">Slogan Curto</label>
+            <input type="text" id="adm-slogan" class="w-full p-2.5 border rounded-xl text-sm">
+          </div>
+        </div>
+
+        <div>
+          <label for="adm-hero-titulo" class="block text-xs font-bold text-slate-700 uppercase mb-1">Frase Curta Principal (Hero Title)</label>
+          <input type="text" id="adm-hero-titulo" class="w-full p-2.5 border rounded-xl text-sm" placeholder="Ex.: Reforço escolar gratuito para crianças da comunidade X">
+        </div>
+
+        <div>
+          <label for="adm-hero-subtitulo" class="block text-xs font-bold text-slate-700 uppercase mb-1">Texto de Apoio / Descrição</label>
+          <textarea id="adm-hero-subtitulo" rows="3" class="w-full p-2.5 border rounded-xl text-sm"></textarea>
+        </div>
+
+        <div>
+          <label for="adm-hero-foto" class="block text-xs font-bold text-slate-700 uppercase mb-1">URL da Foto Principal (ou caminho)</label>
+          <input type="text" id="adm-hero-foto" class="w-full p-2.5 border rounded-xl text-sm">
+        </div>
+
+        <!-- Banner de Campanha Urgente -->
+        <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-100 space-y-3">
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="adm-campanha-ativa" class="w-4 h-4 text-emerald-600 rounded">
+            <label for="adm-campanha-ativa" class="text-xs font-bold text-emerald-900">Exibir barra de Campanha Urgente no topo</label>
+          </div>
+          <div>
+            <label for="adm-campanha-titulo" class="block text-xs font-bold text-slate-700 uppercase mb-1">Título da Campanha</label>
+            <input type="text" id="adm-campanha-titulo" class="w-full p-2 border rounded-lg text-sm bg-white">
+          </div>
+          <div>
+            <label for="adm-campanha-texto" class="block text-xs font-bold text-slate-700 uppercase mb-1">Texto da Campanha</label>
+            <input type="text" id="adm-campanha-texto" class="w-full p-2 border rounded-lg text-sm bg-white">
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA 2: QUEM SOMOS -->
+      <section id="aba-quem-somos" class="aba-conteudo space-y-6 hidden">
+        <div class="border-b border-slate-100 pb-4">
+          <h2 class="text-xl font-bold text-slate-900 font-heading">2. Quem Somos (História, Missão, Visão e Equipe)</h2>
+          <p class="text-xs text-slate-500">Apresente sua causa, suas raízes e as pessoas que inspiram confiança.</p>
+        </div>
+
+        <div>
+          <label for="adm-historia" class="block text-xs font-bold text-slate-700 uppercase mb-1">História: Como e por que o projeto nasceu</label>
+          <textarea id="adm-historia" rows="5" class="w-full p-2.5 border rounded-xl text-sm"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="adm-missao" class="block text-xs font-bold text-slate-700 uppercase mb-1">Missão</label>
+            <textarea id="adm-missao" rows="3" class="w-full p-2.5 border rounded-xl text-sm"></textarea>
+          </div>
+          <div>
+            <label for="adm-visao" class="block text-xs font-bold text-slate-700 uppercase mb-1">Visão</label>
+            <textarea id="adm-visao" rows="3" class="w-full p-2.5 border rounded-xl text-sm"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA 3: O QUE FAZEMOS -->
+      <section id="aba-o-que-fazemos" class="aba-conteudo space-y-6 hidden">
+        <div class="border-b border-slate-100 pb-4">
+          <h2 class="text-xl font-bold text-slate-900 font-heading">3. O Que Fazemos</h2>
+          <p class="text-xs text-slate-500">Defina o público atendido, a região e as principais atividades em andamento.</p>
+        </div>
+
+        <div>
+          <label for="adm-publico" class="block text-xs font-bold text-slate-700 uppercase mb-1">Público Atendido</label>
+          <input type="text" id="adm-publico" class="w-full p-2.5 border rounded-xl text-sm">
+        </div>
+
+        <div>
+          <label for="adm-regiao" class="block text-xs font-bold text-slate-700 uppercase mb-1">Região de Atuação</label>
+          <input type="text" id="adm-regiao" class="w-full p-2.5 border rounded-xl text-sm">
+        </div>
+      </section>
+
+      <!-- ABA 4: IMPACTO & NÚMEROS -->
+      <section id="aba-impacto" class="aba-conteudo space-y-6 hidden">
+        <div class="border-b border-slate-100 pb-4">
+          <h2 class="text-xl font-bold text-slate-900 font-heading">4. Impacto e Resultados</h2>
+          <p class="text-xs text-slate-500">Atualize os contadores de pessoas atendidas, refeições e oficinas.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="adm-metricas-container">
+          <!-- Gerado via script -->
+        </div>
+      </section>
+
+      <!-- ABA 5: DOAÇÕES & PIX -->
+      <section id="aba-como-ajudar" class="aba-conteudo space-y-6 hidden">
+        <div class="border-b border-slate-100 pb-4">
+          <h2 class="text-xl font-bold text-slate-900 font-heading">5. Doações, Chave PIX e Banco</h2>
+          <p class="text-xs text-slate-500">Insira suas chaves oficiais para receber doações sem fricção.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="adm-pix-chave" class="block text-xs font-bold text-slate-700 uppercase mb-1">Chave PIX Oficial</label>
+            <input type="text" id="adm-pix-chave" class="w-full p-2.5 border rounded-xl text-sm font-mono">
+          </div>
+          <div>
+            <label for="adm-pix-favorecido" class="block text-xs font-bold text-slate-700 uppercase mb-1">Favorecido (Nome da ONG)</label>
+            <input type="text" id="adm-pix-favorecido" class="w-full p-2.5 border rounded-xl text-sm">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label for="adm-banco-nome" class="block text-xs font-bold text-slate-700 uppercase mb-1">Banco</label>
+            <input type="text" id="adm-banco-nome" class="w-full p-2.5 border rounded-xl text-sm">
+          </div>
+          <div>
+            <label for="adm-banco-agencia" class="block text-xs font-bold text-slate-700 uppercase mb-1">Agência</label>
+            <input type="text" id="adm-banco-agencia" class="w-full p-2.5 border rounded-xl text-sm">
+          </div>
+          <div>
+            <label for="adm-banco-conta" class="block text-xs font-bold text-slate-700 uppercase mb-1">Conta Corrente</label>
+            <input type="text" id="adm-banco-conta" class="w-full p-2.5 border rounded-xl text-sm">
+          </div>
+        </div>
+
+        <!-- Preview do QR Code Gerado Automaticamente -->
+        <div class="p-5 bg-emerald-50/70 rounded-2xl border border-emerald-200 flex flex-col sm:flex-row items-center gap-5">
+          <div class="w-32 h-32 bg-white p-2 rounded-xl border border-emerald-200 flex-shrink-0 flex items-center justify-center shadow-sm">
+            <img id="adm-pix-preview-qr" src="" alt="QR Code Preview" class="w-full h-full object-contain">
+          </div>
+          <div class="flex-1 space-y-1.5 text-center sm:text-left">
+            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 uppercase tracking-wide bg-emerald-100 px-2 py-0.5 rounded-full">
+              ✓ Gerado Automaticamente (Padrão Banco Central)
+            </span>
+            <p class="text-xs text-slate-600">
+              Assim que você digita a sua chave e nome, o sistema cria automaticamente o QR Code oficial e o código "Pix Copia e Cola":
+            </p>
+            <div id="adm-pix-copia-cola-preview" class="p-2 bg-white rounded-lg border border-emerald-200 font-mono text-[11px] text-slate-700 select-all break-all max-h-16 overflow-y-auto">
+              Carregando código...
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA 6: TRANSPARÊNCIA -->
+      <section id="aba-transparencia" class="aba-conteudo space-y-6 hidden">
+        <div class="border-b border-slate-100 pb-4">
+          <h2 class="text-xl font-bold text-slate-900 font-heading">6. Transparência & Dados Institucionais</h2>
+          <p class="text-xs text-slate-500">Documentos que comprovam a lisura e a seriedade do trabalho.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="adm-cnpj" class="block text-xs font-bold text-slate-700 uppercase mb-1">CNPJ Formatado</label>
+            <input type="text" id="adm-cnpj" class="w-full p-2.5 border rounded-xl text-sm font-mono">
+          </div>
+          <div>
+            <label for="adm-registro-osc" class="block text-xs font-bold text-slate-700 uppercase mb-1">Registro OSC / Cartório</label>
+            <input type="text" id="adm-registro-osc" class="w-full p-2.5 border rounded-xl text-sm">
+          </div>
+        </div>
+
+        <div>
+          <label for="adm-utilidade-publica" class="block text-xs font-bold text-slate-700 uppercase mb-1">Título de Utilidade Pública</label>
+          <input type="text" id="adm-utilidade-publica" class="w-full p-2.5 border rounded-xl text-sm">
+        </div>
+      </section>
+
+      <!-- ABA 7: CONTATO & REDES -->
+      <section id="aba-contato" class="aba-conteudo space-y-6 hidden">
+        <div class="border-b border-slate-100 pb-4">
+          <h2 class="text-xl font-bold text-slate-900 font-heading">7. Informações de Contato & Redes</h2>
+          <p class="text-xs text-slate-500">Endereço físico, canais de WhatsApp e perfis sociais.</p>
+        </div>
+
+        <div>
+          <label for="adm-endereco" class="block text-xs font-bold text-slate-700 uppercase mb-1">Endereço Completo</label>
+          <input type="text" id="adm-endereco" class="w-full p-2.5 border rounded-xl text-sm">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="adm-whatsapp" class="block text-xs font-bold text-slate-700 uppercase mb-1">WhatsApp (com DDD)</label>
+            <input type="text" id="adm-whatsapp" class="w-full p-2.5 border rounded-xl text-sm">
+          </div>
+          <div>
+            <label for="adm-telefone" class="block text-xs font-bold text-slate-700 uppercase mb-1">Telefone Fixo</label>
+            <input type="text" id="adm-telefone" class="w-full p-2.5 border rounded-xl text-sm">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="adm-email" class="block text-xs font-bold text-slate-700 uppercase mb-1">E-mail Principal</label>
+            <input type="email" id="adm-email" class="w-full p-2.5 border rounded-xl text-sm">
+          </div>
+          <div>
+            <label for="adm-horario" class="block text-xs font-bold text-slate-700 uppercase mb-1">Horário de Funcionamento</label>
+            <input type="text" id="adm-horario" class="w-full p-2.5 border rounded-xl text-sm">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="adm-instagram" class="block text-xs font-bold text-slate-700 uppercase mb-1">Instagram (Link completo)</label>
+            <input type="text" id="adm-instagram" class="w-full p-2.5 border rounded-xl text-sm">
+          </div>
+          <div>
+            <label for="adm-facebook" class="block text-xs font-bold text-slate-700 uppercase mb-1">Facebook (Link completo)</label>
+            <input type="text" id="adm-facebook" class="w-full p-2.5 border rounded-xl text-sm">
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA 8: CAIXA DE ENTRADA (MENSAGENS & VOLUNTÁRIOS) -->
+      <section id="aba-inbox" class="aba-conteudo space-y-6 hidden">
+        <div class="border-b border-slate-100 pb-4 flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 font-heading">8. Caixa de Entrada & Candidaturas</h2>
+            <p class="text-xs text-slate-500">Pessoas que entraram em contato ou se inscreveram para voluntariado.</p>
+          </div>
+          <button onclick="carregarInbox()" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold flex items-center gap-1">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Atualizar
+          </button>
+        </div>
+
+        <div>
+          <h4 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+            <i data-lucide="mail" class="w-4 h-4 text-emerald-600"></i> Mensagens de Contato Recebidas
+          </h4>
+          <div id="tabela-mensagens" class="space-y-3">
+            <p class="text-xs text-slate-400">Carregando mensagens...</p>
+          </div>
+        </div>
+
+        <div class="pt-6 border-t border-slate-100">
+          <h4 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+            <i data-lucide="users" class="w-4 h-4 text-amber-600"></i> Inscrições de Voluntários
+          </h4>
+          <div id="tabela-voluntarios" class="space-y-3">
+            <p class="text-xs text-slate-400">Carregando voluntários...</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    let globalConfig = null;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      await carregarDadosConfig();
+      if (window.lucide) lucide.createIcons();
+    });
+
+    function trocarAba(abaNome) {
+      document.querySelectorAll(".aba-conteudo").forEach(el => el.classList.add("hidden"));
+      document.querySelectorAll(".aba-btn").forEach(el => {
+        el.classList.remove("bg-emerald-50", "text-emerald-800");
+        el.classList.add("text-slate-600");
+      });
+
+      const alvo = document.getElementById(`aba-${abaNome}`);
+      if (alvo) alvo.classList.remove("hidden");
+
+      event.currentTarget.classList.add("bg-emerald-50", "text-emerald-800");
+      event.currentTarget.classList.remove("text-slate-600");
+
+      if (abaNome === 'inbox') carregarInbox();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    async function carregarDadosConfig() {
+      try {
+        const res = await fetch("/api/config");
+        globalConfig = await res.json();
+
+        // Preenche campos
+        document.getElementById("adm-nome").value = globalConfig.instituicao?.nome || "";
+        document.getElementById("adm-slogan").value = globalConfig.instituicao?.slogan || "";
+        document.getElementById("adm-hero-titulo").value = globalConfig.hero?.titulo_destaque || "";
+        document.getElementById("adm-hero-subtitulo").value = globalConfig.hero?.subtitulo || "";
+        document.getElementById("adm-hero-foto").value = globalConfig.hero?.foto_url || "";
+
+        document.getElementById("adm-campanha-ativa").checked = !!globalConfig.hero?.campanha_urgente?.ativa;
+        document.getElementById("adm-campanha-titulo").value = globalConfig.hero?.campanha_urgente?.titulo || "";
+        document.getElementById("adm-campanha-texto").value = globalConfig.hero?.campanha_urgente?.texto || "";
+
+        document.getElementById("adm-historia").value = globalConfig.quem_somos?.historia || "";
+        document.getElementById("adm-missao").value = globalConfig.quem_somos?.missao || "";
+        document.getElementById("adm-visao").value = globalConfig.quem_somos?.visao || "";
+
+        document.getElementById("adm-publico").value = globalConfig.o_que_fazemos?.publico_alvo || "";
+        document.getElementById("adm-regiao").value = globalConfig.o_que_fazemos?.regiao_atuacao || "";
+
+        // Métricas
+        const metContainer = document.getElementById("adm-metricas-container");
+        if (metContainer && globalConfig.impacto?.metricas) {
+          metContainer.innerHTML = globalConfig.impacto.metricas.map((m, idx) => `
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">${m.label}</label>
+              <input type="text" id="adm-metrica-${idx}" value="${m.valor}" class="w-full p-2 border rounded-lg text-sm bg-white font-bold">
+            </div>
+          `).join("");
+        }
+
+        // PIX & Banco
+        document.getElementById("adm-pix-chave").value = globalConfig.como_ajudar?.pix?.chave || "";
+        document.getElementById("adm-pix-favorecido").value = globalConfig.como_ajudar?.pix?.favorecido || "";
+        document.getElementById("adm-banco-nome").value = globalConfig.como_ajudar?.dados_bancarios?.banco || "";
+        document.getElementById("adm-banco-agencia").value = globalConfig.como_ajudar?.dados_bancarios?.agencia || "";
+        document.getElementById("adm-banco-conta").value = globalConfig.como_ajudar?.dados_bancarios?.conta_corrente || "";
+
+        atualizarPreviewPixAdmin();
+
+        document.getElementById("adm-pix-chave").addEventListener("input", atualizarPreviewPixAdmin);
+        document.getElementById("adm-pix-favorecido").addEventListener("input", atualizarPreviewPixAdmin);
+
+        // Transparência
+        document.getElementById("adm-cnpj").value = globalConfig.instituicao?.cnpj || "";
+        document.getElementById("adm-registro-osc").value = globalConfig.instituicao?.registro_osc || "";
+        document.getElementById("adm-utilidade-publica").value = globalConfig.instituicao?.utilidade_publica || "";
+
+        // Contato
+        document.getElementById("adm-endereco").value = globalConfig.contato?.endereco_completo || "";
+        document.getElementById("adm-whatsapp").value = globalConfig.contato?.whatsapp || "";
+        document.getElementById("adm-telefone").value = globalConfig.contato?.telefone || "";
+        document.getElementById("adm-email").value = globalConfig.contato?.email_geral || "";
+        document.getElementById("adm-horario").value = globalConfig.contato?.horario_funcionamento || "";
+        document.getElementById("adm-instagram").value = globalConfig.contato?.redes_sociais?.instagram || "";
+        document.getElementById("adm-facebook").value = globalConfig.contato?.redes_sociais?.facebook || "";
+
+      } catch (err) {
+        showToast("Erro ao carregar dados do servidor.", "erro");
+      }
+    }
+
+    function calcularCRC16(str) {
+      let crc = 0xFFFF;
+      for (let i = 0; i < str.length; i++) {
+        crc ^= (str.charCodeAt(i) << 8);
+        for (let j = 0; j < 8; j++) {
+          if ((crc & 0x8000) !== 0) crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+          else crc = (crc << 1) & 0xFFFF;
+        }
+      }
+      return crc.toString(16).toUpperCase().padStart(4, '0');
+    }
+
+    function atualizarPreviewPixAdmin() {
+      let chave = document.getElementById("adm-pix-chave")?.value?.trim() || "sua_chave@pix";
+      
+      // Se for código Copia e Cola completo
+      if (chave.startsWith("000201")) {
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(chave)}`;
+        const img = document.getElementById("adm-pix-preview-qr");
+        if (img) img.src = qrUrl;
+        const txt = document.getElementById("adm-pix-copia-cola-preview");
+        if (txt) txt.textContent = chave;
+        return;
+      }
+
+      const apenasDigitos = chave.replace(/\D/g, "");
+      const ddds = ["11","12","13","14","15","16","17","18","19","21","22","24","27","28","31","32","33","34","35","37","38","41","42","43","44","45","46","47","48","49","51","53","54","55","61","62","63","64","65","66","67","68","69","71","73","74","75","77","79","81","82","83","84","85","86","87","88","89","91","92","93","94","95","96","97","98","99"];
+      const ddd = apenasDigitos.substring(0, 2);
+      const ehCelular = apenasDigitos.length === 11 && ddds.includes(ddd) && apenasDigitos[2] === "9" && !chave.includes("@");
+      const ehFixo = apenasDigitos.length === 10 && ddds.includes(ddd) && !chave.includes("@");
+
+      if ((ehCelular || ehFixo) && !chave.startsWith("+")) {
+        chave = "+55" + apenasDigitos;
+      } else if (apenasDigitos.length === 14 && !chave.includes("@")) {
+        chave = apenasDigitos;
+      } else if (apenasDigitos.length === 11 && !chave.includes("@") && !chave.startsWith("+")) {
+        chave = apenasDigitos;
+      }
+
+      const nome = document.getElementById("adm-pix-favorecido")?.value?.trim() || "INSTITUTO";
+      const limparTexto = (t, max) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9 ]/g, "").toUpperCase().substring(0, max).trim();
+      const nomeLimpo = limparTexto(nome, 25) || "INSTITUTO";
+      const cidadeLimpa = "SAO PAULO";
+
+      const mai = `0014BR.GOV.BCB.PIX01${String(chave.length).padStart(2, '0')}${chave}`;
+      const payloadBase = `00020126${String(mai.length).padStart(2, '0')}${mai}5204000053039865802BR59${String(nomeLimpo.length).padStart(2, '0')}${nomeLimpo}60${String(cidadeLimpa.length).padStart(2, '0')}${cidadeLimpa}62070503***6304`;
+      const fullPayload = payloadBase + calcularCRC16(payloadBase);
+
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(fullPayload)}`;
+      
+      const img = document.getElementById("adm-pix-preview-qr");
+      if (img) img.src = qrUrl;
+
+      const txt = document.getElementById("adm-pix-copia-cola-preview");
+      if (txt) txt.textContent = fullPayload;
+    }
+
+    async function salvarConfiguracoes() {
+      const btn = document.getElementById("btn-salvar-tudo");
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Salvando...`;
+
+      // Atualiza o objeto global
+      globalConfig.instituicao.nome = document.getElementById("adm-nome").value;
+      globalConfig.instituicao.slogan = document.getElementById("adm-slogan").value;
+      globalConfig.instituicao.cnpj = document.getElementById("adm-cnpj").value;
+      globalConfig.instituicao.registro_osc = document.getElementById("adm-registro-osc").value;
+      globalConfig.instituicao.utilidade_publica = document.getElementById("adm-utilidade-publica").value;
+
+      globalConfig.hero.titulo_destaque = document.getElementById("adm-hero-titulo").value;
+      globalConfig.hero.subtitulo = document.getElementById("adm-hero-subtitulo").value;
+      globalConfig.hero.foto_url = document.getElementById("adm-hero-foto").value;
+
+      if (!globalConfig.hero.campanha_urgente) globalConfig.hero.campanha_urgente = {};
+      globalConfig.hero.campanha_urgente.ativa = document.getElementById("adm-campanha-ativa").checked;
+      globalConfig.hero.campanha_urgente.titulo = document.getElementById("adm-campanha-titulo").value;
+      globalConfig.hero.campanha_urgente.texto = document.getElementById("adm-campanha-texto").value;
+
+      globalConfig.quem_somos.historia = document.getElementById("adm-historia").value;
+      globalConfig.quem_somos.missao = document.getElementById("adm-missao").value;
+      globalConfig.quem_somos.visao = document.getElementById("adm-visao").value;
+
+      globalConfig.o_que_fazemos.publico_alvo = document.getElementById("adm-publico").value;
+      globalConfig.o_que_fazemos.regiao_atuacao = document.getElementById("adm-regiao").value;
+
+      // Métricas
+      if (globalConfig.impacto?.metricas) {
+        globalConfig.impacto.metricas.forEach((m, idx) => {
+          const el = document.getElementById(`adm-metrica-${idx}`);
+          if (el) m.valor = el.value;
+        });
+      }
+
+      // PIX & Bancos
+      globalConfig.como_ajudar.pix.chave = document.getElementById("adm-pix-chave").value;
+      globalConfig.como_ajudar.pix.favorecido = document.getElementById("adm-pix-favorecido").value;
+      globalConfig.como_ajudar.dados_bancarios.banco = document.getElementById("adm-banco-nome").value;
+      globalConfig.como_ajudar.dados_bancarios.agencia = document.getElementById("adm-banco-agencia").value;
+      globalConfig.como_ajudar.dados_bancarios.conta_corrente = document.getElementById("adm-banco-conta").value;
+      globalConfig.como_ajudar.dados_bancarios.cnpj = document.getElementById("adm-cnpj").value;
+
+      // Contato
+      globalConfig.contato.endereco_completo = document.getElementById("adm-endereco").value;
+      globalConfig.contato.whatsapp = document.getElementById("adm-whatsapp").value;
+      globalConfig.contato.telefone = document.getElementById("adm-telefone").value;
+      globalConfig.contato.email_geral = document.getElementById("adm-email").value;
+      globalConfig.contato.horario_funcionamento = document.getElementById("adm-horario").value;
+      globalConfig.contato.redes_sociais.instagram = document.getElementById("adm-instagram").value;
+      globalConfig.contato.redes_sociais.facebook = document.getElementById("adm-facebook").value;
+
+      try {
+        const res = await fetch("/api/config", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(globalConfig)
+        });
+        const data = await res.json();
+        if (data.sucesso) {
+          showToast("Alterações salvas com sucesso em data/config.json!");
+        } else {
+          showToast(data.erro || "Erro ao salvar.", "erro");
+        }
+      } catch (err) {
+        showToast("Erro ao conectar com a API Python.", "erro");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Salvar Alterações`;
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+
+    async function carregarInbox() {
+      try {
+        const [resM, resV] = await Promise.all([
+          fetch("/api/mensagens"),
+          fetch("/api/voluntarios")
+        ]);
+
+        const msgs = await resM.json();
+        const vols = await resV.json();
+
+        const containerM = document.getElementById("tabela-mensagens");
+        if (msgs.length === 0) {
+          containerM.innerHTML = `<p class="text-xs text-slate-500 italic p-3 bg-slate-50 rounded-xl">Nenhuma mensagem recebida ainda.</p>`;
+        } else {
+          containerM.innerHTML = msgs.map(m => `
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <span class="font-bold text-sm text-slate-900">${m.nome} &lt;${m.email}&gt;</span>
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] text-slate-500">${m.data_envio}</span>
+                  <button onclick="excluirContato(${m.id}, '${m.nome}')" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold flex items-center gap-1 transition" title="Apagar mensagem">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Apagar
+                  </button>
+                </div>
+              </div>
+              <p class="text-xs font-semibold text-emerald-700">${m.assunto || 'Sem assunto'}</p>
+              <p class="text-xs text-slate-600 bg-white p-2.5 rounded-lg border border-slate-100 whitespace-pre-line">${m.mensagem}</p>
+              ${m.telefone ? `<p class="text-[11px] text-slate-500">Telefone: ${m.telefone}</p>` : ''}
+            </div>
+          `).join("");
+        }
+
+        const containerV = document.getElementById("tabela-voluntarios");
+        if (vols.length === 0) {
+          containerV.innerHTML = `<p class="text-xs text-slate-500 italic p-3 bg-slate-50 rounded-xl">Nenhuma inscrição de voluntário recebida ainda.</p>`;
+        } else {
+          containerV.innerHTML = vols.map(v => `
+            <div class="p-4 bg-amber-50/50 border border-amber-200/60 rounded-xl space-y-2">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <span class="font-bold text-sm text-slate-900">${v.nome}</span>
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] text-slate-500">${v.data_envio}</span>
+                  <button onclick="excluirVoluntario(${v.id}, '${v.nome}')" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold flex items-center gap-1 transition" title="Apagar formulário">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Apagar
+                  </button>
+                </div>
+              </div>
+              <div class="text-xs text-slate-600">
+                <span><strong>E-mail:</strong> ${v.email}</span> • <span><strong>WhatsApp:</strong> <a href="https://wa.me/55${v.whatsapp.replace(/\D/g,'')}" target="_blank" class="text-emerald-700 font-bold underline">${v.whatsapp}</a></span>
+              </div>
+              <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                Área: ${v.area_interesse}
+              </span>
+              ${v.disponibilidade ? `<p class="text-xs text-slate-600"><strong>Disponibilidade:</strong> ${v.disponibilidade}</p>` : ''}
+              ${v.experiencia ? `<p class="text-xs text-slate-600 italic bg-white p-2 rounded-lg border border-slate-100">"${v.experiencia}"</p>` : ''}
+            </div>
+          `).join("");
+        }
+
+        if (window.lucide) lucide.createIcons();
+      } catch (err) {
+        console.error("Erro ao carregar inbox:", err);
+      }
+    }
+
+    async function excluirVoluntario(id, nome) {
+      if (!confirm(`Tem certeza que deseja apagar a inscrição de voluntariado de "${nome}"?`)) return;
+      try {
+        const res = await fetch("/api/voluntario/excluir", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id })
+        });
+        const data = await res.json();
+        if (data.sucesso) {
+          showToast(data.mensagem || "Inscrição apagada com sucesso!");
+          carregarInbox();
+        } else {
+          showToast(data.erro || "Erro ao apagar.", "erro");
+        }
+      } catch (err) {
+        showToast("Falha na comunicação com o servidor.", "erro");
+      }
+    }
+
+    async function excluirContato(id, nome) {
+      if (!confirm(`Tem certeza que deseja apagar a mensagem de "${nome}"?`)) return;
+      try {
+        const res = await fetch("/api/contato/excluir", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id })
+        });
+        const data = await res.json();
+        if (data.sucesso) {
+          showToast(data.mensagem || "Mensagem apagada com sucesso!");
+          carregarInbox();
+        } else {
+          showToast(data.erro || "Erro ao apagar.", "erro");
+        }
+      } catch (err) {
+        showToast("Falha na comunicação com o servidor.", "erro");
+      }
+    }
+
+    function showToast(mensagem, tipo = "sucesso") {
+      const container = document.getElementById("toast-container");
+      if (!container) return;
+
+      const toast = document.createElement("div");
+      const bgCor = tipo === "sucesso" ? "bg-emerald-600 text-white" : "bg-red-600 text-white";
+
+      toast.className = `toast flex items-center gap-3 p-4 rounded-xl shadow-xl ${bgCor} text-sm font-medium transition-all duration-300`;
+      toast.innerHTML = `<div class="flex-1">${mensagem}</div>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+  </script>
+</body>
+</html>

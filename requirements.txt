@@ -1,0 +1,2 @@
+# Este projeto foi desenvolvido utilizando 100% a biblioteca padrao do Python (sem dependencias externas como pip).
+# Nenhum pacote adicional e necessario.

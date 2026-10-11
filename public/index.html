@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instituto Sementes do Amanhã | Transformando Vidas através da Educação</title>
+  <meta name="description" content="Organização da Sociedade Civil dedicada ao reforço escolar, oficinas culturais, esporte e apoio comunitário.">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/assets/css/custom.css?v=10">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>">
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-emerald-500 selection:text-white">
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Navbar -->
+  <header class="glass-nav sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        <!-- Logo & Identidade -->
+        <a href="#" class="flex items-center gap-3 group">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-300">
+            <i data-lucide="sprout" class="w-7 h-7"></i>
+          </div>
+          <div>
+            <span class="text-xl font-black tracking-tight text-slate-900 site-nome block font-heading">Instituto Sementes do Amanhã</span>
+            <span class="text-xs font-semibold text-emerald-600 block uppercase tracking-wider">Projeto Social & Comunitário</span>
+          </div>
+        </a>
+
+        <!-- Links Desktop -->
+        <nav class="hidden xl:flex items-center gap-7 text-sm font-semibold text-slate-600">
+          <a href="#inicio" class="hover:text-emerald-600 transition">Início</a>
+          <a href="#quem-somos" class="hover:text-emerald-600 transition">Quem Somos</a>
+          <a href="#o-que-fazemos" class="hover:text-emerald-600 transition">O Que Fazemos</a>
+          <a href="#impacto" class="hover:text-emerald-600 transition">Impacto</a>
+          <a href="#como-ajudar" class="hover:text-emerald-600 transition">Como Ajudar</a>
+          <a href="#transparencia" class="hover:text-emerald-600 transition">Transparência</a>
+          <a href="#noticias" class="hover:text-emerald-600 transition">Notícias</a>
+          <a href="#contato" class="hover:text-emerald-600 transition">Contato</a>
+        </nav>
+
+        <!-- Botões de Ação do Topo -->
+        <div class="hidden md:flex items-center gap-3">
+          <button onclick="abrirModalVoluntario()" class="px-4 py-2.5 rounded-xl border border-emerald-600/30 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100 font-bold text-xs uppercase tracking-wider transition hover-lift">
+            Seja Voluntário
+          </button>
+          <button onclick="abrirModalDoacao()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/25 transition hover-lift flex items-center gap-2">
+            <i data-lucide="heart" class="w-4 h-4 text-emerald-200 fill-emerald-200"></i>
+            Doe Agora
+          </button>
+        </div>
+
+        <!-- Menu Mobile Button -->
+        <button id="btn-mobile-menu" aria-label="Abrir menu de navegação" class="xl:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition">
+          <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <!-- Menu Mobile Dropdown -->
+      <nav id="mobile-menu" aria-label="Navegação móvel" class="hidden xl:hidden py-4 border-t border-slate-100 space-y-2">
+        <a href="#inicio" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700">Início</a>
+        <a href="#quem-somos" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700">Quem Somos</a>
+        <a href="#o-que-fazemos" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700">O Que Fazemos</a>
+        <a href="#impacto" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700">Impacto e Resultados</a>
+        <a href="#como-ajudar" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700">Como Ajudar (PIX & Itens)</a>
+        <a href="#transparencia" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700">Transparência e Contas</a>
+        <a href="#noticias" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700">Notícias e Blog</a>
+        <a href="#contato" class="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700">Contato</a>
+        <div class="pt-3 flex gap-2">
+          <button onclick="abrirModalVoluntario()" class="flex-1 py-2 rounded-lg text-xs font-bold border border-emerald-600 text-emerald-700">Voluntariado</button>
+          <button onclick="abrirModalDoacao()" class="flex-1 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white">Doe Agora</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- 1. PÁGINA INICIAL CLARA (HERO SECTION)    -->
+  <!-- ========================================== -->
+  <section id="inicio" class="relative pt-12 pb-20 md:py-24 hero-gradient overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <!-- Textos e Chamadas de Ação -->
+        <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+          <div id="hero-badge" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold tracking-wide badge-glow">
+            🌱 Atuação em campo com amor e transparência
+          </div>
+
+          <h1 id="hero-titulo" class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 leading-[1.12] tracking-tight font-heading">
+            Reforço escolar gratuito, cultura e acolhimento para crianças da comunidade.
+          </h1>
+
+          <p id="hero-subtitulo" class="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+            Acreditamos que a educação transforma realidades. Atendemos mais de 450 crianças e suas famílias no contraturno escolar com alimentação, apoio pedagógico e oficinas extracurriculares.
+          </p>
+
+          <!-- 3 BOTÕES DE AÇÃO BEM VISÍVEIS -->
+          <div class="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-4">
+            <button onclick="abrirModalDoacao()" class="px-8 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-base shadow-xl shadow-emerald-600/30 transition hover-lift flex items-center gap-3">
+              <i data-lucide="heart-handshake" class="w-6 h-6"></i>
+              Doe Agora
+            </button>
+            <button onclick="abrirModalVoluntario()" class="px-7 py-4 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 hover:border-emerald-500 font-extrabold text-base shadow-sm transition hover-lift flex items-center gap-2">
+              <i data-lucide="users" class="w-5 h-5 text-emerald-600"></i>
+              Seja Voluntário
+            </button>
+            <a href="#contato" class="px-6 py-4 rounded-2xl text-slate-600 hover:text-emerald-700 font-bold text-base transition flex items-center gap-2">
+              <i data-lucide="message-square" class="w-5 h-5"></i>
+              Fale Conosco
+            </a>
+          </div>
+
+          <!-- Trust Badges -->
+          <div class="pt-6 border-t border-slate-200/80 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-slate-500 font-semibold">
+            <span class="flex items-center gap-1.5"><i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i> Organização 100% Auditada</span>
+            <span class="flex items-center gap-1.5"><i data-lucide="file-check-2" class="w-4 h-4 text-emerald-600"></i> OSC com CNPJ Ativo</span>
+            <span class="flex items-center gap-1.5"><i data-lucide="receipt" class="w-4 h-4 text-emerald-600"></i> Prestação Pública Mensal</span>
+          </div>
+        </div>
+
+        <!-- FOTO MARCANTE REAL DO TRABALHO -->
+        <div class="lg:col-span-5 relative">
+          <div class="relative mx-auto max-w-md lg:max-w-none">
+            <!-- Moldura Decorativa -->
+            <div class="absolute -inset-3 bg-gradient-to-r from-emerald-500 to-teal-400 rounded-3xl blur-xl opacity-30 transform -rotate-1"></div>
+            
+            <div class="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-slate-100">
+              <img id="hero-foto" src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=1200&auto=format&fit=crop" alt="Crianças em oficina pedagógica" class="w-full h-80 sm:h-96 lg:h-[480px] object-cover">
+              
+              <!-- Selo Flutuante de Impacto -->
+              <div class="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-white/60">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                    <i data-lucide="smile" class="w-6 h-6"></i>
+                  </div>
+                  <div>
+                    <p id="hero-foto-legenda" class="text-xs font-semibold text-slate-800">Oficina de leitura e contação de histórias com nossos educandos</p>
+                    <span class="text-[11px] font-bold text-emerald-600">Atuação Comunitária Diária</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 2. QUEM SOMOS                             -->
+  <!-- ========================================== -->
+  <section id="quem-somos" class="py-20 bg-white border-y border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-black uppercase tracking-widest text-emerald-600">Institucional</span>
+        <h2 class="text-3xl sm:text-4xl font-black text-slate-900 mt-2 mb-4 font-heading">Quem Somos & Nossa História</h2>
+        <p class="text-slate-600 text-base leading-relaxed">
+          Conheça os alicerces, o propósito e o time que conduz diariamente a nossa missão de transformar vidas.
+        </p>
+      </div>
+
+      <!-- História com destaque -->
+      <div class="bg-gradient-to-br from-emerald-50/60 to-slate-50 rounded-3xl p-8 sm:p-10 border border-emerald-100 shadow-sm mb-16">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div class="lg:col-span-4">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Origem & Fundação</span>
+            <h3 class="text-2xl font-black text-slate-900 mt-1 mb-3 font-heading">Como o projeto nasceu</h3>
+            <div class="inline-flex items-center gap-2 text-sm font-semibold text-emerald-700 bg-white px-3 py-1.5 rounded-xl border border-emerald-200">
+              <i data-lucide="calendar" class="w-4 h-4"></i> Fundado em Maio de 2018
+            </div>
+          </div>
+          <div class="lg:col-span-8">
+            <p id="qs-historia" class="text-slate-700 text-base leading-relaxed whitespace-pre-line">
+              O Instituto Sementes do Amanhã nasceu em maio de 2018 na garagem de uma professora aposentada da comunidade, preocupada com as crianças que ficavam sozinhas nas ruas após a escola. O que começou com 12 alunos e doações de cadernos usados cresceu com a força da união de voluntários, educadores e apoiadores. Hoje contamos com sede comunitária própria, biblioteca com mais de 3.000 títulos e uma cozinha industrial solidária.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Missão, Visão e Valores -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+        <!-- Missão -->
+        <div class="p-8 rounded-3xl bg-slate-50 border border-slate-100 shadow-sm hover-lift">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center mb-5 shadow-md shadow-emerald-600/30">
+            <i data-lucide="target" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2 font-heading">Nossa Missão</h3>
+          <p id="qs-missao" class="text-slate-600 text-sm leading-relaxed">
+            Garantir educação complementar de excelência, nutrição adequada e acolhimento socioemocional a crianças e jovens em situação de vulnerabilidade, fomentando sua autonomia e cidadania.
+          </p>
+        </div>
+
+        <!-- Visão -->
+        <div class="p-8 rounded-3xl bg-slate-50 border border-slate-100 shadow-sm hover-lift">
+          <div class="w-12 h-12 rounded-2xl bg-teal-600 text-white flex items-center justify-center mb-5 shadow-md shadow-teal-600/30">
+            <i data-lucide="compass" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2 font-heading">Nossa Visão</h3>
+          <p id="qs-visao" class="text-slate-600 text-sm leading-relaxed">
+            Ser polo de referência comunitária em transformação social até 2030, erradicando a evasão escolar e impulsionando 100% de nossos jovens concluintes ao ensino técnico ou superior.
+          </p>
+        </div>
+      </div>
+
+      <!-- Valores -->
+      <div class="mb-16">
+        <h4 class="text-lg font-bold text-slate-900 mb-6 text-center font-heading">Nossos Valores Fundamentais</h4>
+        <div id="qs-valores-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <!-- Gerado dinamicamente via JS -->
+        </div>
+      </div>
+
+      <!-- Equipe e Fundadores (Gera confiança) -->
+      <div>
+        <div class="text-center max-w-2xl mx-auto mb-10">
+          <span class="text-xs font-black uppercase tracking-widest text-emerald-600">Confiança & Transparência</span>
+          <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mt-1 font-heading">Equipe e Fundadores</h3>
+          <p class="text-sm text-slate-600 mt-1">Conheça as lideranças e educadores à frente do projeto.</p>
+        </div>
+        <div id="qs-equipe-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <!-- Gerado dinamicamente via JS -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 3. O QUE FAZEMOS (PROGRAMAS & ATIVIDADES) -->
+  <!-- ========================================== -->
+  <section id="o-que-fazemos" class="py-20 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-black uppercase tracking-widest text-emerald-600">Nossa Atuação</span>
+        <h2 class="text-3xl sm:text-4xl font-black text-slate-900 mt-2 mb-4 font-heading">O Que Fazemos</h2>
+        <p class="text-slate-600 text-base leading-relaxed">
+          Nossos programas oferecem desenvolvimento integral para crianças, jovens e suporte contínuo para suas famílias.
+        </p>
+      </div>
+
+      <!-- Caixa de Público Atendido e Região -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-sm mb-12 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
+            <i data-lucide="user-check" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-slate-900 text-base mb-1 font-heading">Público Atendido</h4>
+            <p id="oq-publico" class="text-sm text-slate-600 leading-relaxed">
+              Crianças e adolescentes de 6 a 17 anos matriculados na rede pública de ensino, além de suas famílias em situação de vulnerabilidade socioeconômica.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-4 border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0 md:pl-8">
+          <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+            <i data-lucide="map-pin" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-slate-900 text-base mb-1 font-heading">Região de Atuação</h4>
+            <p id="oq-regiao" class="text-sm text-slate-600 leading-relaxed">
+              Comunidade Jardim Esperança e bairros adjacentes (Zona Leste), abrangendo um raio de atendimento com 3 polos descentralizados.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid de Projetos -->
+      <div id="oq-projetos-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Preenchido dinamicamente via JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 4. IMPACTO E RESULTADOS                   -->
+  <!-- ========================================== -->
+  <section id="impacto" class="py-20 bg-slate-900 text-white relative overflow-hidden">
+    <!-- Glow de fundo -->
+    <div class="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-black uppercase tracking-widest text-emerald-400">Resultados Concretos</span>
+        <h2 class="text-3xl sm:text-4xl font-black text-white mt-2 mb-4 font-heading">Nosso Impacto em Números</h2>
+        <p class="text-slate-300 text-base leading-relaxed">
+          A prestação de contas dos nossos esforços se traduz em vidas tocadas e futuro construído.
+        </p>
+      </div>
+
+      <!-- Contadores de Métricas -->
+      <div id="imp-metricas-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+        <!-- Preenchido dinamicamente via JS -->
+      </div>
+
+      <!-- Depoimentos e Histórias Reais -->
+      <div class="mb-20">
+        <div class="text-center max-w-2xl mx-auto mb-10">
+          <span class="text-xs font-black uppercase tracking-widest text-emerald-400">Vozes da Comunidade</span>
+          <h3 class="text-2xl sm:text-3xl font-black text-white mt-1 font-heading">Histórias Reais de Transformação</h3>
+          <p class="text-xs text-slate-400 mt-1">Depoimentos publicados com a devida autorização dos beneficiários.</p>
+        </div>
+        <div id="imp-depoimentos-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Preenchido dinamicamente via JS -->
+        </div>
+      </div>
+
+      <!-- Galeria de Fotos e Vídeos -->
+      <div>
+        <div class="flex items-center justify-between mb-8 flex-wrap gap-4">
+          <div>
+            <h3 class="text-2xl font-black text-white font-heading">Galeria em Campo</h3>
+            <p class="text-xs text-slate-400">Momentos das oficinas, eventos e atendimento comunitário.</p>
+          </div>
+          <span class="text-xs text-emerald-400 font-semibold">Clique para ampliar qualquer imagem</span>
+        </div>
+        <div id="imp-galeria-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <!-- Preenchido dinamicamente via JS -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 5. COMO AJUDAR                            -->
+  <!-- ========================================== -->
+  <section id="como-ajudar" class="py-20 bg-emerald-50/50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-black uppercase tracking-widest text-emerald-700">Solidariedade em Ação</span>
+        <h2 class="text-3xl sm:text-4xl font-black text-slate-900 mt-2 mb-4 font-heading">Como Você Pode Ajudar</h2>
+        <p class="text-slate-600 text-base leading-relaxed">
+          Toda contribuição — financeira, de voluntariado ou material — constrói diretamente o futuro de uma criança.
+        </p>
+      </div>
+
+      <!-- Grid Principal: Doações Financeiras (PIX & Banco) + Voluntariado -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
+        
+        <!-- CARD 1: DOAÇÃO VIA PIX & CONTA BANCÁRIA (Col-span 7) -->
+        <div class="lg:col-span-7 bg-white rounded-3xl p-8 border border-slate-100 shadow-md flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-6 flex-wrap gap-2">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
+                  <i data-lucide="qr-code" class="w-6 h-6"></i>
+                </div>
+                <div>
+                  <h3 class="text-2xl font-black text-slate-900 font-heading">Doações Financeiras</h3>
+                  <span class="text-xs font-semibold text-emerald-600">PIX Instantâneo & Transferência</span>
+                </div>
+              </div>
+              <span class="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-full">Sem taxas adicionais</span>
+            </div>
+
+            <!-- Valores Sugeridos -->
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Escolha um valor sugerido:</p>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+              <button class="btn-valor-doacao p-3 rounded-2xl border border-slate-200 hover:border-emerald-500 text-center transition bg-slate-50 hover:bg-emerald-50" data-valor="R$ 30">
+                <span class="block text-lg font-black text-slate-900">R$ 30</span>
+                <span class="block text-[11px] text-slate-500">1 semana de lanche</span>
+              </button>
+              <button class="btn-valor-doacao p-3 rounded-2xl border border-slate-200 hover:border-emerald-500 text-center transition bg-slate-50 hover:bg-emerald-50" data-valor="R$ 60">
+                <span class="block text-lg font-black text-slate-900">R$ 60</span>
+                <span class="block text-[11px] text-slate-500">1 kit escolar</span>
+              </button>
+              <button class="btn-valor-doacao p-3 rounded-2xl border border-slate-200 hover:border-emerald-500 text-center transition bg-slate-50 hover:bg-emerald-50" data-valor="R$ 120">
+                <span class="block text-lg font-black text-slate-900">R$ 120</span>
+                <span class="block text-[11px] text-slate-500">1 mês de oficinas</span>
+              </button>
+              <button class="btn-valor-doacao p-3 rounded-2xl border border-slate-200 hover:border-emerald-500 text-center transition bg-slate-50 hover:bg-emerald-50" data-valor="R$ 250">
+                <span class="block text-lg font-black text-slate-900">R$ 250</span>
+                <span class="block text-[11px] text-slate-500">Cesta + Higiene</span>
+              </button>
+            </div>
+
+            <!-- Bloco do PIX com QR Code -->
+            <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200/80 mb-6 flex flex-col sm:flex-row items-center gap-6">
+              <div class="w-40 h-40 bg-white p-2 rounded-2xl shadow-sm border border-slate-200 flex-shrink-0 flex items-center justify-center">
+                <img id="pix-qrcode-img" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=pix@sementesdoamanha.org.br" alt="QR Code PIX" class="w-full h-full object-contain">
+              </div>
+
+              <div class="flex-1 space-y-2 text-center sm:text-left">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Chave PIX Oficial:</span>
+                <div class="bg-white px-3 py-2 rounded-xl border border-slate-200 font-mono text-sm font-bold text-slate-900 select-all break-all pix-chave">
+                  pix@sementesdoamanha.org.br
+                </div>
+                <p class="text-xs text-slate-600">
+                  Favorecido: <strong class="pix-favorecido">Instituto Sementes do Amanhã</strong><br>
+                  Banco: <span class="pix-banco">Sicredi (748)</span>
+                </p>
+                <div class="pt-3 flex flex-wrap gap-2">
+                  <button id="btn-copiar-pix" class="flex-1 min-w-[140px] px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-1.5">
+                    <i data-lucide="copy" class="w-4 h-4"></i> Copiar Chave
+                  </button>
+                  <button id="btn-copiar-copia-cola" class="flex-1 min-w-[160px] px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-1.5">
+                    <i data-lucide="qr-code" class="w-4 h-4 text-emerald-400"></i> Copia e Cola
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dados Bancários Alternativos -->
+            <div class="text-xs text-slate-600 bg-white p-4 rounded-xl border border-slate-100">
+              <span class="font-bold text-slate-800 block mb-1">Ou transferência bancária tradicional (TED/DOC):</span>
+              <p id="dados-bancarios-info" class="leading-relaxed">
+                Carregando dados bancários...
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 2: VOLUNTARIADO (Col-span 5) -->
+        <div class="lg:col-span-5 bg-white rounded-3xl p-8 border border-slate-100 shadow-md flex flex-col justify-between">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold mb-4">
+              <i data-lucide="sparkles" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-2xl font-black text-slate-900 mb-2 font-heading">Seja Voluntário(a)</h3>
+            <p class="text-sm text-slate-600 leading-relaxed mb-6">
+              Doe suas horas de conhecimento, carinho e presença. Não exigimos experiência prévia para a maioria das vagas — apenas boa vontade e responsabilidade!
+            </p>
+
+            <div class="space-y-3 mb-6">
+              <div class="flex items-center gap-2.5 text-xs text-slate-700 font-medium">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Atuação presencial ou híbrida
+              </div>
+              <div class="flex items-center gap-2.5 text-xs text-slate-700 font-medium">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Treinamento e capacitação inclusos
+              </div>
+              <div class="flex items-center gap-2.5 text-xs text-slate-700 font-medium">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Certificado de horas complementares
+              </div>
+            </div>
+          </div>
+
+          <button onclick="abrirModalVoluntario()" class="w-full py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm uppercase tracking-wider transition hover-lift flex items-center justify-center gap-2">
+            <i data-lucide="user-plus" class="w-5 h-5"></i> Preencher Formulário de Voluntário
+          </button>
+        </div>
+      </div>
+
+      <!-- Doações de Itens Necessários & Parcerias com Empresas -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Doação de Itens -->
+        <div class="lg:col-span-6 bg-white rounded-3xl p-8 border border-slate-100 shadow-sm">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <i data-lucide="package" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h4 class="text-xl font-bold text-slate-900 font-heading">Doação de Itens e Alimentos</h4>
+              <span class="text-xs text-slate-500">Entregas aceitas de segunda a sábado</span>
+            </div>
+          </div>
+          <p class="text-xs text-slate-600 mb-4">
+            Itens que estamos precisando com prioridade no momento para abastecer nossas oficinas e cozinha solidária:
+          </p>
+          <div id="itens-necessarios-list" class="space-y-2.5">
+            <!-- Gerado via JS -->
+          </div>
+        </div>
+
+        <!-- Parcerias com Empresas (ESG & Leis de Incentivo) -->
+        <div class="lg:col-span-6 bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-3xl p-8 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                <i data-lucide="building-2" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="text-xl font-bold text-white font-heading">Parcerias para Empresas</h4>
+                <span class="text-xs text-emerald-400 font-semibold">ESG, FIA & Investimento Social</span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed mb-5">
+              Conecte a marca da sua empresa ao desenvolvimento real da comunidade local. Emitimos relatórios de impacto para balanços socioambientais.
+            </p>
+            <ul class="space-y-2 text-xs text-slate-300 mb-6">
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Ações corporativas de voluntariado presencial</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Dedução fiscal permitida por lei</li>
+              <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Visibilidade institucional positiva</li>
+            </ul>
+          </div>
+          <a href="#contato" class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs uppercase tracking-wider text-center transition">
+            Conversar sobre Parceria Empresarial
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 6. TRANSPARÊNCIA                           -->
+  <!-- ========================================== -->
+  <section id="transparencia" class="py-20 bg-white border-t border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-black uppercase tracking-widest text-emerald-600">Auditoria & Governança</span>
+        <h2 class="text-3xl sm:text-4xl font-black text-slate-900 mt-2 mb-4 font-heading">Portal da Transparência</h2>
+        <p class="text-slate-600 text-base leading-relaxed">
+          Cada recurso doado é um voto de confiança que honramos com prestação de contas aberta a qualquer cidadão.
+        </p>
+      </div>
+
+      <!-- Gráfico de Destinação de Recursos -->
+      <div class="bg-slate-50 rounded-3xl p-8 border border-slate-200/80 mb-12">
+        <div class="max-w-3xl mx-auto">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+              <i data-lucide="pie-chart" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-slate-900 font-heading">Para onde vai o dinheiro arrecadado?</h3>
+              <p class="text-xs text-slate-500">Distribuição percentual média auditada do último exercício</p>
+            </div>
+          </div>
+          <div id="trans-destinacao-bars" class="space-y-4">
+            <!-- Gerado via JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Relatórios de Atividades e DREs -->
+        <div class="lg:col-span-6">
+          <h4 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2 font-heading">
+            <i data-lucide="file-bar-chart" class="w-5 h-5 text-emerald-600"></i> Relatórios de Atividades & Prestação
+          </h4>
+          <div id="trans-relatorios-grid" class="space-y-3">
+            <!-- Gerado via JS -->
+          </div>
+        </div>
+
+        <!-- Documentos Oficiais da Organização -->
+        <div class="lg:col-span-6">
+          <h4 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2 font-heading">
+            <i data-lucide="award" class="w-5 h-5 text-emerald-600"></i> Documentos Institucionais & Certidões
+          </h4>
+          <div id="trans-documentos-grid" class="space-y-3">
+            <!-- Gerado via JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 7. NOTÍCIAS OU BLOG                       -->
+  <!-- ========================================== -->
+  <section id="noticias" class="py-20 bg-slate-50 border-t border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-black uppercase tracking-widest text-emerald-600">Em Atividade</span>
+        <h2 class="text-3xl sm:text-4xl font-black text-slate-900 mt-2 mb-4 font-heading">Notícias, Eventos & Campanhas</h2>
+        <p class="text-slate-600 text-base leading-relaxed">
+          Acompanhe o dia a dia do projeto, nossos eventos comunitários e os avanços dos educandos.
+        </p>
+      </div>
+
+      <div id="blog-artigos-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Gerado via JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- 8. CONTATO & LOCALIZAÇÃO                  -->
+  <!-- ========================================== -->
+  <section id="contato" class="py-20 bg-white border-t border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="text-xs font-black uppercase tracking-widest text-emerald-600">Canais Abertos</span>
+        <h2 class="text-3xl sm:text-4xl font-black text-slate-900 mt-2 mb-4 font-heading">Fale Conosco</h2>
+        <p class="text-slate-600 text-base leading-relaxed">
+          Quer visitar a nossa sede, tirar dúvidas ou propor uma ação solidária? Estamos à disposição.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <!-- Informações de Contato e Redes -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="bg-slate-50 p-7 rounded-3xl border border-slate-100 space-y-5">
+            <h4 class="text-lg font-bold text-slate-900 font-heading">Informações de Atendimento</h4>
+
+            <!-- Endereço -->
+            <div class="flex items-start gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="map-pin" class="w-5 h-5"></i>
+              </div>
+              <div class="text-sm">
+                <strong class="text-slate-900 block">Endereço Sede:</strong>
+                <span id="contato-endereco" class="text-slate-600 leading-snug">Rua das Acácias, 450 - Jardim Esperança - São Paulo/SP</span>
+                <p id="contato-ponto-referencia" class="text-xs text-slate-400 mt-1"></p>
+              </div>
+            </div>
+
+            <!-- WhatsApp -->
+            <div class="flex items-start gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="phone-call" class="w-5 h-5"></i>
+              </div>
+              <div class="text-sm">
+                <strong class="text-slate-900 block">WhatsApp & Telefone:</strong>
+                <a id="contato-whatsapp-link" href="#" target="_blank" class="text-emerald-700 font-bold hover:underline inline-flex items-center gap-1">
+                  <span id="contato-whatsapp">(11) 98765-4321</span> (WhatsApp direto)
+                </a>
+                <span id="contato-telefone" class="block text-xs text-slate-500 mt-0.5">(11) 3214-8765</span>
+              </div>
+            </div>
+
+            <!-- E-mail -->
+            <div class="flex items-start gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="mail" class="w-5 h-5"></i>
+              </div>
+              <div class="text-sm">
+                <strong class="text-slate-900 block">E-mail:</strong>
+                <span id="contato-email" class="text-slate-600">contato@sementesdoamanha.org.br</span>
+              </div>
+            </div>
+
+            <!-- Horário -->
+            <div class="flex items-start gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="clock" class="w-5 h-5"></i>
+              </div>
+              <div class="text-sm">
+                <strong class="text-slate-900 block">Horário de Funcionamento:</strong>
+                <span id="contato-horario" class="text-slate-600">Segunda a Sexta das 08h às 18h</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Redes Sociais -->
+          <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-3">Conecte-se nas Redes Sociais:</span>
+            <div class="flex gap-3">
+              <a id="social-instagram" href="#" target="_blank" class="w-11 h-11 rounded-2xl bg-white border border-slate-200 text-slate-700 hover:text-pink-600 hover:border-pink-200 flex items-center justify-center transition hover-lift">
+                <i data-lucide="instagram" class="w-5 h-5"></i>
+              </a>
+              <a id="social-facebook" href="#" target="_blank" class="w-11 h-11 rounded-2xl bg-white border border-slate-200 text-slate-700 hover:text-blue-600 hover:border-blue-200 flex items-center justify-center transition hover-lift">
+                <i data-lucide="facebook" class="w-5 h-5"></i>
+              </a>
+              <a id="social-youtube" href="#" target="_blank" class="w-11 h-11 rounded-2xl bg-white border border-slate-200 text-slate-700 hover:text-red-600 hover:border-red-200 flex items-center justify-center transition hover-lift">
+                <i data-lucide="youtube" class="w-5 h-5"></i>
+              </a>
+              <a id="social-linkedin" href="#" target="_blank" class="w-11 h-11 rounded-2xl bg-white border border-slate-200 text-slate-700 hover:text-blue-700 hover:border-blue-200 flex items-center justify-center transition hover-lift">
+                <i data-lucide="linkedin" class="w-5 h-5"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Mapa Interativo -->
+          <div class="rounded-3xl overflow-hidden border border-slate-200 shadow-sm h-52">
+            <iframe id="contato-mapa-iframe" title="Localização no mapa" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d117072.84657159757!2d-46.721464359253724!3d-23.550519904294065!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ce59c8da0aa315%3A0xd59f9431f2c9776a!2zU8OjbyBQYXVsbywgU1A!5e0!3m2!1spt-BR!2sbr!4v1700000000000!5m2!1spt-BR!2sbr" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+          </div>
+        </div>
+
+        <!-- FORMULÁRIO DE CONTATO (Conectado ao Python Backend) -->
+        <div class="lg:col-span-7 bg-white p-8 sm:p-10 rounded-3xl border border-slate-100 shadow-lg">
+          <div class="mb-6">
+            <h3 class="text-2xl font-black text-slate-900 font-heading">Envie uma Mensagem</h3>
+            <p class="text-xs text-slate-500 mt-1">Preencha o formulário abaixo que responderemos o mais rápido possível.</p>
+          </div>
+
+          <form id="form-contato" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="contato-nome" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Seu Nome <span class="text-red-500">*</span></label>
+                <input type="text" id="contato-nome" required placeholder="Ex.: Ana" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 focus:bg-white transition">
+              </div>
+              <div>
+                <label for="contato-email-input" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Seu E-mail <span class="text-red-500">*</span></label>
+                <input type="email" id="contato-email-input" required placeholder="Ex.: ana@email.com" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 focus:bg-white transition">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="contato-telefone-input" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Telefone / WhatsApp <span class="text-red-500">*</span></label>
+                <input type="tel" id="contato-telefone-input" required placeholder="(11) 90000-0000" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 focus:bg-white transition">
+              </div>
+              <div>
+                <label for="contato-assunto-input" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Assunto <span class="text-red-500">*</span></label>
+                <input type="text" id="contato-assunto-input" required placeholder="Ex.: Parceria ou Dúvidas" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 focus:bg-white transition">
+              </div>
+            </div>
+
+            <div>
+              <label for="contato-mensagem-input" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Sua Mensagem <span class="text-red-500">*</span></label>
+              <textarea id="contato-mensagem-input" rows="4" required placeholder="Como podemos ajudar você ou como você gostaria de nos apoiar?" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 focus:bg-white transition"></textarea>
+            </div>
+
+            <button type="submit" class="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm uppercase tracking-wider shadow-lg shadow-emerald-600/30 transition hover-lift flex items-center justify-center gap-2">
+              <i data-lucide="send" class="w-4 h-4"></i> Enviar Mensagem Agora
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- RODAPÉ COMPLETO                           -->
+  <!-- ========================================== -->
+  <footer class="bg-slate-950 text-slate-400 pt-16 pb-12 border-t border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800">
+        <!-- Coluna 1: Sobre -->
+        <div class="lg:col-span-2 space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-slate-950 font-bold">
+              <i data-lucide="sprout" class="w-6 h-6"></i>
+            </div>
+            <span class="text-xl font-black text-white font-heading site-nome">Instituto Sementes do Amanhã</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed max-w-sm site-slogan">
+            Educação, acolhimento e oportunidades para transformar realidades de crianças e jovens em situação de vulnerabilidade.
+          </p>
+          <div class="text-xs text-slate-500">
+            CNPJ: <span class="site-cnpj font-mono text-slate-300">12.345.678/0001-90</span>
+          </div>
+        </div>
+
+        <!-- Coluna 2: Navegação -->
+        <div>
+          <h5 class="text-sm font-bold text-white uppercase tracking-wider mb-4 font-heading">Navegação</h5>
+          <ul class="space-y-2 text-xs">
+            <li><a href="#inicio" class="hover:text-emerald-400 transition">Página Inicial</a></li>
+            <li><a href="#quem-somos" class="hover:text-emerald-400 transition">Quem Somos</a></li>
+            <li><a href="#o-que-fazemos" class="hover:text-emerald-400 transition">O Que Fazemos</a></li>
+            <li><a href="#impacto" class="hover:text-emerald-400 transition">Impacto & Números</a></li>
+          </ul>
+        </div>
+
+        <!-- Coluna 3: Apoie -->
+        <div>
+          <h5 class="text-sm font-bold text-white uppercase tracking-wider mb-4 font-heading">Apoie</h5>
+          <ul class="space-y-2 text-xs">
+            <li><a href="javascript:void(0)" onclick="abrirModalDoacao()" class="hover:text-emerald-400 transition">Doação via PIX</a></li>
+            <li><a href="javascript:void(0)" onclick="abrirModalVoluntario()" class="hover:text-emerald-400 transition">Seja Voluntário</a></li>
+            <li><a href="#como-ajudar" class="hover:text-emerald-400 transition">Doação de Alimentos</a></li>
+            <li><a href="#como-ajudar" class="hover:text-emerald-400 transition">Parcerias ESG</a></li>
+          </ul>
+        </div>
+
+        <!-- Coluna 4: Transparência & Painel -->
+        <div>
+          <h5 class="text-sm font-bold text-white uppercase tracking-wider mb-4 font-heading">Institucional</h5>
+          <ul class="space-y-2 text-xs">
+            <li><a href="#transparencia" class="hover:text-emerald-400 transition">Estatuto Social</a></li>
+            <li><a href="#transparencia" class="hover:text-emerald-400 transition">Prestações de Contas</a></li>
+            <li><a href="#noticias" class="hover:text-emerald-400 transition">Últimas Notícias</a></li>
+            <li class="pt-2">
+              <a href="/admin" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 font-bold transition">
+                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Editar Informações (Admin)
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Direitos autorais -->
+      <div class="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+        <p>&copy; 2026 <span class="site-nome">Instituto Sementes do Amanhã</span>. Todos os direitos reservados.</p>
+        <p class="flex items-center gap-1">Feito com 💚 para apoiar causas sociais.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================== -->
+  <!-- MODAL 1: DOAÇÃO / PIX                     -->
+  <!-- ========================================== -->
+  <div id="modal-doacao" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop" onclick="if(event.target===this) fecharModalDoacao()">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-7 shadow-2xl relative modal-content border border-slate-100">
+      <button onclick="fecharModalDoacao()" aria-label="Fechar modal de doação" class="absolute top-5 right-5 text-slate-400 hover:text-slate-700">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+          <i data-lucide="heart" class="w-6 h-6 fill-emerald-600"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-black text-slate-900 font-heading">Doe Agora pelo PIX</h3>
+          <p class="text-xs text-slate-500">Ajude a transformar a vida das nossas crianças</p>
+        </div>
+      </div>
+
+      <div class="text-center bg-slate-50 p-5 rounded-2xl border border-slate-200 mb-5">
+        <img id="modal-pix-qrcode-img" src="" alt="QR Code PIX Dinâmico" class="w-44 h-44 mx-auto rounded-xl shadow-sm mb-3 object-contain bg-white p-1">
+        <span class="text-xs font-bold text-slate-500 block mb-1">Chave PIX:</span>
+        <div class="font-mono text-sm font-bold text-slate-900 bg-white p-2.5 rounded-xl border border-slate-200 select-all mb-3 pix-chave">
+          pix@sementesdoamanha.org.br
+        </div>
+        <div class="flex gap-2">
+          <button onclick="document.getElementById('btn-copiar-pix').click();" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider transition">
+            Copiar Chave
+          </button>
+          <button onclick="document.getElementById('btn-copiar-copia-cola').click();" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs uppercase tracking-wider transition">
+            Copia e Cola
+          </button>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-500 text-center">
+        Favorecido: <strong class="pix-favorecido">Instituto Sementes do Amanhã</strong><br>
+        Qualquer quantia faz uma enorme diferença na compra de materiais e alimentos.
+      </p>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 2: FORMULÁRIO DE VOLUNTARIADO        -->
+  <!-- ========================================== -->
+  <div id="modal-voluntario" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop" onclick="if(event.target===this) fecharModalVoluntario()">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-8 shadow-2xl relative modal-content border border-slate-100 max-h-[90vh] overflow-y-auto">
+      <button onclick="fecharModalVoluntario()" aria-label="Fechar modal de voluntariado" class="absolute top-5 right-5 text-slate-400 hover:text-slate-700">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center">
+          <i data-lucide="hand-heart" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="text-2xl font-black text-slate-900 font-heading">Seja um(a) Voluntário(a)</h3>
+          <p class="text-xs text-slate-500">Preencha seus dados para alinharmos sua participação</p>
+        </div>
+      </div>
+
+      <form id="form-voluntario" class="space-y-4">
+        <div>
+          <label for="voluntario-nome" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nome <span class="text-red-500">*</span></label>
+          <input type="text" id="voluntario-nome" required placeholder="Ex.: Mariana" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="voluntario-email" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">E-mail <span class="text-red-500">*</span></label>
+            <input type="email" id="voluntario-email" required placeholder="seu@email.com" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+          <div>
+            <label for="voluntario-whatsapp" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">WhatsApp <span class="text-red-500">*</span></label>
+            <input type="tel" id="voluntario-whatsapp" required placeholder="(11) 90000-0000" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label for="voluntario-area" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Área de Atuação Desejada <span class="text-red-500">*</span></label>
+          <select id="voluntario-area" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+            <option value="">Selecione uma área...</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="voluntario-disponibilidade" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Sua Disponibilidade <span class="text-red-500">*</span></label>
+          <input type="text" id="voluntario-disponibilidade" required placeholder="Ex.: Sábados pela manhã / Terças à tarde" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+
+        <div>
+          <label for="voluntario-experiencia" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Conte um pouco sobre você e sua motivação <span class="text-red-500">*</span></label>
+          <textarea id="voluntario-experiencia" required rows="3" placeholder="Sua profissão, hobbies ou por que quer apoiar o projeto..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"></textarea>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm uppercase tracking-wider shadow-lg transition">
+          Confirmar Inscrição
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 3: LIGHTBOX DA GALERIA              -->
+  <!-- ========================================== -->
+  <div id="modal-lightbox" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop" onclick="if(event.target===this) fecharLightbox()">
+    <div class="relative max-w-4xl max-h-[90vh] flex flex-col items-center">
+      <button onclick="fecharLightbox()" aria-label="Fechar visualizador de imagem" class="absolute -top-10 right-0 text-white hover:text-emerald-400">
+        <i data-lucide="x" class="w-8 h-8"></i>
+      </button>
+      <img id="lightbox-img" src="" alt="Imagem ampliada" class="lightbox-img rounded-2xl shadow-2xl border-2 border-white/20">
+      <p id="lightbox-legenda" class="text-white text-sm font-semibold mt-3 text-center"></p>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 4: NOTÍCIA COMPLETA                 -->
+  <!-- ========================================== -->
+  <div id="modal-noticia" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop" onclick="if(event.target===this) fecharModalNoticia()">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-8 shadow-2xl relative modal-content border border-slate-100 max-h-[90vh] overflow-y-auto">
+      <button onclick="fecharModalNoticia()" aria-label="Fechar notícia" class="absolute top-5 right-5 text-slate-400 hover:text-slate-700">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+
+      <span id="noticia-modal-data" class="text-xs text-emerald-600 font-bold uppercase tracking-wider block mb-2"></span>
+      <h3 id="noticia-modal-titulo" class="text-2xl font-black text-slate-900 font-heading mb-4"></h3>
+
+      <div class="rounded-2xl overflow-hidden mb-6 h-64 bg-slate-100">
+        <img id="noticia-modal-foto" src="" alt="Notícia" class="w-full h-full object-cover">
+      </div>
+
+      <p id="noticia-modal-texto" class="text-sm text-slate-700 leading-relaxed whitespace-pre-line"></p>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/assets/js/main.js?v=14"></script>
+</body>
+</html>
