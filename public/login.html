@@ -11,10 +11,10 @@
 </head>
 <body class="bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 min-h-screen flex items-center justify-center p-4 antialiased text-slate-800">
 
-  <!-- Toast de Notificação -->
-  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
+  <!-- Toast de Notificação (pointer-events: none para nunca cobrir o formulário) -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none" style="pointer-events: none !important; bottom: auto !important;"></div>
 
-  <div class="max-w-md w-full bg-white rounded-3xl p-8 sm:p-10 shadow-2xl border border-slate-100/10 relative">
+  <div class="max-w-md w-full bg-white rounded-3xl p-8 sm:p-10 shadow-2xl border border-slate-100/10 relative z-10">
     
     <!-- Ícone e Cabeçalho -->
     <div class="text-center mb-8">
@@ -28,23 +28,23 @@
     <!-- Formulário de Login (Otimizado para Mobile e Desktop) -->
     <form id="form-login" class="space-y-5" autocomplete="off">
       <div>
-        <label for="login-username" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Usuário</label>
+        <label for="login-username" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 cursor-pointer select-none">Usuário</label>
         <div class="relative">
-          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 z-20">
             <i data-lucide="user" class="w-4 h-4"></i>
           </div>
-          <input type="text" id="login-username" required placeholder="Digite seu usuário" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="text" class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 focus:bg-white transition">
+          <input type="text" id="login-username" required placeholder="Digite seu usuário" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="text" class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 focus:bg-white transition cursor-text relative z-10" style="touch-action: manipulation; -webkit-user-select: text; user-select: text;">
         </div>
       </div>
 
       <div>
-        <label for="login-password" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Senha de Acesso</label>
+        <label for="login-password" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 cursor-pointer select-none">Senha de Acesso</label>
         <div class="relative">
-          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 z-20">
             <i data-lucide="lock" class="w-4 h-4"></i>
           </div>
-          <input type="password" id="login-password" required placeholder="••••••••" autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" class="w-full pl-10 pr-11 py-3 rounded-xl border border-slate-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 focus:bg-white transition">
-          <button type="button" id="btn-toggle-senha" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition" aria-label="Mostrar ou ocultar senha">
+          <input type="password" id="login-password" required placeholder="••••••••" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" class="w-full pl-10 pr-11 py-3 rounded-xl border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 focus:bg-white transition cursor-text relative z-10" style="touch-action: manipulation; -webkit-user-select: text; user-select: text;">
+          <button type="button" id="btn-toggle-senha" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition z-20" aria-label="Mostrar ou ocultar senha">
             <i data-lucide="eye" id="icone-eye" class="w-4 h-4"></i>
           </button>
         </div>
@@ -92,7 +92,8 @@
       if (!container) return;
       const toast = document.createElement("div");
       const bgCor = tipo === "sucesso" ? "bg-emerald-600 text-white" : "bg-red-600 text-white";
-      toast.className = `flex items-center gap-3 p-4 rounded-xl shadow-xl ${bgCor} text-sm font-medium transition-all duration-300`;
+      toast.className = `flex items-center gap-3 p-4 rounded-xl shadow-xl ${bgCor} text-sm font-medium transition-all duration-300 pointer-events-auto`;
+      toast.style.pointerEvents = "auto";
       toast.innerHTML = `<div class="flex-1">${mensagem}</div>`;
       container.appendChild(toast);
       setTimeout(() => {
