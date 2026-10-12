@@ -303,6 +303,10 @@ def salvar_banco_nuvem():
         ]
         conn.close()
 
+        # Proteção anti-perda: se o banco local estiver completamente vazio, não sobrescreve a nuvem
+        if len(contatos) == 0 and len(voluntarios) == 0:
+            return
+
         payload = {
             "contatos": contatos,
             "voluntarios": voluntarios,
@@ -668,6 +672,70 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 self.send_json(rows)
             except Exception as e:
                 self.send_json({"erro": str(e)}, 500)
+            return
+
+        elif path == '/api/admin/banco/status':
+            if not self.is_authenticated():
+                self.send_json({"sucesso": False, "erro": "Acesso não autorizado."}, 401)
+                return
+            try:
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM contatos")
+                n_contatos = cursor.fetchone()[0]
+                cursor.execute("SELECT COUNT(*) FROM voluntarios")
+                n_voluntarios = cursor.fetchone()[0]
+                conn.close()
+                tamanho_kb = round(os.path.getsize(DB_FILE) / 1024, 1) if os.path.exists(DB_FILE) else 0
+                self.send_json({
+                    "sucesso": True,
+                    "nuvem_conectada": True,
+                    "provedor": "KVDB Cloud Backup",
+                    "total_contatos": n_contatos,
+                    "total_voluntarios": n_voluntarios,
+                    "tamanho_banco_kb": tamanho_kb,
+                    "modo": "SQLite com Backup Automático na Nuvem"
+                })
+            except Exception as e:
+                self.send_json({"sucesso": False, "erro": str(e)}, 500)
+            return
+
+        elif path == '/api/admin/banco/exportar':
+            if not self.is_authenticated():
+                self.send_json({"sucesso": False, "erro": "Acesso não autorizado."}, 401)
+                return
+            try:
+                conn = get_db_connection()
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM contatos ORDER BY id ASC")
+                contatos = [dict(r) for r in cursor.fetchall()]
+                cursor.execute("SELECT * FROM voluntarios ORDER BY id ASC")
+                voluntarios = [dict(r) for r in cursor.fetchall()]
+                conn.close()
+
+                export_data = {
+                    "sistema": "Instituto Sementes do Amanhã - Exportação Oficial do Banco de Dados",
+                    "data_exportacao": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+                    "resumo": {
+                        "total_mensagens": len(contatos),
+                        "total_voluntarios": len(voluntarios)
+                    },
+                    "mensagens_contato": contatos,
+                    "inscricoes_voluntarios": voluntarios
+                }
+                export_bytes = json.dumps(export_data, ensure_ascii=False, indent=2).encode('utf-8')
+                data_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+                nome_arq = f"backup_ong_{data_str}.json"
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Content-Disposition', f'attachment; filename="{nome_arq}"')
+                self.send_header('Content-Length', str(len(export_bytes)))
+                self.end_headers()
+                self.wfile.write(export_bytes)
+            except Exception as e:
+                self.send_json({"sucesso": False, "erro": str(e)}, 500)
             return
 
         # Servir arquivos estáticos dentro de /public

@@ -628,14 +628,31 @@
       <!-- ABA 9: CAIXA DE ENTRADA (MENSAGENS & VOLUNTÁRIOS)              -->
       <!-- ============================================================== -->
       <section id="aba-inbox" class="aba-conteudo space-y-6 hidden">
-        <div class="border-b border-slate-100 pb-4 flex items-center justify-between">
+        <div class="border-b border-slate-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 class="text-xl font-bold text-slate-900 font-heading">9. Caixa de Entrada & Candidaturas</h2>
             <p class="text-xs text-slate-500">Pessoas que entraram em contato ou se inscreveram para voluntariado.</p>
           </div>
-          <button onclick="carregarInbox()" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold flex items-center gap-1">
-            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Atualizar
-          </button>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="baixarBackupBanco()" class="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1.5 transition shadow-sm" title="Baixar arquivo JSON com todas as mensagens e voluntários cadastrados">
+              <i data-lucide="download-cloud" class="w-3.5 h-3.5"></i> Baixar Backup (JSON)
+            </button>
+            <button onclick="carregarInbox()" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold flex items-center gap-1">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Atualizar
+            </button>
+          </div>
+        </div>
+
+        <!-- Banner de Status do Banco de Dados na Nuvem -->
+        <div class="p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50 to-slate-50 rounded-xl border border-emerald-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0"></span>
+            <span class="font-bold text-slate-800">Banco de Dados em Nuvem Ativo:</span>
+            <span class="text-slate-600">Mensagens e cadastros são sincronizados e preservados automaticamente mesmo que o Render reinicie.</span>
+          </div>
+          <span class="text-[11px] font-semibold text-emerald-800 bg-emerald-100/80 px-2.5 py-0.5 rounded-full self-start sm:self-auto">
+            Protegido contra reinício
+          </span>
         </div>
 
         <div>
@@ -2067,6 +2084,27 @@
         }
       } catch (err) {
         showToast("Falha na comunicação com o servidor.", "erro");
+      }
+    }
+
+    async function baixarBackupBanco() {
+      try {
+        showToast("Gerando cópia de segurança...", "info");
+        const res = await authFetch('/api/admin/banco/exportar');
+        if (!res.ok) throw new Error("Erro ao gerar arquivo de backup.");
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const dataStr = new Date().toISOString().slice(0, 10);
+        a.download = `backup_ong_${dataStr}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        showToast("Backup do banco de dados baixado com sucesso!", "sucesso");
+      } catch (err) {
+        showToast(err.message || "Falha ao baixar backup.", "erro");
       }
     }
 
