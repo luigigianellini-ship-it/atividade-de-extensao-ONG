@@ -58,6 +58,74 @@ def load_env():
 
 load_env()
 
+# Persistência Permanente na Nuvem (sobrevive a reinicializações e discos efêmeros do Render)
+KVDB_BUCKET_URL = os.environ.get("KVDB_BUCKET_URL", "https://kvdb.io/CRiiwUrgTkUsVqFprcTA67/site_config")
+
+def sincronizar_config_nuvem():
+    """
+    Sincroniza o arquivo local config.json com o banco de dados em nuvem permanente (KVDB).
+    Isso garante que todas as alterações feitas no painel administrativo sobrevivam
+    permanentemente, mesmo quando o Render reinicia ou recria o container.
+    """
+    try:
+        req = urllib.request.Request(
+            KVDB_BUCKET_URL,
+            headers={"User-Agent": "Instituto-Sementes-Amanha/1.0"}
+        )
+        ctx = ssl.create_default_context()
+        try:
+            res = urllib.request.urlopen(req, timeout=10, context=ctx)
+        except Exception:
+            ctx = ssl._create_unverified_context()
+            res = urllib.request.urlopen(req, timeout=10, context=ctx)
+
+        with res:
+            if res.status == 200:
+                raw_data = res.read().decode('utf-8').strip()
+                if raw_data:
+                    cloud_json = json.loads(raw_data)
+                    if isinstance(cloud_json, dict) and "instituicao" in cloud_json:
+                        with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
+                            json.dump(cloud_json, f, ensure_ascii=False, indent=2)
+                        print("[PERSISTÊNCIA] Configurações sincronizadas da nuvem permanente com sucesso!")
+                        return cloud_json
+    except Exception as e:
+        print(f"[AVISO] Não foi possível carregar configurações da nuvem (mantendo local): {e}")
+    return None
+
+def salvar_config_nuvem(dados_dict):
+    """
+    Salva imediatamente as novas configurações no banco de dados persistente em nuvem (KVDB).
+    """
+    try:
+        body_bytes = json.dumps(dados_dict, ensure_ascii=False, indent=2).encode('utf-8')
+        req = urllib.request.Request(
+            KVDB_BUCKET_URL,
+            data=body_bytes,
+            method="POST",
+            headers={
+                "Content-Type": "application/json; charset=utf-8",
+                "User-Agent": "Instituto-Sementes-Amanha/1.0"
+            }
+        )
+        ctx = ssl.create_default_context()
+        try:
+            res = urllib.request.urlopen(req, timeout=10, context=ctx)
+        except Exception:
+            ctx = ssl._create_unverified_context()
+            res = urllib.request.urlopen(req, timeout=10, context=ctx)
+
+        with res:
+            if res.status in (200, 201):
+                print("[PERSISTÊNCIA] Configurações salvas permanentemente na nuvem!")
+                return True
+    except Exception as e:
+        print(f"[AVISO] Falha ao enviar configurações para a nuvem permanente: {e}")
+    return False
+
+# Restaura as configurações da nuvem na inicialização do servidor
+sincronizar_config_nuvem()
+
 def get_db_connection():
     conn = sqlite3.connect(DB_FILE, timeout=10.0)
     return conn
@@ -429,6 +497,8 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
         # Rotas de API
         if path == '/api/config':
             try:
+                if not os.path.exists(CONFIG_FILE):
+                    sincronizar_config_nuvem()
                 with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
                     config_data = json.load(f)
                 self.send_json(config_data)
@@ -808,9 +878,13 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
                     json.dump(body_json, f, ensure_ascii=False, indent=2)
 
+                # Salva na nuvem permanente para nunca perder alterações em reinicializações do Render
+                nuvem_salva = salvar_config_nuvem(body_json)
+
                 self.send_json({
                     "sucesso": True,
-                    "mensagem": "Configurações do site salvas com sucesso!"
+                    "nuvem_sincronizada": nuvem_salva,
+                    "mensagem": "Configurações do site salvas permanentemente com sucesso!"
                 })
             except Exception as e:
                 self.send_json({"sucesso": False, "erro": f"Erro ao salvar configurações: {str(e)}"}, 500)

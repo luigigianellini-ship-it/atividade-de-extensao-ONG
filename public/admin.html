@@ -708,11 +708,17 @@
         fileInput.accept = "image/png,image/jpeg,image/webp,image/svg+xml,image/gif";
       }
 
+      // Procura o container do card correspondente com precisão
+      const cardContainer = btnElement ? (
+        btnElement.closest('.proj-card-item, .eq-card-item, .dep-card-item, .gal-card-item, .art-card-item, .doc-card-item, .rel-card-item') ||
+        btnElement.closest('.grid, .p-4, .p-3, .space-y-3, .space-y-4')
+      ) : null;
+
       currentUploadContext = {
         btn: btnElement,
         tipo: tipo,
         targetInputSelector: targetInputSelector,
-        parentCard: btnElement ? btnElement.closest('.space-y-3, .space-y-4, .p-3, .p-4, div') : null
+        parentCard: cardContainer
       };
 
       fileInput.value = "";
@@ -777,10 +783,15 @@
           } else if (parentCard && targetInputSelector) {
             targetInput = parentCard.querySelector(targetInputSelector);
           }
+          if (!targetInput && btn) {
+            targetInput = btn.closest('.flex, .grid, div')?.querySelector(targetInputSelector) ||
+                          btn.parentElement?.querySelector('input');
+          }
 
           if (targetInput) {
             targetInput.value = res.url;
             targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+            targetInput.dispatchEvent(new Event('change', { bubbles: true }));
           }
 
           // Se for documento e o título estiver genérico ou vazio, sugere nome limpo
@@ -792,18 +803,31 @@
             }
           }
 
-          // Se for imagem, atualiza o preview visual no card
+          // Atualiza o preview visual da imagem
+          let imgPreview = null;
           if (targetInputSelector === '#adm-hero-foto') {
-            const heroPrev = document.getElementById('preview-hero-foto');
-            if (heroPrev) heroPrev.src = res.url;
+            imgPreview = document.getElementById('preview-hero-foto');
           } else if (parentCard) {
-            const imgPreview = parentCard.querySelector('.eq-img-preview, .proj-img-preview, .dep-img-preview, .gal-img-preview, .art-img-preview');
-            if (imgPreview) {
-              imgPreview.src = res.url;
-            }
+            imgPreview = parentCard.querySelector('.eq-img-preview, .proj-img-preview, .dep-img-preview, .gal-img-preview, .art-img-preview, img');
+          }
+          if (!imgPreview && btn) {
+            imgPreview = btn.closest('.grid, .space-y-3, div')?.querySelector('img');
           }
 
-          showToast(`Arquivo "${file.name}" enviado com sucesso! Lembre-se de clicar em "Salvar Alterações".`, "sucesso");
+          if (imgPreview) {
+            imgPreview.src = res.url;
+          }
+
+          // Sincroniza os dados no objeto globalConfig imediatamente
+          syncEquipeFromDOM();
+          syncProjetosFromDOM();
+          syncDepoimentosFromDOM();
+          syncGaleriaFromDOM();
+          syncNoticiasFromDOM();
+          syncDocumentosLegaisFromDOM();
+          syncRelatoriosAtividadesFromDOM();
+
+          showToast(`Arquivo "${file.name}" enviado com sucesso! Clique em "Salvar Alterações" no topo.`, "sucesso");
         } else {
           showToast(res.erro || "Falha no envio do arquivo.", "erro");
         }
@@ -1322,7 +1346,7 @@
       if (!container) return;
       const equipe = globalConfig.quem_somos?.equipe || [];
       container.innerHTML = equipe.map((m, idx) => `
-        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 relative space-y-3">
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 relative space-y-3 eq-card-item">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-slate-700 uppercase">Membro #${idx + 1}</span>
             <button type="button" onclick="removerMembroEquipe(${idx})" class="text-red-600 hover:text-red-800 text-xs font-bold flex items-center gap-1">
@@ -1391,7 +1415,7 @@
       if (!container) return;
       const projs = globalConfig.o_que_fazemos?.projetos || [];
       container.innerHTML = projs.map((p, idx) => `
-        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 relative space-y-3">
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 relative space-y-3 proj-card-item">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-slate-700 uppercase">Projeto #${idx + 1}</span>
             <button type="button" onclick="removerProjeto(${idx})" class="text-red-600 hover:text-red-800 text-xs font-bold flex items-center gap-1">
@@ -1498,7 +1522,7 @@
       if (!container) return;
       const deps = globalConfig.impacto?.depoimentos || [];
       container.innerHTML = deps.map((d, idx) => `
-        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 relative space-y-3">
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 relative space-y-3 dep-card-item">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-slate-700 uppercase">Depoimento #${idx + 1}</span>
             <button type="button" onclick="removerDepoimento(${idx})" class="text-red-600 hover:text-red-800 text-xs font-bold flex items-center gap-1">
@@ -1568,7 +1592,7 @@
       if (!container) return;
       const gal = globalConfig.impacto?.galeria || [];
       container.innerHTML = gal.map((g, idx) => `
-        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center gap-3">
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center gap-3 gal-card-item">
           <img src="${g.url || ''}" alt="Foto" class="gal-img-preview w-20 h-14 rounded-lg object-cover bg-slate-200 border border-slate-300 flex-shrink-0">
           <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
             <div>
@@ -1625,7 +1649,7 @@
       if (!container) return;
       const arts = globalConfig.noticias_blog?.artigos || [];
       container.innerHTML = arts.map((a, idx) => `
-        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 relative space-y-3">
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 relative space-y-3 art-card-item">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-slate-700 uppercase">Notícia #${idx + 1}</span>
             <button type="button" onclick="removerNoticia(${idx})" class="text-red-600 hover:text-red-800 text-xs font-bold flex items-center gap-1">
