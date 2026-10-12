@@ -5,7 +5,7 @@
     "tema_cor_principal": "#10B981"
   },
   "instituicao": {
-    "nome": "Instituto Sementes do Amanhã",
+    "nome": "instituto",
     "sigla": "ISA",
     "slogan": "Educação, acolhimento e oportunidades para transformar realidades",
     "ano_fundacao": "2018",
@@ -105,7 +105,7 @@
         "categoria": "Esporte e Saúde",
         "faixa_etaria": "7 a 17 anos",
         "horario": "Terças, quintas e sábados",
-        "foto": "https://images.unsplash.com/photo-1526232761682-d26e03ac148e?q=80&w=600&auto=format&fit=crop",
+        "foto": "https://files.catbox.moe/1sbhr4.png",
         "descricao": "Prática esportiva com foco em disciplina, cooperação, autocuidado e respeito mútuo, com acompanhamento fisioterapêutico voluntário.",
         "icone": "trophy"
       },

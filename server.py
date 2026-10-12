@@ -276,6 +276,109 @@ def init_db():
 
 init_db()
 
+def salvar_banco_nuvem():
+    """
+    Exporta contatos e voluntários para a nuvem permanente (KVDB)
+    para garantir que mensagens e cadastros nunca sejam perdidos quando o Render reiniciar.
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, nome, email, telefone, assunto, mensagem, data_envio, lido FROM contatos ORDER BY id ASC")
+        contatos = [
+            {
+                "id": row[0], "nome": row[1], "email": row[2], "telefone": row[3],
+                "assunto": row[4], "mensagem": row[5], "data_envio": row[6], "lido": row[7]
+            }
+            for row in cursor.fetchall()
+        ]
+        cursor.execute("SELECT id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status FROM voluntarios ORDER BY id ASC")
+        voluntarios = [
+            {
+                "id": row[0], "nome": row[1], "email": row[2], "whatsapp": row[3],
+                "area_interesse": row[4], "disponibilidade": row[5], "experiencia": row[6],
+                "data_envio": row[7], "status": row[8]
+            }
+            for row in cursor.fetchall()
+        ]
+        conn.close()
+
+        payload = {
+            "contatos": contatos,
+            "voluntarios": voluntarios,
+            "atualizado_em": datetime.now().isoformat()
+        }
+        body_bytes = json.dumps(payload, ensure_ascii=False).encode('utf-8')
+        req = urllib.request.Request(
+            "https://kvdb.io/CRiiwUrgTkUsVqFprcTA67/site_db_backup",
+            data=body_bytes,
+            method="POST",
+            headers={
+                "Content-Type": "application/json; charset=utf-8",
+                "User-Agent": "Instituto-Sementes-Amanha/1.0"
+            }
+        )
+        ctx = ssl.create_default_context()
+        try:
+            res = urllib.request.urlopen(req, timeout=10, context=ctx)
+        except Exception:
+            ctx = ssl._create_unverified_context()
+            res = urllib.request.urlopen(req, timeout=10, context=ctx)
+        with res:
+            pass
+    except Exception as e:
+        print(f"[AVISO] Falha ao fazer backup do banco na nuvem: {e}")
+
+def sincronizar_banco_nuvem():
+    """
+    Restaura contatos e voluntários salvos na nuvem permanente (KVDB)
+    para dentro do SQLite local após o Render reiniciar.
+    """
+    try:
+        req = urllib.request.Request(
+            "https://kvdb.io/CRiiwUrgTkUsVqFprcTA67/site_db_backup",
+            headers={"User-Agent": "Instituto-Sementes-Amanha/1.0"}
+        )
+        ctx = ssl.create_default_context()
+        try:
+            res = urllib.request.urlopen(req, timeout=10, context=ctx)
+        except Exception:
+            ctx = ssl._create_unverified_context()
+            res = urllib.request.urlopen(req, timeout=10, context=ctx)
+
+        with res:
+            if res.status == 200:
+                raw_data = res.read().decode('utf-8').strip()
+                if raw_data:
+                    data = json.loads(raw_data)
+                    conn = get_db_connection()
+                    cursor = conn.cursor()
+
+                    for c in data.get("contatos", []):
+                        cursor.execute("""
+                            INSERT OR IGNORE INTO contatos (id, nome, email, telefone, assunto, mensagem, data_envio, lido)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """, (c["id"], c["nome"], c["email"], c.get("telefone", ""), c.get("assunto", ""), c["mensagem"], c["data_envio"], c.get("lido", 0)))
+                        cursor.execute("UPDATE contatos SET lido = ? WHERE id = ?", (c.get("lido", 0), c["id"]))
+
+                    for v in data.get("voluntarios", []):
+                        cursor.execute("""
+                            INSERT OR IGNORE INTO voluntarios (id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """, (v["id"], v["nome"], v["email"], v["whatsapp"], v["area_interesse"], v.get("disponibilidade", ""), v.get("experiencia", ""), v["data_envio"], v.get("status", "Pendente")))
+                        cursor.execute("UPDATE voluntarios SET status = ? WHERE id = ?", (v.get("status", "Pendente"), v["id"]))
+
+                    conn.commit()
+                    conn.close()
+                    print("[PERSISTÊNCIA] Banco de dados (contatos e voluntários) restaurado da nuvem com sucesso!")
+    except Exception as e:
+        print(f"[AVISO] Falha ao sincronizar banco da nuvem: {e}")
+
+# Restaura mensagens de contato e voluntários da nuvem na inicialização
+sincronizar_banco_nuvem()
+# Garante backup do banco local existente na nuvem
+salvar_banco_nuvem()
+
 def enviar_para_nuvem_permanente(dados_binarios, nome_arquivo, content_type="application/octet-stream"):
     """
     Tenta enviar o arquivo para armazenamento em nuvem permanente (Cloudinary ou Catbox).
@@ -725,6 +828,7 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 """, (nome, email, telefone_formatado, assunto, mensagem, data_envio))
                 conn.commit()
                 conn.close()
+                salvar_banco_nuvem()
 
                 self.send_json({
                     "sucesso": True,
@@ -811,6 +915,7 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 """, (nome, email, whatsapp_formatado, area_interesse, disponibilidade, experiencia, data_envio))
                 conn.commit()
                 conn.close()
+                salvar_banco_nuvem()
 
                 self.send_json({
                     "sucesso": True,
@@ -834,6 +939,7 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 cursor.execute("DELETE FROM voluntarios WHERE id = ?", (vol_id,))
                 conn.commit()
                 conn.close()
+                salvar_banco_nuvem()
                 self.send_json({"sucesso": True, "mensagem": "Inscrição de voluntário apagada com sucesso!"})
             except Exception as e:
                 self.send_json({"sucesso": False, "erro": f"Erro ao excluir: {str(e)}"}, 500)
@@ -853,6 +959,7 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 cursor.execute("DELETE FROM contatos WHERE id = ?", (contato_id,))
                 conn.commit()
                 conn.close()
+                salvar_banco_nuvem()
                 self.send_json({"sucesso": True, "mensagem": "Mensagem de contato apagada com sucesso!"})
             except Exception as e:
                 self.send_json({"sucesso": False, "erro": f"Erro ao excluir: {str(e)}"}, 500)
