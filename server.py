@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Servidor Backend em Python para a Landing Page do Instituto / ONG.
 Funcionalidades:
@@ -20,6 +18,9 @@ import sqlite3
 import mimetypes
 import hashlib
 import secrets
+import uuid
+import ssl
+import urllib.request
 from datetime import datetime, timedelta
 import socket
 from http.cookies import SimpleCookie
@@ -206,6 +207,86 @@ def init_db():
     conn.close()
 
 init_db()
+
+def enviar_para_nuvem_permanente(dados_binarios, nome_arquivo, content_type="application/octet-stream"):
+    """
+    Tenta enviar o arquivo para armazenamento em nuvem permanente (Cloudinary ou Catbox).
+    Retorna a URL HTTPS pública definitiva ou None em caso de falha.
+    """
+    # 1. Cloudinary (se configurado nas variáveis de ambiente ou .env)
+    cloud_name = os.environ.get("CLOUDINARY_CLOUD_NAME")
+    api_key = os.environ.get("CLOUDINARY_API_KEY")
+    api_secret = os.environ.get("CLOUDINARY_API_SECRET")
+
+    if cloud_name and api_key and api_secret:
+        try:
+            import time
+            timestamp = str(int(time.time()))
+            sig_str = f"timestamp={timestamp}{api_secret}"
+            signature = hashlib.sha1(sig_str.encode("utf-8")).hexdigest()
+            boundary = uuid.uuid4().hex
+            resource_type = "raw" if nome_arquivo.lower().endswith(('.pdf', '.doc', '.docx', '.xls', '.xlsx')) else "image"
+            url_endpoint = f"https://api.cloudinary.com/v1_1/{cloud_name}/{resource_type}/upload"
+
+            body = (
+                f"--{boundary}\r\nContent-Disposition: form-data; name=\"api_key\"\r\n\r\n{api_key}\r\n"
+                f"--{boundary}\r\nContent-Disposition: form-data; name=\"timestamp\"\r\n\r\n{timestamp}\r\n"
+                f"--{boundary}\r\nContent-Disposition: form-data; name=\"signature\"\r\n\r\n{signature}\r\n"
+                f"--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"{nome_arquivo}\"\r\nContent-Type: {content_type}\r\n\r\n"
+            ).encode("utf-8") + dados_binarios + f"\r\n--{boundary}--\r\n".encode("utf-8")
+
+            req = urllib.request.Request(
+                url_endpoint,
+                data=body,
+                headers={"Content-Type": f"multipart/form-data; boundary={boundary}"}
+            )
+            ctx = ssl.create_default_context()
+            try:
+                res = urllib.request.urlopen(req, timeout=25, context=ctx)
+            except Exception:
+                ctx = ssl._create_unverified_context()
+                res = urllib.request.urlopen(req, timeout=25, context=ctx)
+
+            with res:
+                ret = json.loads(res.read().decode("utf-8"))
+                if "secure_url" in ret:
+                    print(f"[STORAGE] Arquivo salvo no Cloudinary: {ret['secure_url']}")
+                    return ret["secure_url"]
+        except Exception as e:
+            print(f"[AVISO] Upload Cloudinary falhou, tentando fallback: {e}")
+
+    # 2. Nuvem Pública Permanente (Catbox) - Grátis, sem necessidade de credenciais
+    try:
+        boundary = uuid.uuid4().hex
+        body = (
+            f"--{boundary}\r\nContent-Disposition: form-data; name=\"reqtype\"\r\n\r\nfileupload\r\n"
+            f"--{boundary}\r\nContent-Disposition: form-data; name=\"fileToUpload\"; filename=\"{nome_arquivo}\"\r\nContent-Type: {content_type}\r\n\r\n"
+        ).encode("utf-8") + dados_binarios + f"\r\n--{boundary}--\r\n".encode("utf-8")
+
+        req = urllib.request.Request(
+            "https://catbox.moe/user/api.php",
+            data=body,
+            headers={
+                "Content-Type": f"multipart/form-data; boundary={boundary}",
+                "User-Agent": "Instituto-Sementes-Amanha/1.0"
+            }
+        )
+        ctx = ssl.create_default_context()
+        try:
+            res = urllib.request.urlopen(req, timeout=25, context=ctx)
+        except Exception:
+            ctx = ssl._create_unverified_context()
+            res = urllib.request.urlopen(req, timeout=25, context=ctx)
+
+        with res:
+            url_gerada = res.read().decode("utf-8").strip()
+            if url_gerada.startswith("http://") or url_gerada.startswith("https://"):
+                print(f"[STORAGE] Arquivo salvo na nuvem permanente: {url_gerada}")
+                return url_gerada
+    except Exception as e:
+        print(f"[AVISO] Upload em nuvem permanente falhou: {e}")
+
+    return None
 
 class ONGRequestHandler(BaseHTTPRequestHandler):
     def end_headers(self):
@@ -796,18 +877,33 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
 
             caminho_final = os.path.join(destino_dir, nome_limpo)
             try:
+                # 1. Salva cópia local no disco como garantia e backup
                 with open(caminho_final, 'wb') as f:
                     f.write(dados_binarios)
 
+                # 2. Tenta enviar para a nuvem permanente (para nunca sumir quando o Render reiniciar)
+                mime_tipo = mimetypes.guess_type(nome_limpo)[0] or 'application/octet-stream'
+                url_nuvem = enviar_para_nuvem_permanente(dados_binarios, nome_limpo, mime_tipo)
+
+                if url_nuvem:
+                    url_retorno = url_nuvem
+                    armazenamento = "cloud_permanente"
+                    msg_sucesso = "Arquivo enviado e hospedado na nuvem permanente com sucesso!"
+                else:
+                    url_retorno = url_publica
+                    armazenamento = "local"
+                    msg_sucesso = "Arquivo salvo no servidor local com sucesso!"
+
                 self.send_json({
                     "sucesso": True,
-                    "mensagem": "Arquivo enviado e salvo com sucesso!",
-                    "url": url_publica,
+                    "mensagem": msg_sucesso,
+                    "url": url_retorno,
                     "nome_arquivo": nome_limpo,
+                    "armazenamento": armazenamento,
                     "tamanho_bytes": len(dados_binarios)
                 })
             except Exception as e:
-                self.send_json({"sucesso": False, "erro": f"Erro ao salvar arquivo no servidor: {str(e)}"}, 500)
+                self.send_json({"sucesso": False, "erro": f"Erro ao processar arquivo: {str(e)}"}, 500)
             return
 
         self.send_json({"sucesso": False, "erro": "Rota POST não encontrada"}, 404)
