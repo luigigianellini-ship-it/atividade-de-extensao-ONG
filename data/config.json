@@ -58,12 +58,6 @@
     ],
     "equipe": [
       {
-        "nome": "Maria Antônia Silveira",
-        "cargo": "Fundadora e Diretora Pedagógica",
-        "foto": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400&auto=format&fit=crop",
-        "bio": "Pedagoga com mais de 30 anos de docência pública, especialista em alfabetização e gestão social."
-      },
-      {
         "nome": "Carlos Eduardo Ribeiro",
         "cargo": "Coordenador de Projetos e Esporte",
         "foto": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop",
@@ -115,7 +109,7 @@
         "categoria": "Cultura",
         "faixa_etaria": "Livre",
         "horario": "Quartas e sextas",
-        "foto": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=600&auto=format&fit=crop",
+        "foto": "https://files.catbox.moe/aua84s.png",
         "descricao": "Aulas de violão, flauta doce, teatro e dança contemporânea, resgatando a autoestima e a expressão artística das nossas crianças.",
         "icone": "music"
       },
@@ -363,17 +357,17 @@
       "distribuicao": [
         {
           "categoria": "Atividades Pedagógicas, Oficinas e Materiais",
-          "percentual": 72,
+          "percentual": 1,
           "cor": "#10b981"
         },
         {
           "categoria": "Alimentação Diária e Cestas Nutricionais",
-          "percentual": 16,
+          "percentual": 2,
           "cor": "#3b82f6"
         },
         {
           "categoria": "Administração, Manutenção e Prestação de Contas",
-          "percentual": 12,
+          "percentual": 3,
           "cor": "#f59e0b"
         }
       ]

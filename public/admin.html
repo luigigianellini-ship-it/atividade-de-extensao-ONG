@@ -2002,7 +2002,7 @@
                 <span class="font-bold text-sm text-slate-900">${m.nome} &lt;${m.email}&gt;</span>
                 <div class="flex items-center gap-2">
                   <span class="text-[11px] text-slate-500">${m.data_envio}</span>
-                  <button onclick="excluirContato(${m.id}, '${m.nome}')" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold flex items-center gap-1 transition" title="Apagar mensagem">
+                  <button type="button" onclick="excluirContato(${m.id}, this)" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold flex items-center gap-1 transition cursor-pointer" title="Apagar mensagem">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Apagar
                   </button>
                 </div>
@@ -2024,7 +2024,7 @@
                 <span class="font-bold text-sm text-slate-900">${v.nome}</span>
                 <div class="flex items-center gap-2">
                   <span class="text-[11px] text-slate-500">${v.data_envio}</span>
-                  <button onclick="excluirVoluntario(${v.id}, '${v.nome}')" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold flex items-center gap-1 transition" title="Apagar formulário">
+                  <button type="button" onclick="excluirVoluntario(${v.id}, this)" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold flex items-center gap-1 transition cursor-pointer" title="Apagar formulário">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Apagar
                   </button>
                 </div>
@@ -2047,43 +2047,81 @@
       }
     }
 
-    async function excluirVoluntario(id, nome) {
-      if (!confirm(`Tem certeza que deseja apagar a inscrição de voluntariado de "${nome}"?`)) return;
+    async function excluirVoluntario(id, btnElement) {
+      if (!confirm("Tem certeza que deseja apagar esta inscrição de voluntariado?")) return;
+      if (btnElement) {
+        btnElement.disabled = true;
+        btnElement.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Apagando...`;
+        if (window.lucide) lucide.createIcons();
+      }
       try {
         const res = await authFetch("/api/voluntario/excluir", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id })
+          body: JSON.stringify({ id: Number(id) })
         });
         const data = await res.json();
         if (data.sucesso) {
-          showToast(data.mensagem || "Inscrição apagada com sucesso!");
+          showToast(data.mensagem || "Inscrição apagada com sucesso!", "sucesso");
+          if (btnElement) {
+            const card = btnElement.closest('.p-4');
+            if (card) card.remove();
+          }
           carregarInbox();
         } else {
           showToast(data.erro || "Erro ao apagar.", "erro");
+          if (btnElement) {
+            btnElement.disabled = false;
+            btnElement.innerHTML = `<i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Apagar`;
+            if (window.lucide) lucide.createIcons();
+          }
         }
       } catch (err) {
         showToast("Falha na comunicação com o servidor.", "erro");
+        if (btnElement) {
+          btnElement.disabled = false;
+          btnElement.innerHTML = `<i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Apagar`;
+          if (window.lucide) lucide.createIcons();
+        }
       }
     }
 
-    async function excluirContato(id, nome) {
-      if (!confirm(`Tem certeza que deseja apagar a mensagem de "${nome}"?`)) return;
+    async function excluirContato(id, btnElement) {
+      if (!confirm("Tem certeza que deseja apagar esta mensagem de contato?")) return;
+      if (btnElement) {
+        btnElement.disabled = true;
+        btnElement.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Apagando...`;
+        if (window.lucide) lucide.createIcons();
+      }
       try {
         const res = await authFetch("/api/contato/excluir", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id })
+          body: JSON.stringify({ id: Number(id) })
         });
         const data = await res.json();
         if (data.sucesso) {
-          showToast(data.mensagem || "Mensagem apagada com sucesso!");
+          showToast(data.mensagem || "Mensagem apagada com sucesso!", "sucesso");
+          if (btnElement) {
+            const card = btnElement.closest('.p-4');
+            if (card) card.remove();
+          }
           carregarInbox();
         } else {
           showToast(data.erro || "Erro ao apagar.", "erro");
+          if (btnElement) {
+            btnElement.disabled = false;
+            btnElement.innerHTML = `<i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Apagar`;
+            if (window.lucide) lucide.createIcons();
+          }
         }
       } catch (err) {
         showToast("Falha na comunicação com o servidor.", "erro");
+        if (btnElement) {
+          btnElement.disabled = false;
+          btnElement.innerHTML = `<i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Apagar`;
+          if (window.lucide) lucide.createIcons();
+        }
       }
     }
 

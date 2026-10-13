@@ -303,10 +303,6 @@ def salvar_banco_nuvem():
         ]
         conn.close()
 
-        # Proteção anti-perda: se o banco local estiver completamente vazio, não sobrescreve a nuvem
-        if len(contatos) == 0 and len(voluntarios) == 0:
-            return
-
         payload = {
             "contatos": contatos,
             "voluntarios": voluntarios,
@@ -358,19 +354,23 @@ def sincronizar_banco_nuvem():
                     conn = get_db_connection()
                     cursor = conn.cursor()
 
-                    for c in data.get("contatos", []):
-                        cursor.execute("""
-                            INSERT OR IGNORE INTO contatos (id, nome, email, telefone, assunto, mensagem, data_envio, lido)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                        """, (c["id"], c["nome"], c["email"], c.get("telefone", ""), c.get("assunto", ""), c["mensagem"], c["data_envio"], c.get("lido", 0)))
-                        cursor.execute("UPDATE contatos SET lido = ? WHERE id = ?", (c.get("lido", 0), c["id"]))
+                    # Sincroniza contatos da nuvem refletindo exclusões
+                    if "contatos" in data:
+                        cursor.execute("DELETE FROM contatos")
+                        for c in data.get("contatos", []):
+                            cursor.execute("""
+                                INSERT INTO contatos (id, nome, email, telefone, assunto, mensagem, data_envio, lido)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                            """, (c["id"], c["nome"], c["email"], c.get("telefone", ""), c.get("assunto", ""), c["mensagem"], c["data_envio"], c.get("lido", 0)))
 
-                    for v in data.get("voluntarios", []):
-                        cursor.execute("""
-                            INSERT OR IGNORE INTO voluntarios (id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """, (v["id"], v["nome"], v["email"], v["whatsapp"], v["area_interesse"], v.get("disponibilidade", ""), v.get("experiencia", ""), v["data_envio"], v.get("status", "Pendente")))
-                        cursor.execute("UPDATE voluntarios SET status = ? WHERE id = ?", (v.get("status", "Pendente"), v["id"]))
+                    # Sincroniza voluntários da nuvem refletindo exclusões
+                    if "voluntarios" in data:
+                        cursor.execute("DELETE FROM voluntarios")
+                        for v in data.get("voluntarios", []):
+                            cursor.execute("""
+                                INSERT INTO voluntarios (id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """, (v["id"], v["nome"], v["email"], v["whatsapp"], v["area_interesse"], v.get("disponibilidade", ""), v.get("experiencia", ""), v["data_envio"], v.get("status", "Pendente")))
 
                     conn.commit()
                     conn.close()
@@ -380,8 +380,6 @@ def sincronizar_banco_nuvem():
 
 # Restaura mensagens de contato e voluntários da nuvem na inicialização
 sincronizar_banco_nuvem()
-# Garante backup do banco local existente na nuvem
-salvar_banco_nuvem()
 
 def enviar_para_nuvem_permanente(dados_binarios, nome_arquivo, content_type="application/octet-stream"):
     """
@@ -998,10 +996,11 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 self.send_json({"sucesso": False, "erro": "Acesso não autorizado. Faça login como administrador."}, 401)
                 return
             vol_id = body_json.get('id')
-            if not vol_id:
+            if vol_id is None or vol_id == '':
                 self.send_json({"sucesso": False, "erro": "ID do voluntário não informado."}, 400)
                 return
             try:
+                vol_id = int(vol_id)
                 conn = get_db_connection()
                 cursor = conn.cursor()
                 cursor.execute("DELETE FROM voluntarios WHERE id = ?", (vol_id,))
@@ -1018,10 +1017,11 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 self.send_json({"sucesso": False, "erro": "Acesso não autorizado. Faça login como administrador."}, 401)
                 return
             contato_id = body_json.get('id')
-            if not contato_id:
+            if contato_id is None or contato_id == '':
                 self.send_json({"sucesso": False, "erro": "ID da mensagem não informado."}, 400)
                 return
             try:
+                contato_id = int(contato_id)
                 conn = get_db_connection()
                 cursor = conn.cursor()
                 cursor.execute("DELETE FROM contatos WHERE id = ?", (contato_id,))
