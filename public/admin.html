@@ -634,6 +634,9 @@
             <p class="text-xs text-slate-500">Pessoas que entraram em contato ou se inscreveram para voluntariado.</p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
+            <button type="button" onclick="executarFaxinaMidia(this)" class="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center gap-1.5 transition shadow-sm" title="Excluir imagens e documentos antigos que não estão mais sendo utilizados no site">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-600"></i> Faxina de Mídias
+            </button>
             <button onclick="baixarBackupBanco()" class="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1.5 transition shadow-sm" title="Baixar arquivo JSON com todas as mensagens e voluntários cadastrados">
               <i data-lucide="download-cloud" class="w-3.5 h-3.5"></i> Baixar Backup (JSON)
             </button>
@@ -653,6 +656,18 @@
           <span class="text-[11px] font-semibold text-emerald-800 bg-emerald-100/80 px-2.5 py-0.5 rounded-full self-start sm:self-auto">
             Protegido contra reinício
           </span>
+        </div>
+
+        <!-- Banner de Armazenamento e Limpeza Automática de Mídias -->
+        <div class="p-3.5 bg-gradient-to-r from-blue-50 via-indigo-50 to-slate-50 rounded-xl border border-blue-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-500 flex-shrink-0"></span>
+            <span class="font-bold text-slate-800">Limpeza Automática de Fotos & Documentos:</span>
+            <span class="text-slate-600">Ao salvar edições no site, fotos e PDFs antigos ou substituídos são removidos automaticamente para não sobrecarregar o armazenamento.</span>
+          </div>
+          <button type="button" onclick="executarFaxinaMidia(this)" class="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] flex items-center gap-1 shadow-sm transition whitespace-nowrap self-start sm:self-auto">
+            <i data-lucide="sparkles" class="w-3 h-3"></i> Fazer Faxina Agora
+          </button>
         </div>
 
         <div>
@@ -1966,7 +1981,12 @@
         });
         const data = await res.json();
         if (data.sucesso) {
-          showToast("Todas as alterações foram salvas com sucesso!");
+          if (data.faxina && data.faxina.total_removidos > 0) {
+            const kb = Math.round(data.faxina.bytes_liberados / 1024);
+            showToast(`Alterações salvas! Faxina automática removeu ${data.faxina.total_removidos} arquivo(s) não utilizado(s) (${kb} KB liberados).`, "sucesso");
+          } else {
+            showToast("Todas as alterações foram salvas com sucesso!");
+          }
         } else {
           showToast(data.erro || "Erro ao salvar alterações.", "erro");
         }
@@ -2120,6 +2140,37 @@
         if (btnElement) {
           btnElement.disabled = false;
           btnElement.innerHTML = `<i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Apagar`;
+          if (window.lucide) lucide.createIcons();
+        }
+      }
+    }
+
+    async function executarFaxinaMidia(btnElement) {
+      if (!confirm("Deseja fazer a faxina de fotos e documentos antigos?\n\nIsso irá verificar todas as imagens e PDFs que foram substituídos e apagá-los com total segurança para economizar espaço e evitar sobrecarga na nuvem.")) return;
+      let originalHtml = "";
+      if (btnElement) {
+        originalHtml = btnElement.innerHTML;
+        btnElement.disabled = true;
+        btnElement.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Limpando...`;
+        if (window.lucide) lucide.createIcons();
+      }
+      try {
+        const res = await authFetch("/api/admin/limpar-midia", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        });
+        const data = await res.json();
+        if (data.sucesso) {
+          showToast(data.mensagem || "Faxina concluída com sucesso!", "sucesso");
+        } else {
+          showToast(data.erro || "Falha ao executar faxina.", "erro");
+        }
+      } catch (err) {
+        showToast("Falha na comunicação com o servidor.", "erro");
+      } finally {
+        if (btnElement) {
+          btnElement.disabled = false;
+          btnElement.innerHTML = originalHtml;
           if (window.lucide) lucide.createIcons();
         }
       }

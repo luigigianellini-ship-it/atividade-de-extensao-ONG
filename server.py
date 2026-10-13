@@ -25,7 +25,7 @@ from datetime import datetime, timedelta
 import socket
 from http.cookies import SimpleCookie
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, urlencode
 
 # Caminhos base
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -431,8 +431,14 @@ def enviar_para_nuvem_permanente(dados_binarios, nome_arquivo, content_type="app
     # 2. Nuvem Pública Permanente (Catbox) - Grátis, sem necessidade de credenciais
     try:
         boundary = uuid.uuid4().hex
+        catbox_userhash = os.environ.get("CATBOX_USERHASH", "").strip()
+        userhash_part = b""
+        if catbox_userhash:
+            userhash_part = f"--{boundary}\r\nContent-Disposition: form-data; name=\"userhash\"\r\n\r\n{catbox_userhash}\r\n".encode("utf-8")
+
         body = (
             f"--{boundary}\r\nContent-Disposition: form-data; name=\"reqtype\"\r\n\r\nfileupload\r\n"
+        ).encode("utf-8") + userhash_part + (
             f"--{boundary}\r\nContent-Disposition: form-data; name=\"fileToUpload\"; filename=\"{nome_arquivo}\"\r\nContent-Type: {content_type}\r\n\r\n"
         ).encode("utf-8") + dados_binarios + f"\r\n--{boundary}--\r\n".encode("utf-8")
 
@@ -460,6 +466,229 @@ def enviar_para_nuvem_permanente(dados_binarios, nome_arquivo, content_type="app
         print(f"[AVISO] Upload em nuvem permanente falhou: {e}")
 
     return None
+
+def excluir_catbox_asset(url):
+    """
+    Exclui arquivo do Catbox caso CATBOX_USERHASH esteja configurado.
+    """
+    catbox_userhash = os.environ.get("CATBOX_USERHASH", "").strip()
+    if not catbox_userhash or not url or "catbox.moe" not in url:
+        return False
+    try:
+        nome_arq = os.path.basename(urlparse(url).path)
+        if not nome_arq:
+            return False
+        params = urlencode({
+            "reqtype": "deletefiles",
+            "userhash": catbox_userhash,
+            "files": nome_arq
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            "https://catbox.moe/user/api.php",
+            data=params,
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "User-Agent": "Instituto-Sementes-Amanha/1.0"
+            }
+        )
+        ctx = ssl.create_default_context()
+        try:
+            res = urllib.request.urlopen(req, timeout=10, context=ctx)
+        except Exception:
+            ctx = ssl._create_unverified_context()
+            res = urllib.request.urlopen(req, timeout=10, context=ctx)
+        with res:
+            res_txt = res.read().decode("utf-8")
+            print(f"[STORAGE] Exclusão no Catbox ({nome_arq}): {res_txt}")
+            return True
+    except Exception as e:
+        print(f"[AVISO] Falha ao excluir arquivo do Catbox: {e}")
+        return False
+
+def excluir_cloudinary_asset(url):
+    """
+    Exclui arquivo da nuvem Cloudinary caso credenciais estejam configuradas.
+    """
+    cloud_name = os.environ.get("CLOUDINARY_CLOUD_NAME", "").strip()
+    api_key = os.environ.get("CLOUDINARY_API_KEY", "").strip()
+    api_secret = os.environ.get("CLOUDINARY_API_SECRET", "").strip()
+    if not (cloud_name and api_key and api_secret and url and "cloudinary.com" in url):
+        return False
+    try:
+        match = re.search(r'cloudinary\.com/[^/]+/(image|raw|video)/upload/(?:v\d+/)?(.+)', url)
+        if not match:
+            return False
+        resource_type = match.group(1)
+        public_id_com_ext = match.group(2)
+
+        # Imagens no Cloudinary usam public_id sem extensão; arquivos raw (PDFs) mantêm extensão
+        if resource_type == 'image':
+            public_id = os.path.splitext(public_id_com_ext)[0]
+        else:
+            public_id = public_id_com_ext
+
+        import time
+        timestamp = str(int(time.time()))
+        sig_str = f"public_id={public_id}&timestamp={timestamp}{api_secret}"
+        signature = hashlib.sha1(sig_str.encode("utf-8")).hexdigest()
+
+        params = urlencode({
+            "public_id": public_id,
+            "timestamp": timestamp,
+            "api_key": api_key,
+            "signature": signature
+        }).encode("utf-8")
+
+        req = urllib.request.Request(
+            f"https://api.cloudinary.com/v1_1/{cloud_name}/{resource_type}/destroy",
+            data=params,
+            headers={"Content-Type": "application/x-www-form-urlencoded"}
+        )
+        ctx = ssl.create_default_context()
+        try:
+            res = urllib.request.urlopen(req, timeout=15, context=ctx)
+        except Exception:
+            ctx = ssl._create_unverified_context()
+            res = urllib.request.urlopen(req, timeout=15, context=ctx)
+
+        with res:
+            res_data = json.loads(res.read().decode("utf-8"))
+            print(f"[STORAGE] Exclusão no Cloudinary ({public_id}): {res_data}")
+            return res_data.get("result") in ("ok", "not found")
+    except Exception as e:
+        print(f"[AVISO] Falha ao excluir arquivo do Cloudinary ({url}): {e}")
+        return False
+
+def excluir_midia_nuvem(url):
+    """
+    Exclui arquivo do provedor de nuvem correspondente (Cloudinary ou Catbox com token).
+    """
+    if not url:
+        return False
+    if "cloudinary.com" in url:
+        return excluir_cloudinary_asset(url)
+    elif "catbox.moe" in url:
+        return excluir_catbox_asset(url)
+    return False
+
+ARQUIVOS_LOCAIS_PROTEGIDOS = {
+    "cartao_cnpj_exemplo.pdf",
+    "certificado_osc_exemplo.pdf",
+    "cnd_federal_exemplo.pdf",
+    "estatuto_social_exemplo.pdf",
+    "relatorio_anual_2023.pdf",
+    "relatorio_anual_2024.pdf",
+    "relatorio_anual_2025.pdf",
+}
+
+def extrair_todas_referencias_midia(config_data):
+    """
+    Extrai recursivamente todos os caminhos locais, nomes de arquivos e URLs
+    referenciados na configuração atual do site.
+    """
+    referencias = set()
+    def _coletar(item):
+        if isinstance(item, str):
+            s = item.strip()
+            if s:
+                referencias.add(s)
+                if s.startswith('/'):
+                    referencias.add(s[1:])
+                nome_base = os.path.basename(s.replace('\\', '/'))
+                if nome_base:
+                    referencias.add(nome_base)
+        elif isinstance(item, dict):
+            for v in item.values():
+                _coletar(v)
+        elif isinstance(item, list):
+            for v in item:
+                _coletar(v)
+    _coletar(config_data)
+    return referencias
+
+def executar_faxina_midia(novo_config=None, config_anterior=None):
+    """
+    Realiza a faxina de mídias:
+    1. Se config_anterior for fornecido, detecta URLs em nuvem que foram substituídas e apaga da nuvem.
+    2. Compara todos os arquivos locais em public/assets/img e public/docs com as referências ativas
+       e remove arquivos órfãos/antigos que não são mais utilizados no site.
+    Retorna a lista de itens removidos e bytes liberados.
+    """
+    removidos = []
+    bytes_liberados = 0
+
+    # 1. Carrega configuração ativa
+    config_atual = novo_config
+    if config_atual is None:
+        if os.path.exists(CONFIG_FILE):
+            try:
+                with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+                    config_atual = json.load(f)
+            except Exception:
+                config_atual = {}
+        else:
+            config_atual = {}
+
+    refs_ativas = extrair_todas_referencias_midia(config_atual)
+
+    # 2. Se houver configuração anterior, identifica arquivos e URLs que foram desvinculados
+    if config_anterior:
+        refs_antigas = extrair_todas_referencias_midia(config_anterior)
+        desvinculados = refs_antigas - refs_ativas
+        for item in desvinculados:
+            if item.startswith("http://") or item.startswith("https://"):
+                if excluir_midia_nuvem(item):
+                    removidos.append({"tipo": "nuvem", "alvo": item})
+
+    # 3. Faxina de arquivos locais em public/assets/img
+    if os.path.exists(IMG_DIR):
+        for f in os.listdir(IMG_DIR):
+            caminho = os.path.join(IMG_DIR, f)
+            if not os.path.isfile(caminho):
+                continue
+            if f in ARQUIVOS_LOCAIS_PROTEGIDOS or f in refs_ativas:
+                continue
+            rel_path1 = f"/assets/img/{f}"
+            rel_path2 = f"assets/img/{f}"
+            if rel_path1 in refs_ativas or rel_path2 in refs_ativas:
+                continue
+            try:
+                tam = os.path.getsize(caminho)
+                os.remove(caminho)
+                bytes_liberados += tam
+                removidos.append({"tipo": "local_imagem", "arquivo": f, "tamanho": tam})
+                print(f"[FAXINA] Imagem não utilizada removida do disco: {f}")
+            except Exception as e:
+                print(f"[AVISO] Não foi possível remover imagem órfã {f}: {e}")
+
+    # 4. Faxina de arquivos locais em public/docs
+    if os.path.exists(DOCS_DIR):
+        for f in os.listdir(DOCS_DIR):
+            caminho = os.path.join(DOCS_DIR, f)
+            if not os.path.isfile(caminho):
+                continue
+            if f in ARQUIVOS_LOCAIS_PROTEGIDOS or f.endswith('_exemplo.pdf') or f in refs_ativas:
+                continue
+            rel_path1 = f"/docs/{f}"
+            rel_path2 = f"/public/docs/{f}"
+            rel_path3 = f"docs/{f}"
+            if rel_path1 in refs_ativas or rel_path2 in refs_ativas or rel_path3 in refs_ativas:
+                continue
+            try:
+                tam = os.path.getsize(caminho)
+                os.remove(caminho)
+                bytes_liberados += tam
+                removidos.append({"tipo": "local_documento", "arquivo": f, "tamanho": tam})
+                print(f"[FAXINA] Documento não utilizado removido do disco: {f}")
+            except Exception as e:
+                print(f"[AVISO] Não foi possível remover documento órfão {f}: {e}")
+
+    return {
+        "removidos": removidos,
+        "total_removidos": len(removidos),
+        "bytes_liberados": bytes_liberados
+    }
+
 
 class ONGRequestHandler(BaseHTTPRequestHandler):
     def end_headers(self):
@@ -1043,12 +1272,20 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                     self.send_json({"sucesso": False, "erro": "Dados inválidos."}, 400)
                     return
 
+                # Lê a configuração anterior para identificar mídias substituídas ou deletadas
+                config_anterior = None
+                if os.path.exists(CONFIG_FILE):
+                    try:
+                        with open(CONFIG_FILE, 'r', encoding='utf-8') as f_orig:
+                            config_anterior = json.load(f_orig)
+                    except Exception:
+                        config_anterior = None
+
                 # Salva backup antes de sobrescrever
                 backup_file = os.path.join(DATA_DIR, "config.backup.json")
-                if os.path.exists(CONFIG_FILE):
-                    with open(CONFIG_FILE, 'r', encoding='utf-8') as f_orig:
-                        with open(backup_file, 'w', encoding='utf-8') as f_bkp:
-                            f_bkp.write(f_orig.read())
+                if config_anterior:
+                    with open(backup_file, 'w', encoding='utf-8') as f_bkp:
+                        json.dump(config_anterior, f_bkp, ensure_ascii=False, indent=2)
 
                 with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
                     json.dump(body_json, f, ensure_ascii=False, indent=2)
@@ -1056,13 +1293,41 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 # Salva na nuvem permanente para nunca perder alterações em reinicializações do Render
                 nuvem_salva = salvar_config_nuvem(body_json)
 
+                # Executa faxina automática de mídias desvinculadas ou órfãs
+                resultado_faxina = executar_faxina_midia(novo_config=body_json, config_anterior=config_anterior)
+
                 self.send_json({
                     "sucesso": True,
                     "nuvem_sincronizada": nuvem_salva,
-                    "mensagem": "Configurações do site salvas permanentemente com sucesso!"
+                    "faxina": resultado_faxina,
+                    "mensagem": "Configurações do site salvas com sucesso! Mídias não utilizadas foram limpas automaticamente."
                 })
             except Exception as e:
                 self.send_json({"sucesso": False, "erro": f"Erro ao salvar configurações: {str(e)}"}, 500)
+            return
+
+        elif path == '/api/admin/limpar-midia':
+            if not self.is_authenticated():
+                self.send_json({"sucesso": False, "erro": "Acesso não autorizado. Faça login como administrador."}, 401)
+                return
+            try:
+                resultado_faxina = executar_faxina_midia()
+                total = resultado_faxina["total_removidos"]
+                kb = round(resultado_faxina["bytes_liberados"] / 1024, 1)
+                if total > 0:
+                    msg = f"Faxina concluída com sucesso! {total} arquivo(s) não utilizado(s) foram apagados ({kb} KB liberados)."
+                else:
+                    msg = "Nenhum arquivo órfão encontrado. Todas as fotos e documentos estão em uso no site!"
+
+                self.send_json({
+                    "sucesso": True,
+                    "mensagem": msg,
+                    "total_removidos": total,
+                    "bytes_liberados": resultado_faxina["bytes_liberados"],
+                    "arquivos_removidos": resultado_faxina["removidos"]
+                })
+            except Exception as e:
+                self.send_json({"sucesso": False, "erro": f"Erro ao executar faxina: {str(e)}"}, 500)
             return
 
         elif path == '/api/upload':
