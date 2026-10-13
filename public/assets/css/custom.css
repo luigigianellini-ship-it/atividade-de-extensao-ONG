@@ -259,6 +259,7 @@ html.dark .text-red-800 {
 html.dark .bg-emerald-50,
 html.dark .bg-emerald-50\/50,
 html.dark .bg-emerald-50\/70,
+html.dark .bg-emerald-50\/80,
 html.dark .bg-emerald-100 {
   background-color: rgba(16, 185, 129, 0.18) !important;
   color: #34d399 !important;
@@ -278,15 +279,30 @@ html.dark .bg-amber-100 {
 }
 
 html.dark .bg-blue-50,
+html.dark .bg-blue-50\/80,
 html.dark .bg-blue-100 {
   background-color: rgba(59, 130, 246, 0.18) !important;
   color: #60a5fa !important;
 }
 
 html.dark .bg-red-50,
-html.dark .bg-red-100 {
+html.dark .bg-red-100,
+html.dark .bg-rose-50,
+html.dark .bg-rose-100 {
   background-color: rgba(239, 68, 68, 0.18) !important;
   color: #f87171 !important;
+}
+
+html.dark .dark\:text-emerald-300 {
+  color: #6ee7b7 !important;
+}
+
+html.dark .dark\:text-blue-300 {
+  color: #93c5fd !important;
+}
+
+html.dark .dark\:text-slate-300 {
+  color: #e2e8f0 !important;
 }
 
 /* Anéis de avatar / fotos */
