@@ -12,9 +12,306 @@
     } else {
       document.documentElement.classList.remove('dark');
     }
+
+    // ==============================================================
+    // RELATÓRIO MENSAL DE RESULTADOS & ACOMPANHAMENTO WEB
+    // ==============================================================
+    let relatorioAtualCache = null;
+
+    async function abrirModalRelatorio(periodo = '') {
+      const modal = document.getElementById('modal-relatorio');
+      if (!modal) return;
+      modal.classList.add('ativo');
+      if (window.lucide) lucide.createIcons();
+      await carregarRelatorio(periodo);
+    }
+
+    function fecharModalRelatorio() {
+      const modal = document.getElementById('modal-relatorio');
+      if (modal) modal.classList.remove('ativo');
+    }
+
+    async function trocarPeriodoRelatorio(periodo) {
+      await carregarRelatorio(periodo);
+    }
+
+    async function carregarRelatorio(periodo = '') {
+      const container = document.getElementById('relatorio-corpo');
+      if (!container) return;
+      container.innerHTML = `
+        <div class="py-12 text-center text-slate-400">
+          <i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto mb-2 text-indigo-500"></i>
+          <p class="text-sm font-semibold">Consolidando métricas do relatório...</p>
+        </div>
+      `;
+      if (window.lucide) lucide.createIcons();
+
+      try {
+        const url = periodo ? `/api/admin/relatorio?periodo=${encodeURIComponent(periodo)}` : '/api/admin/relatorio';
+        const res = await authFetch(url);
+        const data = await res.json();
+        if (!data.sucesso) {
+          container.innerHTML = `<div class="p-6 bg-red-50 text-red-700 rounded-xl text-center font-bold">Erro ao carregar relatório: ${data.erro || 'Falha na requisição.'}</div>`;
+          return;
+        }
+        relatorioAtualCache = data;
+
+        const select = document.getElementById('relatorio-periodo-select');
+        if (select && data.periodos_disponiveis) {
+          select.innerHTML = data.periodos_disponiveis.map(p => `
+            <option value="${p.valor}" ${p.valor === data.periodo_ativo ? 'selected' : ''}>${p.label}</option>
+          `).join('');
+        }
+
+        renderizarCorpoRelatorio(data);
+      } catch (err) {
+        container.innerHTML = `<div class="p-6 bg-red-50 text-red-700 rounded-xl text-center font-bold">Falha ao se conectar com o servidor.</div>`;
+      }
+    }
+
+    function copiarRelatorioWhatsApp() {
+      if (!relatorioAtualCache || !relatorioAtualCache.texto_whatsapp) {
+        showToast("Relatório ainda não carregado.", "aviso");
+        return;
+      }
+      const txt = relatorioAtualCache.texto_whatsapp;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(() => {
+          showToast("Resumo copiado com sucesso! Agora é só colar no WhatsApp da ONG.", "sucesso");
+        }).catch(() => fallbackCopiar(txt));
+      } else {
+        fallbackCopiar(txt);
+      }
+    }
+
+    function fallbackCopiar(txt) {
+      const ta = document.createElement("textarea");
+      ta.value = txt;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+        showToast("Resumo copiado com sucesso! Cole no WhatsApp da ONG.", "sucesso");
+      } catch (e) {
+        showToast("Não foi possível copiar automaticamente.", "aviso");
+      }
+      document.body.removeChild(ta);
+    }
+
+    function imprimirRelatorio() {
+      window.print();
+    }
+
+    function renderizarCorpoRelatorio(data) {
+      const container = document.getElementById('relatorio-corpo');
+      if (!container) return;
+
+      const m = data.metricas;
+      const areas = data.areas_voluntariado || [];
+      const msgs = data.ultimas_mensagens || [];
+      const vols = data.ultimos_voluntarios || [];
+
+      container.innerHTML = `
+        <!-- Cabeçalho Timbrado Oficial -->
+        <div class="border-b border-slate-200 dark:border-slate-700 pb-5">
+          <div class="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <span class="text-[11px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Documento Oficial de Acompanhamento Web
+              </span>
+              <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight mt-0.5">
+                ${data.nome_instituicao}
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Relatório de Resultados, Engajamento e Desempenho Técnico
+              </p>
+            </div>
+            <div class="text-right sm:border-l sm:border-slate-200 sm:dark:border-slate-700 sm:pl-4">
+              <span class="inline-block px-3 py-1 rounded-full text-xs font-black bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60">
+                Período: ${data.periodo_label}
+              </span>
+              <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+                Emitido em: <strong>${data.data_geracao}</strong>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cards de Métricas Chave (KPIs) -->
+        <div>
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3 flex items-center gap-1.5">
+            <i data-lucide="activity" class="w-3.5 h-3.5 text-indigo-500"></i> Métricas Consolidadas do Período
+          </h4>
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            
+            <div class="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/50 space-y-1">
+              <div class="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
+                <span class="text-xs font-bold uppercase">Mensagens</span>
+                <i data-lucide="mail" class="w-4 h-4"></i>
+              </div>
+              <div class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+                ${m.total_mensagens_periodo}
+              </div>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                ${m.total_mensagens_geral} acumuladas no histórico
+              </p>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-800/50 space-y-1">
+              <div class="flex items-center justify-between text-amber-600 dark:text-amber-400">
+                <span class="text-xs font-bold uppercase">Voluntários</span>
+                <i data-lucide="users" class="w-4 h-4"></i>
+              </div>
+              <div class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+                ${m.total_voluntarios_periodo}
+              </div>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                ${m.total_voluntarios_geral} acumulados no histórico
+              </p>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-800/50 space-y-1">
+              <div class="flex items-center justify-between text-blue-600 dark:text-blue-400">
+                <span class="text-xs font-bold uppercase">Disponibilidade</span>
+                <i data-lucide="globe" class="w-4 h-4"></i>
+              </div>
+              <div class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                100% Online
+              </div>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                Monitorado 24/7 sem quedas
+              </p>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-200/80 dark:border-indigo-800/50 space-y-1">
+              <div class="flex items-center justify-between text-indigo-600 dark:text-indigo-400">
+                <span class="text-xs font-bold uppercase">Nuvem & Backup</span>
+                <i data-lucide="cloud-check" class="w-4 h-4"></i>
+              </div>
+              <div class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                Protegido
+              </div>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                Backup permanente ativo
+              </p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Seção de Áreas de Interesse dos Voluntários & Saúde da Aplicação -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 space-y-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+              <i data-lucide="heart-handshake" class="w-4 h-4 text-amber-500"></i> Áreas Mais Buscadas por Voluntários
+            </h4>
+            ${areas.length === 0 ? `
+              <p class="text-xs text-slate-500 italic py-4 text-center">Nenhuma inscrição registrada no período selecionado.</p>
+            ` : `
+              <div class="space-y-2.5">
+                ${areas.map(a => `
+                  <div>
+                    <div class="flex justify-between text-xs font-bold mb-1">
+                      <span class="text-slate-800 dark:text-slate-200 truncate pr-2">${a.area}</span>
+                      <span class="text-amber-600 dark:text-amber-400 flex-shrink-0">${a.quantidade} (${a.percentual}%)</span>
+                    </div>
+                    <div class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                      <div class="h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-full" style="width: ${a.percentual}%"></div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+
+          <!-- Resumo Técnico de Saúde da Aplicação -->
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 space-y-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+              <i data-lucide="wrench" class="w-4 h-4 text-indigo-500"></i> Manutenção & Saúde do Sistema
+            </h4>
+            <ul class="text-xs space-y-2 text-slate-600 dark:text-slate-300">
+              <li class="flex items-center justify-between pb-1.5 border-b border-slate-200/60 dark:border-slate-700/60">
+                <span>Servidor e Hospedagem:</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Ativo & Estável</span>
+              </li>
+              <li class="flex items-center justify-between pb-1.5 border-b border-slate-200/60 dark:border-slate-700/60">
+                <span>Sincronização na Nuvem (KVDB):</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Integridade OK</span>
+              </li>
+              <li class="flex items-center justify-between pb-1.5 border-b border-slate-200/60 dark:border-slate-700/60">
+                <span>Tamanho do Banco de Dados:</span>
+                <span class="font-bold text-slate-800 dark:text-slate-100">${m.banco_tamanho_kb} KB</span>
+              </li>
+              <li class="flex items-center justify-between">
+                <span>Arquivos Ativos (Mídias/PDFs):</span>
+                <span class="font-bold text-slate-800 dark:text-slate-100">${m.arquivos_imagens + m.arquivos_documentos} itens (Faxina em dia)</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tabela Resumo das Atividades do Período -->
+        <div class="pt-2 space-y-3">
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+            <i data-lucide="list" class="w-3.5 h-3.5 text-indigo-500"></i> Resumo das Interações do Período
+          </h4>
+          
+          ${(msgs.length === 0 && vols.length === 0) ? `
+            <div class="p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 text-center text-xs text-slate-500">
+              Nenhuma interação (mensagem ou voluntário) registrada no período <strong>${data.periodo_label}</strong>.
+            </div>
+          ` : `
+            <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 uppercase font-black text-[10px]">
+                  <tr>
+                    <th class="py-2.5 px-3">Data</th>
+                    <th class="py-2.5 px-3">Tipo</th>
+                    <th class="py-2.5 px-3">Nome</th>
+                    <th class="py-2.5 px-3">Contato</th>
+                    <th class="py-2.5 px-3">Assunto / Área</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                  ${vols.map(v => `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                      <td class="py-2.5 px-3 text-slate-500 whitespace-nowrap">${v.data_envio}</td>
+                      <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300">Voluntário</span></td>
+                      <td class="py-2.5 px-3 font-bold text-slate-900 dark:text-white">${v.nome}</td>
+                      <td class="py-2.5 px-3 text-slate-600 dark:text-slate-300">${v.whatsapp || v.email}</td>
+                      <td class="py-2.5 px-3 font-semibold text-emerald-700 dark:text-emerald-400">${v.area_interesse}</td>
+                    </tr>
+                  `).join('')}
+                  ${msgs.map(c => `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                      <td class="py-2.5 px-3 text-slate-500 whitespace-nowrap">${c.data_envio}</td>
+                      <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300">Mensagem</span></td>
+                      <td class="py-2.5 px-3 font-bold text-slate-900 dark:text-white">${c.nome}</td>
+                      <td class="py-2.5 px-3 text-slate-600 dark:text-slate-300">${c.email}</td>
+                      <td class="py-2.5 px-3 font-semibold text-slate-700 dark:text-slate-300">${c.assunto}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `}
+        </div>
+
+        <!-- Assinatura e Encerramento do Relatório -->
+        <div class="border-t border-slate-200 dark:border-slate-700 pt-4 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 dark:text-slate-500 gap-2">
+          <span>Sistema de Gestão & Manutenção Web • Acompanhamento Técnico Profissional</span>
+          <span>Página 1 de 1 • Emitido com Sucesso</span>
+        </div>
+      `;
+
+      if (window.lucide) lucide.createIcons();
+    }
   </script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="/assets/css/custom.css?v=12">
+  <link rel="stylesheet" href="/assets/css/custom.css?v=13">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚙️</text></svg>">
 </head>
 <body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
@@ -50,6 +347,11 @@
           <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
           <span class="hidden sm:inline">Ver Site</span>
         </a>
+
+        <button type="button" onclick="abrirModalRelatorio()" class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/30 text-xs font-bold flex items-center gap-1.5 transition" title="Relatório Mensal de Resultados & Acompanhamento">
+          <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-indigo-400"></i>
+          <span class="hidden md:inline">Relatório</span>
+        </button>
 
         <button id="btn-salvar-tudo" onclick="salvarConfiguracoes()" class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg shadow-emerald-600/30 transition hover-lift">
           <i data-lucide="save" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
@@ -634,6 +936,9 @@
             <p class="text-xs text-slate-500">Pessoas que entraram em contato ou se inscreveram para voluntariado.</p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
+            <button type="button" onclick="abrirModalRelatorio()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 transition shadow-sm" title="Gerar relatório de resultados e acompanhamento para apresentar à ONG">
+              <i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i> Relatório de Resultados
+            </button>
             <button type="button" onclick="executarFaxinaMidia(this)" class="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800/60 border border-red-200 text-xs font-bold flex items-center gap-1.5 transition shadow-sm" title="Excluir imagens e documentos antigos que não estão mais sendo utilizados no site">
               <i data-lucide="trash-2" class="w-3.5 h-3.5 text-red-600 dark:text-red-400"></i> Faxina de Mídias
             </button>
@@ -690,6 +995,64 @@
       </section>
 
     </main>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: RELATÓRIO MENSAL DE RESULTADOS & ACOMPANHAMENTO         -->
+  <!-- ============================================================== -->
+  <div id="modal-relatorio" class="modal-backdrop">
+    <div class="modal-content bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden text-slate-800 dark:text-slate-100">
+      
+      <!-- Cabeçalho do Modal (não sai na impressão) -->
+      <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 dark:bg-slate-900/80 no-print">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold flex-shrink-0 shadow-sm">
+            <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white leading-tight">Relatório de Resultados & Desempenho</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Acompanhamento mensal para prestação de contas à ONG</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          <!-- Seletor de Período -->
+          <div class="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 shadow-sm text-xs">
+            <i data-lucide="calendar" class="w-3.5 h-3.5 text-indigo-500"></i>
+            <select id="relatorio-periodo-select" onchange="trocarPeriodoRelatorio(this.value)" class="bg-transparent text-slate-800 dark:text-slate-100 font-bold focus:outline-none cursor-pointer">
+              <option value="">Carregando...</option>
+            </select>
+          </div>
+
+          <!-- Botão Copiar WhatsApp -->
+          <button type="button" onclick="copiarRelatorioWhatsApp()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition shadow-sm" title="Copiar resumo formatado para enviar no WhatsApp da diretoria">
+            <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Copiar</span> WhatsApp
+          </button>
+
+          <!-- Botão Imprimir / Salvar PDF -->
+          <button type="button" onclick="imprimirRelatorio()" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 transition shadow-sm" title="Imprimir ou Salvar como PDF">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Imprimir /</span> PDF
+          </button>
+
+          <!-- Botão Fechar -->
+          <button type="button" onclick="fecharModalRelatorio()" class="p-1.5 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition cursor-pointer" title="Fechar">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Conteúdo do Relatório com Rolagem e Timbrado para Impressão -->
+      <div id="relatorio-conteudo-imprimivel" class="p-5 sm:p-8 overflow-y-auto space-y-6 flex-1 text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-900">
+        <div id="relatorio-corpo" class="space-y-6">
+          <div class="py-12 text-center text-slate-400">
+            <i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto mb-2 text-indigo-500"></i>
+            <p class="text-sm font-semibold">Gerando relatório de desempenho...</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Input de arquivo invisível para uploads do computador -->

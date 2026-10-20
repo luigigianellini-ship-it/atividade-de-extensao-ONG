@@ -94,26 +94,6 @@
         "icone": "book-open"
       },
       {
-        "id": "esporte-cidadania",
-        "titulo": "Judô & Futebol Cidadão",
-        "categoria": "Esporte e Saúde",
-        "faixa_etaria": "7 a 17 anos",
-        "horario": "Terças, quintas e sábados",
-        "foto": "https://files.catbox.moe/1sbhr4.png",
-        "descricao": "Prática esportiva com foco em disciplina, cooperação, autocuidado e respeito mútuo, com acompanhamento fisioterapêutico voluntário.",
-        "icone": "trophy"
-      },
-      {
-        "id": "artes-cultura",
-        "titulo": "Música, Dança & Expressão Cultural",
-        "categoria": "Cultura",
-        "faixa_etaria": "Livre",
-        "horario": "Quartas e sextas",
-        "foto": "https://files.catbox.moe/aua84s.png",
-        "descricao": "Aulas de violão, flauta doce, teatro e dança contemporânea, resgatando a autoestima e a expressão artística das nossas crianças.",
-        "icone": "music"
-      },
-      {
         "id": "nutricao-solidaria",
         "titulo": "Cozinha Comunitária e Nutrição",
         "categoria": "Acolhimento",
