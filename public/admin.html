@@ -945,7 +945,7 @@
             <button onclick="baixarBackupBanco()" class="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60 border border-emerald-200 text-xs font-bold flex items-center gap-1.5 transition shadow-sm" title="Baixar arquivo JSON com todas as mensagens e voluntários cadastrados">
               <i data-lucide="download-cloud" class="w-3.5 h-3.5"></i> Baixar Backup (JSON)
             </button>
-            <button onclick="carregarInbox()" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200 text-xs font-bold flex items-center gap-1">
+            <button onclick="atualizarInboxAtual()" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer">
               <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Atualizar
             </button>
           </div>
@@ -970,13 +970,40 @@
             <span class="font-bold text-slate-800 dark:text-blue-300">Limpeza Automática de Fotos & Documentos:</span>
             <span class="text-slate-600 dark:text-slate-300">Ao salvar edições no site, fotos e PDFs antigos ou substituídos são removidos automaticamente para não sobrecarregar o armazenamento.</span>
           </div>
-          <button type="button" onclick="executarFaxinaMidia(this)" class="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] flex items-center gap-1 shadow-sm transition whitespace-nowrap self-start sm:self-auto">
+          <button type="button" onclick="executarFaxinaMidia(this)" class="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] flex items-center gap-1 shadow-sm transition whitespace-nowrap self-start sm:self-auto cursor-pointer">
             <i data-lucide="sparkles" class="w-3 h-3"></i> Fazer Faxina Agora
           </button>
         </div>
 
+        <!-- Banner de Histórico Perpétuo na Nuvem -->
+        <div class="p-3.5 bg-purple-50/80 dark:bg-purple-950/30 rounded-xl border border-purple-200/90 dark:border-purple-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs shadow-sm">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-purple-500 flex-shrink-0"></span>
+            <span class="font-bold text-slate-800 dark:text-purple-300">Histórico Perpétuo na Nuvem Ativo:</span>
+            <span class="text-slate-600 dark:text-slate-300">Mesmo quando mensagens ou voluntários são apagados da caixa ativa, o registro histórico completo permanece salvo na nuvem para auditoria e relatórios.</span>
+          </div>
+          <button type="button" onclick="alternarModoHistoricoInbox()" id="btn-toggle-inbox-mode" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-[11px] flex items-center gap-1.5 shadow-sm transition whitespace-nowrap self-start sm:self-auto cursor-pointer">
+            <i data-lucide="archive" class="w-3.5 h-3.5"></i> <span id="label-toggle-inbox-mode">Ver Histórico na Nuvem</span>
+          </button>
+        </div>
+
+        <!-- Seletor de Modo: Caixa Ativa vs Histórico Permanente -->
+        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="definirModoInbox('ativa')" id="btn-modo-inbox-ativa" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-emerald-600 text-white shadow-sm cursor-pointer">
+              <i data-lucide="inbox" class="w-3.5 h-3.5"></i> Caixa de Entrada (<span id="contador-contatos-ativos">0</span>)
+            </button>
+            <button type="button" onclick="definirModoInbox('historico')" id="btn-modo-inbox-historico" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 cursor-pointer">
+              <i data-lucide="archive" class="w-3.5 h-3.5 text-purple-600"></i> Histórico Perpétuo (<span id="contador-contatos-historico">0</span>)
+            </button>
+          </div>
+          <span id="inbox-modo-info" class="text-[11px] text-slate-500 italic">
+            Exibindo mensagens e inscrições em aberto.
+          </span>
+        </div>
+
         <div>
-          <h4 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+          <h4 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2" id="titulo-secao-mensagens">
             <i data-lucide="mail" class="w-4 h-4 text-emerald-600"></i> Mensagens de Contato Recebidas
           </h4>
           <div id="tabela-mensagens" class="space-y-3">
@@ -1438,7 +1465,7 @@
         indicadorMobile.textContent = nomesAbasFormatados[abaNome];
       }
 
-      if (abaNome === 'inbox') carregarInbox();
+      if (abaNome === 'inbox') atualizarInboxAtual();
       if (window.lucide) lucide.createIcons();
     }
 
@@ -2363,21 +2390,76 @@
     }
 
     // ==============================================================
-    // CAIXA DE ENTRADA (MENSAGENS & VOLUNTÁRIOS)
+    // CAIXA DE ENTRADA & HISTÓRICO PERPÉTUO NA NUVEM
     // ==============================================================
+    let modoInboxAtual = 'ativa';
+
+    function definirModoInbox(modo) {
+      modoInboxAtual = modo;
+      const btnAtiva = document.getElementById("btn-modo-inbox-ativa");
+      const btnHist = document.getElementById("btn-modo-inbox-historico");
+      const labelToggle = document.getElementById("label-toggle-inbox-mode");
+      const info = document.getElementById("inbox-modo-info");
+      const tituloM = document.getElementById("titulo-secao-mensagens");
+
+      if (modo === 'historico') {
+        if (btnAtiva) btnAtiva.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 cursor-pointer";
+        if (btnHist) btnHist.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-purple-600 text-white shadow-sm cursor-pointer";
+        if (labelToggle) labelToggle.textContent = "Voltar para Caixa Ativa";
+        if (info) info.textContent = "Exibindo histórico perpétuo completo da nuvem (inclui mensagens e cadastros arquivados).";
+        if (tituloM) tituloM.innerHTML = `<i data-lucide="archive" class="w-4 h-4 text-purple-600"></i> Histórico Completo de Mensagens na Nuvem`;
+        carregarHistoricoNuvem();
+      } else {
+        if (btnAtiva) btnAtiva.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-emerald-600 text-white shadow-sm cursor-pointer";
+        if (btnHist) btnHist.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 cursor-pointer";
+        if (labelToggle) labelToggle.textContent = "Ver Histórico na Nuvem";
+        if (info) info.textContent = "Exibindo mensagens e inscrições em aberto na caixa de entrada ativa.";
+        if (tituloM) tituloM.innerHTML = `<i data-lucide="mail" class="w-4 h-4 text-emerald-600"></i> Mensagens de Contato Recebidas`;
+        carregarInbox();
+      }
+    }
+
+    function alternarModoHistoricoInbox() {
+      if (modoInboxAtual === 'ativa') {
+        definirModoInbox('historico');
+      } else {
+        definirModoInbox('ativa');
+      }
+    }
+
+    function atualizarInboxAtual() {
+      if (modoInboxAtual === 'historico') {
+        carregarHistoricoNuvem();
+      } else {
+        carregarInbox();
+      }
+    }
+
     async function carregarInbox() {
       try {
-        const [resM, resV] = await Promise.all([
+        const [resM, resV, resH] = await Promise.all([
           authFetch("/api/mensagens"),
-          authFetch("/api/voluntarios")
+          authFetch("/api/voluntarios"),
+          authFetch("/api/admin/historico").catch(() => null)
         ]);
 
         const msgs = await resM.json();
         const vols = await resV.json();
 
+        const contAtivos = document.getElementById("contador-contatos-ativos");
+        if (contAtivos) contAtivos.textContent = `${msgs.length + vols.length}`;
+
+        if (resH && resH.ok) {
+          const dadosH = await resH.json();
+          const contHist = document.getElementById("contador-contatos-historico");
+          if (contHist && dadosH.sucesso) {
+            contHist.textContent = `${(dadosH.contatos || []).length + (dadosH.voluntarios || []).length}`;
+          }
+        }
+
         const containerM = document.getElementById("tabela-mensagens");
         if (msgs.length === 0) {
-          containerM.innerHTML = `<p class="text-xs text-slate-500 italic p-3 bg-slate-50 rounded-xl">Nenhuma mensagem recebida ainda.</p>`;
+          containerM.innerHTML = `<p class="text-xs text-slate-500 italic p-3 bg-slate-50 rounded-xl">Nenhuma mensagem em aberto na caixa ativa.</p>`;
         } else {
           containerM.innerHTML = msgs.map(m => `
             <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
@@ -2385,7 +2467,7 @@
                 <span class="font-bold text-sm text-slate-900">${m.nome} &lt;${m.email}&gt;</span>
                 <div class="flex items-center gap-2">
                   <span class="text-[11px] text-slate-500">${m.data_envio}</span>
-                  <button type="button" onclick="excluirContato(${m.id}, this)" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold flex items-center gap-1 transition cursor-pointer" title="Apagar mensagem">
+                  <button type="button" onclick="excluirContato(${m.id}, this)" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold flex items-center gap-1 transition cursor-pointer" title="Remover da caixa ativa (permanecerá guardado na nuvem)">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Apagar
                   </button>
                 </div>
@@ -2399,7 +2481,7 @@
 
         const containerV = document.getElementById("tabela-voluntarios");
         if (vols.length === 0) {
-          containerV.innerHTML = `<p class="text-xs text-slate-500 italic p-3 bg-slate-50 rounded-xl">Nenhuma inscrição de voluntário recebida ainda.</p>`;
+          containerV.innerHTML = `<p class="text-xs text-slate-500 italic p-3 bg-slate-50 rounded-xl">Nenhuma inscrição de voluntário em aberto na caixa ativa.</p>`;
         } else {
           containerV.innerHTML = vols.map(v => `
             <div class="p-4 bg-amber-50/50 border border-amber-200/60 rounded-xl space-y-2">
@@ -2407,7 +2489,7 @@
                 <span class="font-bold text-sm text-slate-900">${v.nome}</span>
                 <div class="flex items-center gap-2">
                   <span class="text-[11px] text-slate-500">${v.data_envio}</span>
-                  <button type="button" onclick="excluirVoluntario(${v.id}, this)" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold flex items-center gap-1 transition cursor-pointer" title="Apagar formulário">
+                  <button type="button" onclick="excluirVoluntario(${v.id}, this)" class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold flex items-center gap-1 transition cursor-pointer" title="Remover da caixa ativa (permanecerá guardado na nuvem)">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Apagar
                   </button>
                 </div>
@@ -2430,8 +2512,136 @@
       }
     }
 
+    async function carregarHistoricoNuvem() {
+      try {
+        const containerM = document.getElementById("tabela-mensagens");
+        const containerV = document.getElementById("tabela-voluntarios");
+        if (containerM) containerM.innerHTML = `<p class="text-xs text-slate-400 p-3 bg-slate-50 rounded-xl flex items-center gap-2"><i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Carregando histórico permanente da nuvem...</p>`;
+        if (containerV) containerV.innerHTML = `<p class="text-xs text-slate-400 p-3 bg-slate-50 rounded-xl flex items-center gap-2"><i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Carregando histórico permanente de voluntários...</p>`;
+        if (window.lucide) lucide.createIcons();
+
+        const res = await authFetch("/api/admin/historico");
+        const data = await res.json();
+        if (!data.sucesso) throw new Error(data.erro || "Falha ao carregar histórico");
+
+        const msgs = data.contatos || [];
+        const vols = data.voluntarios || [];
+
+        const contHist = document.getElementById("contador-contatos-historico");
+        if (contHist) contHist.textContent = `${msgs.length + vols.length}`;
+
+        if (msgs.length === 0) {
+          containerM.innerHTML = `<p class="text-xs text-slate-500 italic p-3 bg-slate-50 rounded-xl">Nenhum registro histórico na nuvem ainda.</p>`;
+        } else {
+          containerM.innerHTML = msgs.map(m => {
+            const isArquivado = m.status_admin === 'Arquivado do Painel';
+            return `
+              <div class="p-4 ${isArquivado ? 'bg-slate-50/90 border-slate-300' : 'bg-purple-50/40 border-purple-200/90'} border rounded-xl space-y-2">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-bold text-sm text-slate-900">${m.nome} &lt;${m.email}&gt;</span>
+                    ${isArquivado 
+                      ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700 flex items-center gap-1"><i data-lucide="archive" class="w-2.5 h-2.5"></i> Arquivado do Painel ${m.apagado_em ? `(${m.apagado_em})` : ''}</span>`
+                      : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1"><i data-lucide="check" class="w-2.5 h-2.5"></i> Ativo na Caixa</span>`
+                    }
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[11px] text-slate-500">${m.data_envio}</span>
+                    ${isArquivado ? `
+                      <button type="button" onclick="restaurarItemHistorico('contato', ${m.id}, this)" class="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-sm" title="Restaurar de volta para a caixa ativa">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Restaurar para Caixa
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+                <p class="text-xs font-semibold text-purple-700">${m.assunto || 'Sem assunto'}</p>
+                <p class="text-xs text-slate-600 bg-white p-2.5 rounded-lg border border-slate-100 whitespace-pre-line">${m.mensagem}</p>
+                ${m.telefone ? `<p class="text-[11px] text-slate-500">Telefone: ${m.telefone}</p>` : ''}
+              </div>
+            `;
+          }).join("");
+        }
+
+        if (vols.length === 0) {
+          containerV.innerHTML = `<p class="text-xs text-slate-500 italic p-3 bg-slate-50 rounded-xl">Nenhum voluntário no histórico da nuvem ainda.</p>`;
+        } else {
+          containerV.innerHTML = vols.map(v => {
+            const isArquivado = v.status_admin === 'Arquivado do Painel';
+            return `
+              <div class="p-4 ${isArquivado ? 'bg-slate-50/90 border-slate-300' : 'bg-amber-50/50 border-amber-200/90'} border rounded-xl space-y-2">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-bold text-sm text-slate-900">${v.nome}</span>
+                    ${isArquivado 
+                      ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700 flex items-center gap-1"><i data-lucide="archive" class="w-2.5 h-2.5"></i> Arquivado do Painel ${v.apagado_em ? `(${v.apagado_em})` : ''}</span>`
+                      : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1"><i data-lucide="check" class="w-2.5 h-2.5"></i> Ativo na Caixa</span>`
+                    }
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[11px] text-slate-500">${v.data_envio}</span>
+                    ${isArquivado ? `
+                      <button type="button" onclick="restaurarItemHistorico('voluntario', ${v.id}, this)" class="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-sm" title="Restaurar de volta para a caixa ativa">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Restaurar para Caixa
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+                <div class="text-xs text-slate-600">
+                  <span><strong>E-mail:</strong> ${v.email}</span> • <span><strong>WhatsApp:</strong> <a href="https://wa.me/55${v.whatsapp.replace(/\D/g,'')}" target="_blank" class="text-emerald-700 font-bold underline">${v.whatsapp}</a></span>
+                </div>
+                <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                  Área: ${v.area_interesse}
+                </span>
+                ${v.disponibilidade ? `<p class="text-xs text-slate-600"><strong>Disponibilidade:</strong> ${v.disponibilidade}</p>` : ''}
+                ${v.experiencia ? `<p class="text-xs text-slate-600 italic bg-white p-2 rounded-lg border border-slate-100">"${v.experiencia}"</p>` : ''}
+              </div>
+            `;
+          }).join("");
+        }
+
+        if (window.lucide) lucide.createIcons();
+      } catch (err) {
+        console.error("Erro ao carregar histórico da nuvem:", err);
+        showToast("Falha ao carregar histórico da nuvem.", "erro");
+      }
+    }
+
+    async function restaurarItemHistorico(tipo, id, btnElement) {
+      if (btnElement) {
+        btnElement.disabled = true;
+        btnElement.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Restaurando...`;
+        if (window.lucide) lucide.createIcons();
+      }
+      try {
+        const res = await authFetch("/api/admin/historico/restaurar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tipo, id: Number(id) })
+        });
+        const data = await res.json();
+        if (data.sucesso) {
+          showToast(data.mensagem || "Item restaurado com sucesso!", "sucesso");
+          carregarHistoricoNuvem();
+        } else {
+          showToast(data.erro || "Falha ao restaurar item.", "erro");
+          if (btnElement) {
+            btnElement.disabled = false;
+            btnElement.innerHTML = `<i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Restaurar para Caixa`;
+            if (window.lucide) lucide.createIcons();
+          }
+        }
+      } catch (err) {
+        showToast("Falha na comunicação com o servidor.", "erro");
+        if (btnElement) {
+          btnElement.disabled = false;
+          btnElement.innerHTML = `<i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Restaurar para Caixa`;
+          if (window.lucide) lucide.createIcons();
+        }
+      }
+    }
+
     async function excluirVoluntario(id, btnElement) {
-      if (!confirm("Tem certeza que deseja apagar esta inscrição de voluntariado?")) return;
+      if (!confirm("Deseja remover esta inscrição da caixa ativa?\n\nO registro continuará salvo com 100% de segurança no histórico permanente na nuvem para relatórios e auditoria.")) return;
       if (btnElement) {
         btnElement.disabled = true;
         btnElement.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Apagando...`;
@@ -2445,12 +2655,12 @@
         });
         const data = await res.json();
         if (data.sucesso) {
-          showToast(data.mensagem || "Inscrição apagada com sucesso!", "sucesso");
+          showToast(data.mensagem || "Inscrição removida da caixa ativa e preservada na nuvem!", "sucesso");
           if (btnElement) {
             const card = btnElement.closest('.p-4');
             if (card) card.remove();
           }
-          carregarInbox();
+          atualizarInboxAtual();
         } else {
           showToast(data.erro || "Erro ao apagar.", "erro");
           if (btnElement) {
@@ -2470,7 +2680,7 @@
     }
 
     async function excluirContato(id, btnElement) {
-      if (!confirm("Tem certeza que deseja apagar esta mensagem de contato?")) return;
+      if (!confirm("Deseja remover esta mensagem da caixa ativa?\n\nO registro continuará salvo com 100% de segurança no histórico permanente na nuvem para relatórios e auditoria.")) return;
       if (btnElement) {
         btnElement.disabled = true;
         btnElement.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Apagando...`;
@@ -2484,12 +2694,12 @@
         });
         const data = await res.json();
         if (data.sucesso) {
-          showToast(data.mensagem || "Mensagem apagada com sucesso!", "sucesso");
+          showToast(data.mensagem || "Mensagem removida da caixa ativa e preservada na nuvem!", "sucesso");
           if (btnElement) {
             const card = btnElement.closest('.p-4');
             if (card) card.remove();
           }
-          carregarInbox();
+          atualizarInboxAtual();
         } else {
           showToast(data.erro || "Erro ao apagar.", "erro");
           if (btnElement) {

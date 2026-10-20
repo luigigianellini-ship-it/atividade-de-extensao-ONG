@@ -60,6 +60,9 @@ load_env()
 
 # Persistência Permanente na Nuvem (sobrevive a reinicializações e discos efêmeros do Render)
 KVDB_BUCKET_URL = os.environ.get("KVDB_BUCKET_URL", "https://kvdb.io/CRiiwUrgTkUsVqFprcTA67/site_config")
+KVDB_DB_BACKUP_URL = os.environ.get("KVDB_DB_BACKUP_URL", "https://kvdb.io/CRiiwUrgTkUsVqFprcTA67/site_db_backup")
+KVDB_HISTORICO_URL = os.environ.get("KVDB_HISTORICO_URL", "https://kvdb.io/CRiiwUrgTkUsVqFprcTA67/site_db_historico")
+KVDB_CONFIG_HISTORICO_URL = os.environ.get("KVDB_CONFIG_HISTORICO_URL", "https://kvdb.io/CRiiwUrgTkUsVqFprcTA67/site_config_historico")
 
 def sincronizar_config_nuvem():
     """
@@ -236,6 +239,56 @@ def init_db():
             expira_em TEXT NOT NULL
         )
     """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS historico_contatos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            original_id INTEGER,
+            nome TEXT NOT NULL,
+            email TEXT NOT NULL,
+            telefone TEXT,
+            assunto TEXT,
+            mensagem TEXT NOT NULL,
+            data_envio TEXT NOT NULL,
+            status_admin TEXT DEFAULT 'Ativo',
+            apagado_em TEXT,
+            UNIQUE(nome, email, data_envio, mensagem)
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS historico_voluntarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            original_id INTEGER,
+            nome TEXT NOT NULL,
+            email TEXT NOT NULL,
+            whatsapp TEXT NOT NULL,
+            area_interesse TEXT NOT NULL,
+            disponibilidade TEXT,
+            experiencia TEXT,
+            data_envio TEXT NOT NULL,
+            status TEXT DEFAULT 'Pendente',
+            status_admin TEXT DEFAULT 'Ativo',
+            apagado_em TEXT,
+            UNIQUE(nome, email, data_envio, area_interesse)
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS historico_config (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            data_salvamento TEXT NOT NULL,
+            config_json TEXT NOT NULL
+        )
+    """)
+    try:
+        cursor.execute("""
+            INSERT OR IGNORE INTO historico_contatos (original_id, nome, email, telefone, assunto, mensagem, data_envio, status_admin)
+            SELECT id, nome, email, telefone, assunto, mensagem, data_envio, 'Ativo' FROM contatos
+        """)
+        cursor.execute("""
+            INSERT OR IGNORE INTO historico_voluntarios (original_id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status, status_admin)
+            SELECT id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status, 'Ativo' FROM voluntarios
+        """)
+    except Exception:
+        pass
     # Gerenciamento de credenciais do administrador via variáveis de ambiente (.env)
     admin_user = os.environ.get("ADMIN_USER", "admin").strip()
     admin_pass = os.environ.get("ADMIN_PASSWORD", "").strip()
@@ -278,83 +331,114 @@ init_db()
 
 def salvar_banco_nuvem():
     """
-    Exporta contatos e voluntários para a nuvem permanente (KVDB)
-    para garantir que mensagens e cadastros nunca sejam perdidos quando o Render reiniciar.
+    1. Salva mensagens e voluntários ativos em 'site_db_backup'.
+    2. Salva o HISTÓRICO COMPLETO E PERMANENTE na nuvem em 'site_db_historico',
+       garantindo que mesmo se o usuário apagar algo no painel admin,
+       o histórico completo permaneça guardado para sempre na nuvem.
     """
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+        
+        # 1. Contatos e Voluntários ativos da caixa
         cursor.execute("SELECT id, nome, email, telefone, assunto, mensagem, data_envio, lido FROM contatos ORDER BY id ASC")
         contatos = [
-            {
-                "id": row[0], "nome": row[1], "email": row[2], "telefone": row[3],
-                "assunto": row[4], "mensagem": row[5], "data_envio": row[6], "lido": row[7]
-            }
+            {"id": row[0], "nome": row[1], "email": row[2], "telefone": row[3],
+             "assunto": row[4], "mensagem": row[5], "data_envio": row[6], "lido": row[7]}
             for row in cursor.fetchall()
         ]
         cursor.execute("SELECT id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status FROM voluntarios ORDER BY id ASC")
         voluntarios = [
-            {
-                "id": row[0], "nome": row[1], "email": row[2], "whatsapp": row[3],
-                "area_interesse": row[4], "disponibilidade": row[5], "experiencia": row[6],
-                "data_envio": row[7], "status": row[8]
-            }
+            {"id": row[0], "nome": row[1], "email": row[2], "whatsapp": row[3],
+             "area_interesse": row[4], "disponibilidade": row[5], "experiencia": row[6],
+             "data_envio": row[7], "status": row[8]}
+            for row in cursor.fetchall()
+        ]
+        
+        # 2. Histórico permanente perpétuo (nunca perde dados de exclusões)
+        cursor.execute("SELECT id, original_id, nome, email, telefone, assunto, mensagem, data_envio, status_admin, apagado_em FROM historico_contatos ORDER BY id ASC")
+        hist_contatos = [
+            {"id": row[0], "original_id": row[1], "nome": row[2], "email": row[3], "telefone": row[4],
+             "assunto": row[5], "mensagem": row[6], "data_envio": row[7], "status_admin": row[8], "apagado_em": row[9]}
+            for row in cursor.fetchall()
+        ]
+        cursor.execute("SELECT id, original_id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status, status_admin, apagado_em FROM historico_voluntarios ORDER BY id ASC")
+        hist_voluntarios = [
+            {"id": row[0], "original_id": row[1], "nome": row[2], "email": row[3], "whatsapp": row[4],
+             "area_interesse": row[5], "disponibilidade": row[6], "experiencia": row[7],
+             "data_envio": row[8], "status": row[9], "status_admin": row[10], "apagado_em": row[11]}
             for row in cursor.fetchall()
         ]
         conn.close()
 
-        payload = {
+        ctx = ssl.create_default_context()
+
+        # Envia backup dos ativos
+        payload_ativos = {
             "contatos": contatos,
             "voluntarios": voluntarios,
             "atualizado_em": datetime.now().isoformat()
         }
-        body_bytes = json.dumps(payload, ensure_ascii=False).encode('utf-8')
-        req = urllib.request.Request(
-            "https://kvdb.io/CRiiwUrgTkUsVqFprcTA67/site_db_backup",
-            data=body_bytes,
+        body_ativos = json.dumps(payload_ativos, ensure_ascii=False).encode('utf-8')
+        req1 = urllib.request.Request(
+            KVDB_DB_BACKUP_URL,
+            data=body_ativos,
             method="POST",
-            headers={
-                "Content-Type": "application/json; charset=utf-8",
-                "User-Agent": "Instituto-Sementes-Amanha/1.0"
-            }
+            headers={"Content-Type": "application/json; charset=utf-8", "User-Agent": "Instituto-Sementes-Amanha/1.0"}
         )
-        ctx = ssl.create_default_context()
         try:
-            res = urllib.request.urlopen(req, timeout=10, context=ctx)
+            res1 = urllib.request.urlopen(req1, timeout=10, context=ctx)
         except Exception:
-            ctx = ssl._create_unverified_context()
-            res = urllib.request.urlopen(req, timeout=10, context=ctx)
-        with res:
+            res1 = urllib.request.urlopen(req1, timeout=10, context=ssl._create_unverified_context())
+        with res1:
             pass
+
+        # Envia HISTÓRICO PERMANENTE para a nuvem
+        payload_historico = {
+            "historico_contatos": hist_contatos,
+            "historico_voluntarios": hist_voluntarios,
+            "total_contatos": len(hist_contatos),
+            "total_voluntarios": len(hist_voluntarios),
+            "atualizado_em": datetime.now().isoformat()
+        }
+        body_hist = json.dumps(payload_historico, ensure_ascii=False).encode('utf-8')
+        req2 = urllib.request.Request(
+            KVDB_HISTORICO_URL,
+            data=body_hist,
+            method="POST",
+            headers={"Content-Type": "application/json; charset=utf-8", "User-Agent": "Instituto-Sementes-Amanha/1.0"}
+        )
+        try:
+            res2 = urllib.request.urlopen(req2, timeout=10, context=ctx)
+        except Exception:
+            res2 = urllib.request.urlopen(req2, timeout=10, context=ssl._create_unverified_context())
+        with res2:
+            pass
+        print(f"[PERSISTÊNCIA] Histórico permanente salvo na nuvem com sucesso! ({len(hist_contatos)} contatos, {len(hist_voluntarios)} voluntários)")
     except Exception as e:
-        print(f"[AVISO] Falha ao fazer backup do banco na nuvem: {e}")
+        print(f"[AVISO] Falha ao fazer backup do histórico na nuvem: {e}")
 
 def sincronizar_banco_nuvem():
     """
-    Restaura contatos e voluntários salvos na nuvem permanente (KVDB)
-    para dentro do SQLite local após o Render reiniciar.
+    1. Restaura contatos e voluntários ativos da nuvem.
+    2. Restaura o HISTÓRICO PERMANENTE completo da nuvem, garantindo
+       que mesmo com reinício do Render ou exclusões no painel, nada seja perdido.
     """
+    ctx = ssl.create_default_context()
+    # 1. Restaura ativos
     try:
-        req = urllib.request.Request(
-            "https://kvdb.io/CRiiwUrgTkUsVqFprcTA67/site_db_backup",
-            headers={"User-Agent": "Instituto-Sementes-Amanha/1.0"}
-        )
-        ctx = ssl.create_default_context()
+        req = urllib.request.Request(KVDB_DB_BACKUP_URL, headers={"User-Agent": "Instituto-Sementes-Amanha/1.0"})
         try:
             res = urllib.request.urlopen(req, timeout=10, context=ctx)
         except Exception:
-            ctx = ssl._create_unverified_context()
-            res = urllib.request.urlopen(req, timeout=10, context=ctx)
-
+            res = urllib.request.urlopen(req, timeout=10, context=ssl._create_unverified_context())
         with res:
             if res.status == 200:
-                raw_data = res.read().decode('utf-8').strip()
-                if raw_data:
-                    data = json.loads(raw_data)
+                raw = res.read().decode('utf-8').strip()
+                if raw:
+                    data = json.loads(raw)
                     conn = get_db_connection()
                     cursor = conn.cursor()
-
-                    # Sincroniza contatos da nuvem refletindo exclusões
                     if "contatos" in data:
                         cursor.execute("DELETE FROM contatos")
                         for c in data.get("contatos", []):
@@ -362,8 +446,6 @@ def sincronizar_banco_nuvem():
                                 INSERT INTO contatos (id, nome, email, telefone, assunto, mensagem, data_envio, lido)
                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                             """, (c["id"], c["nome"], c["email"], c.get("telefone", ""), c.get("assunto", ""), c["mensagem"], c["data_envio"], c.get("lido", 0)))
-
-                    # Sincroniza voluntários da nuvem refletindo exclusões
                     if "voluntarios" in data:
                         cursor.execute("DELETE FROM voluntarios")
                         for v in data.get("voluntarios", []):
@@ -371,12 +453,42 @@ def sincronizar_banco_nuvem():
                                 INSERT INTO voluntarios (id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status)
                                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                             """, (v["id"], v["nome"], v["email"], v["whatsapp"], v["area_interesse"], v.get("disponibilidade", ""), v.get("experiencia", ""), v["data_envio"], v.get("status", "Pendente")))
-
                     conn.commit()
                     conn.close()
-                    print("[PERSISTÊNCIA] Banco de dados (contatos e voluntários) restaurado da nuvem com sucesso!")
     except Exception as e:
-        print(f"[AVISO] Falha ao sincronizar banco da nuvem: {e}")
+        print(f"[AVISO] Falha ao sincronizar ativos da nuvem: {e}")
+
+    # 2. Restaura HISTÓRICO PERMANENTE da nuvem
+    try:
+        req_h = urllib.request.Request(KVDB_HISTORICO_URL, headers={"User-Agent": "Instituto-Sementes-Amanha/1.0"})
+        try:
+            res_h = urllib.request.urlopen(req_h, timeout=10, context=ctx)
+        except Exception:
+            res_h = urllib.request.urlopen(req_h, timeout=10, context=ssl._create_unverified_context())
+        with res_h:
+            if res_h.status == 200:
+                raw_h = res_h.read().decode('utf-8').strip()
+                if raw_h:
+                    data_h = json.loads(raw_h)
+                    conn = get_db_connection()
+                    cursor = conn.cursor()
+                    if "historico_contatos" in data_h:
+                        for c in data_h.get("historico_contatos", []):
+                            cursor.execute("""
+                                INSERT OR REPLACE INTO historico_contatos (id, original_id, nome, email, telefone, assunto, mensagem, data_envio, status_admin, apagado_em)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """, (c.get("id"), c.get("original_id"), c["nome"], c["email"], c.get("telefone", ""), c.get("assunto", ""), c["mensagem"], c["data_envio"], c.get("status_admin", "Ativo"), c.get("apagado_em")))
+                    if "historico_voluntarios" in data_h:
+                        for v in data_h.get("historico_voluntarios", []):
+                            cursor.execute("""
+                                INSERT OR REPLACE INTO historico_voluntarios (id, original_id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status, status_admin, apagado_em)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """, (v.get("id"), v.get("original_id"), v["nome"], v["email"], v["whatsapp"], v["area_interesse"], v.get("disponibilidade", ""), v.get("experiencia", ""), v["data_envio"], v.get("status", "Pendente"), v.get("status_admin", "Ativo"), v.get("apagado_em")))
+                    conn.commit()
+                    conn.close()
+                    print("[PERSISTÊNCIA] Histórico permanente completo restaurado da nuvem com sucesso!")
+    except Exception as e:
+        print(f"[AVISO] Falha ao sincronizar histórico da nuvem: {e}")
 
 # Restaura mensagens de contato e voluntários da nuvem na inicialização
 sincronizar_banco_nuvem()
@@ -927,6 +1039,71 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 self.send_json({"sucesso": False, "erro": str(e)}, 500)
             return
 
+        elif path == '/api/admin/historico':
+            if not self.is_authenticated():
+                self.send_json({"sucesso": False, "erro": "Acesso não autorizado."}, 401)
+                return
+            try:
+                conn = get_db_connection()
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM historico_contatos ORDER BY id DESC")
+                h_contatos = [dict(r) for r in cursor.fetchall()]
+                cursor.execute("SELECT * FROM historico_voluntarios ORDER BY id DESC")
+                h_voluntarios = [dict(r) for r in cursor.fetchall()]
+                conn.close()
+                self.send_json({
+                    "sucesso": True,
+                    "total_contatos": len(h_contatos),
+                    "total_voluntarios": len(h_voluntarios),
+                    "contatos": h_contatos,
+                    "voluntarios": h_voluntarios
+                })
+            except Exception as e:
+                self.send_json({"sucesso": False, "erro": str(e)}, 500)
+            return
+
+        elif path == '/api/admin/historico/restaurar':
+            if not self.is_authenticated():
+                self.send_json({"sucesso": False, "erro": "Acesso não autorizado."}, 401)
+                return
+            try:
+                tipo = body_json.get('tipo', 'contato')
+                item_id = int(body_json.get('id', 0))
+                if not item_id:
+                    self.send_json({"sucesso": False, "erro": "ID inválido."}, 400)
+                    return
+
+                conn = get_db_connection()
+                cursor = conn.cursor()
+
+                if tipo == 'contato':
+                    cursor.execute("SELECT original_id, nome, email, telefone, assunto, mensagem, data_envio FROM historico_contatos WHERE id = ?", (item_id,))
+                    row = cursor.fetchone()
+                    if row:
+                        cursor.execute("""
+                            INSERT INTO contatos (nome, email, telefone, assunto, mensagem, data_envio, lido)
+                            VALUES (?, ?, ?, ?, ?, ?, 0)
+                        """, (row[1], row[2], row[3], row[4], row[5], row[6]))
+                        cursor.execute("UPDATE historico_contatos SET status_admin = 'Ativo', apagado_em = NULL WHERE id = ?", (item_id,))
+                else:
+                    cursor.execute("SELECT original_id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status FROM historico_voluntarios WHERE id = ?", (item_id,))
+                    row = cursor.fetchone()
+                    if row:
+                        cursor.execute("""
+                            INSERT INTO voluntarios (nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """, (row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8]))
+                        cursor.execute("UPDATE historico_voluntarios SET status_admin = 'Ativo', apagado_em = NULL WHERE id = ?", (item_id,))
+
+                conn.commit()
+                conn.close()
+                salvar_banco_nuvem()
+                self.send_json({"sucesso": True, "mensagem": "Item restaurado com sucesso para a caixa de entrada ativa!"})
+            except Exception as e:
+                self.send_json({"sucesso": False, "erro": str(e)}, 500)
+            return
+
         elif path == '/api/admin/banco/exportar':
             if not self.is_authenticated():
                 self.send_json({"sucesso": False, "erro": "Acesso não autorizado."}, 401)
@@ -939,17 +1116,25 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 contatos = [dict(r) for r in cursor.fetchall()]
                 cursor.execute("SELECT * FROM voluntarios ORDER BY id ASC")
                 voluntarios = [dict(r) for r in cursor.fetchall()]
+                cursor.execute("SELECT * FROM historico_contatos ORDER BY id ASC")
+                h_contatos = [dict(r) for r in cursor.fetchall()]
+                cursor.execute("SELECT * FROM historico_voluntarios ORDER BY id ASC")
+                h_voluntarios = [dict(r) for r in cursor.fetchall()]
                 conn.close()
 
                 export_data = {
                     "sistema": "Instituto Sementes do Amanhã - Exportação Oficial do Banco de Dados",
                     "data_exportacao": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
                     "resumo": {
-                        "total_mensagens": len(contatos),
-                        "total_voluntarios": len(voluntarios)
+                        "mensagens_ativas": len(contatos),
+                        "voluntarios_ativos": len(voluntarios),
+                        "total_historico_mensagens": len(h_contatos),
+                        "total_historico_voluntarios": len(h_voluntarios)
                     },
                     "mensagens_contato": contatos,
-                    "inscricoes_voluntarios": voluntarios
+                    "inscricoes_voluntarios": voluntarios,
+                    "historico_completo_mensagens": h_contatos,
+                    "historico_completo_voluntarios": h_voluntarios
                 }
                 export_bytes = json.dumps(export_data, ensure_ascii=False, indent=2).encode('utf-8')
                 data_str = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -976,10 +1161,19 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 conn = get_db_connection()
                 conn.row_factory = sqlite3.Row
                 cursor = conn.cursor()
-                cursor.execute("SELECT * FROM contatos ORDER BY id DESC")
+                # Lê dados do HISTÓRICO PERMANENTE PERPÉTUO (mesmo que tenham sido apagados do painel)
+                cursor.execute("SELECT * FROM historico_contatos ORDER BY id DESC")
                 todos_contatos = [dict(r) for r in cursor.fetchall()]
-                cursor.execute("SELECT * FROM voluntarios ORDER BY id DESC")
+                cursor.execute("SELECT * FROM historico_voluntarios ORDER BY id DESC")
                 todos_voluntarios = [dict(r) for r in cursor.fetchall()]
+
+                # Fallback de segurança se historico estiver vazio
+                if not todos_contatos:
+                    cursor.execute("SELECT * FROM contatos ORDER BY id DESC")
+                    todos_contatos = [dict(r) for r in cursor.fetchall()]
+                if not todos_voluntarios:
+                    cursor.execute("SELECT * FROM voluntarios ORDER BY id DESC")
+                    todos_voluntarios = [dict(r) for r in cursor.fetchall()]
                 conn.close()
 
                 def extrair_ano_mes(d_str):
@@ -1314,6 +1508,13 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                     INSERT INTO contatos (nome, email, telefone, assunto, mensagem, data_envio)
                     VALUES (?, ?, ?, ?, ?, ?)
                 """, (nome, email, telefone_formatado, assunto, mensagem, data_envio))
+                novo_id = cursor.lastrowid
+
+                # Salva também no HISTÓRICO PERMANENTE PERPÉTUO (nunca se perde)
+                cursor.execute("""
+                    INSERT OR IGNORE INTO historico_contatos (original_id, nome, email, telefone, assunto, mensagem, data_envio, status_admin)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 'Ativo')
+                """, (novo_id, nome, email, telefone_formatado, assunto, mensagem, data_envio))
                 conn.commit()
                 conn.close()
                 salvar_banco_nuvem()
@@ -1401,6 +1602,13 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                     INSERT INTO voluntarios (nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                 """, (nome, email, whatsapp_formatado, area_interesse, disponibilidade, experiencia, data_envio))
+                novo_v_id = cursor.lastrowid
+
+                # Salva também no HISTÓRICO PERMANENTE PERPÉTUO (nunca se perde)
+                cursor.execute("""
+                    INSERT OR IGNORE INTO historico_voluntarios (original_id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status, status_admin)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 'Pendente', 'Ativo')
+                """, (novo_v_id, nome, email, whatsapp_formatado, area_interesse, disponibilidade, experiencia, data_envio))
                 conn.commit()
                 conn.close()
                 salvar_banco_nuvem()
@@ -1425,11 +1633,34 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 vol_id = int(vol_id)
                 conn = get_db_connection()
                 cursor = conn.cursor()
+                cursor.execute("SELECT id, nome, email, data_envio FROM voluntarios WHERE id = ?", (vol_id,))
+                v_row = cursor.fetchone()
+                
+                # Remove da lista ativa da caixa de entrada
                 cursor.execute("DELETE FROM voluntarios WHERE id = ?", (vol_id,))
+
+                # NO HISTÓRICO PERMANENTE NA NUVEM: NUNCA APAGA! Marca como arquivado
+                data_exclusao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                if v_row:
+                    cursor.execute("""
+                        UPDATE historico_voluntarios 
+                        SET status_admin = 'Arquivado do Painel', apagado_em = ?
+                        WHERE original_id = ? OR (nome = ? AND email = ? AND data_envio = ?)
+                    """, (data_exclusao, vol_id, v_row[1], v_row[2], v_row[3]))
+                else:
+                    cursor.execute("""
+                        UPDATE historico_voluntarios 
+                        SET status_admin = 'Arquivado do Painel', apagado_em = ?
+                        WHERE original_id = ?
+                    """, (data_exclusao, vol_id))
+
                 conn.commit()
                 conn.close()
                 salvar_banco_nuvem()
-                self.send_json({"sucesso": True, "mensagem": "Inscrição de voluntário apagada com sucesso!"})
+                self.send_json({
+                    "sucesso": True, 
+                    "mensagem": "Inscrição removida da caixa de entrada. O registro histórico permanece salvo com segurança na nuvem!"
+                })
             except Exception as e:
                 self.send_json({"sucesso": False, "erro": f"Erro ao excluir: {str(e)}"}, 500)
             return
@@ -1446,11 +1677,34 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 contato_id = int(contato_id)
                 conn = get_db_connection()
                 cursor = conn.cursor()
+                cursor.execute("SELECT id, nome, email, data_envio FROM contatos WHERE id = ?", (contato_id,))
+                c_row = cursor.fetchone()
+
+                # Remove da lista ativa da caixa de entrada
                 cursor.execute("DELETE FROM contatos WHERE id = ?", (contato_id,))
+
+                # NO HISTÓRICO PERMANENTE NA NUVEM: NUNCA APAGA! Marca como arquivado
+                data_exclusao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                if c_row:
+                    cursor.execute("""
+                        UPDATE historico_contatos 
+                        SET status_admin = 'Arquivado do Painel', apagado_em = ?
+                        WHERE original_id = ? OR (nome = ? AND email = ? AND data_envio = ?)
+                    """, (data_exclusao, contato_id, c_row[1], c_row[2], c_row[3]))
+                else:
+                    cursor.execute("""
+                        UPDATE historico_contatos 
+                        SET status_admin = 'Arquivado do Painel', apagado_em = ?
+                        WHERE original_id = ?
+                    """, (data_exclusao, contato_id))
+
                 conn.commit()
                 conn.close()
                 salvar_banco_nuvem()
-                self.send_json({"sucesso": True, "mensagem": "Mensagem de contato apagada com sucesso!"})
+                self.send_json({
+                    "sucesso": True, 
+                    "mensagem": "Mensagem removida da caixa de entrada. O registro histórico permanece salvo com segurança na nuvem!"
+                })
             except Exception as e:
                 self.send_json({"sucesso": False, "erro": f"Erro ao excluir: {str(e)}"}, 500)
             return
