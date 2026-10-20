@@ -24,7 +24,9 @@ import urllib.request
 from datetime import datetime, timedelta
 import socket
 from http.cookies import SimpleCookie
-from http.server import HTTPServer, BaseHTTPRequestHandler
+import threading
+from contextlib import contextmanager
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs, urlencode
 
 # Caminhos base
@@ -129,9 +131,40 @@ def salvar_config_nuvem(dados_dict):
 # Restaura as configurações da nuvem na inicialização do servidor
 sincronizar_config_nuvem()
 
+DB_LOCK = threading.RLock()
+
 def get_db_connection():
-    conn = sqlite3.connect(DB_FILE, timeout=10.0)
+    """
+    Cria uma conexão com o banco SQLite com configurações avançadas de concorrência:
+    - timeout de 30 segundos
+    - WAL mode (Write-Ahead Logging) ativo
+    - busy_timeout de 30.000 ms (espera até 30s antes de dar locked)
+    - synchronous = NORMAL (melhor performance sem travamentos)
+    """
+    conn = sqlite3.connect(DB_FILE, timeout=30.0, check_same_thread=False)
+    try:
+        conn.execute("PRAGMA journal_mode = WAL;")
+        conn.execute("PRAGMA busy_timeout = 30000;")
+        conn.execute("PRAGMA synchronous = NORMAL;")
+    except Exception:
+        pass
     return conn
+
+@contextmanager
+def get_db():
+    """
+    Context manager thread-safe com liberação e fechamento garantido (finally: close).
+    Garante que conexões nunca fiquem abertas e previne travamentos de 'database is locked'.
+    """
+    with DB_LOCK:
+        conn = get_db_connection()
+        try:
+            yield conn
+        finally:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 def hash_password(password, salt=None):
     if not salt:
@@ -147,36 +180,32 @@ def create_admin_session(username):
     token = secrets.token_hex(32)
     criado_em = datetime.now()
     expira_em = criado_em + timedelta(days=1)  # Token expira em exatamente 1 dia (24 horas)
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO sessoes_admin (token, username, criado_em, expira_em)
-        VALUES (?, ?, ?, ?)
-    """, (token, username, criado_em.isoformat(), expira_em.isoformat()))
-    conn.commit()
-    conn.close()
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO sessoes_admin (token, username, criado_em, expira_em)
+            VALUES (?, ?, ?, ?)
+        """, (token, username, criado_em.isoformat(), expira_em.isoformat()))
+        conn.commit()
     return token
 
 def verify_session_token(token):
     if not token:
         return None
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT username, expira_em FROM sessoes_admin WHERE token = ?", (token,))
-        row = cursor.fetchone()
-        conn.close()
-        if not row:
-            return None
-        username, expira_em_str = row[0], row[1]
-        expira_em = datetime.fromisoformat(expira_em_str)
-        if datetime.now() > expira_em:
-            conn = get_db_connection()
-            conn.execute("DELETE FROM sessoes_admin WHERE token = ?", (token,))
-            conn.commit()
-            conn.close()
-            return None
-        return username
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT username, expira_em FROM sessoes_admin WHERE token = ?", (token,))
+            row = cursor.fetchone()
+            if not row:
+                return None
+            username, expira_em_str = row[0], row[1]
+            expira_em = datetime.fromisoformat(expira_em_str)
+            if datetime.now() > expira_em:
+                conn.execute("DELETE FROM sessoes_admin WHERE token = ?", (token,))
+                conn.commit()
+                return None
+            return username
     except Exception:
         return None
 
@@ -184,149 +213,152 @@ def delete_admin_session(token):
     if not token:
         return
     try:
-        conn = get_db_connection()
-        conn.execute("DELETE FROM sessoes_admin WHERE token = ?", (token,))
-        conn.commit()
-        conn.close()
+        with get_db() as conn:
+            conn.execute("DELETE FROM sessoes_admin WHERE token = ?", (token,))
+            conn.commit()
     except Exception:
         pass
 
 # Inicializa banco de dados SQLite com suporte otimizado a concorrencia
 def init_db():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("PRAGMA journal_mode=WAL;")
-    cursor.execute("PRAGMA busy_timeout = 5000;")
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS contatos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nome TEXT NOT NULL,
-            email TEXT NOT NULL,
-            telefone TEXT,
-            assunto TEXT,
-            mensagem TEXT NOT NULL,
-            data_envio TEXT NOT NULL,
-            lido INTEGER DEFAULT 0
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS voluntarios (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nome TEXT NOT NULL,
-            email TEXT NOT NULL,
-            whatsapp TEXT NOT NULL,
-            area_interesse TEXT NOT NULL,
-            disponibilidade TEXT,
-            experiencia TEXT,
-            data_envio TEXT NOT NULL,
-            status TEXT DEFAULT 'Pendente'
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS usuarios_admin (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            salt TEXT NOT NULL,
-            data_criacao TEXT NOT NULL
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS sessoes_admin (
-            token TEXT PRIMARY KEY,
-            username TEXT NOT NULL,
-            criado_em TEXT NOT NULL,
-            expira_em TEXT NOT NULL
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS historico_contatos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            original_id INTEGER,
-            nome TEXT NOT NULL,
-            email TEXT NOT NULL,
-            telefone TEXT,
-            assunto TEXT,
-            mensagem TEXT NOT NULL,
-            data_envio TEXT NOT NULL,
-            status_admin TEXT DEFAULT 'Ativo',
-            apagado_em TEXT,
-            UNIQUE(nome, email, data_envio, mensagem)
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS historico_voluntarios (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            original_id INTEGER,
-            nome TEXT NOT NULL,
-            email TEXT NOT NULL,
-            whatsapp TEXT NOT NULL,
-            area_interesse TEXT NOT NULL,
-            disponibilidade TEXT,
-            experiencia TEXT,
-            data_envio TEXT NOT NULL,
-            status TEXT DEFAULT 'Pendente',
-            status_admin TEXT DEFAULT 'Ativo',
-            apagado_em TEXT,
-            UNIQUE(nome, email, data_envio, area_interesse)
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS historico_config (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            data_salvamento TEXT NOT NULL,
-            config_json TEXT NOT NULL
-        )
-    """)
-    try:
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA journal_mode=WAL;")
+        cursor.execute("PRAGMA busy_timeout = 30000;")
+        cursor.execute("PRAGMA synchronous = NORMAL;")
+        try:
+            cursor.execute("PRAGMA wal_checkpoint(TRUNCATE);")
+        except Exception:
+            pass
         cursor.execute("""
-            INSERT OR IGNORE INTO historico_contatos (original_id, nome, email, telefone, assunto, mensagem, data_envio, status_admin)
-            SELECT id, nome, email, telefone, assunto, mensagem, data_envio, 'Ativo' FROM contatos
+            CREATE TABLE IF NOT EXISTS contatos (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nome TEXT NOT NULL,
+                email TEXT NOT NULL,
+                telefone TEXT,
+                assunto TEXT,
+                mensagem TEXT NOT NULL,
+                data_envio TEXT NOT NULL,
+                lido INTEGER DEFAULT 0
+            )
         """)
         cursor.execute("""
-            INSERT OR IGNORE INTO historico_voluntarios (original_id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status, status_admin)
-            SELECT id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status, 'Ativo' FROM voluntarios
+            CREATE TABLE IF NOT EXISTS voluntarios (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nome TEXT NOT NULL,
+                email TEXT NOT NULL,
+                whatsapp TEXT NOT NULL,
+                area_interesse TEXT NOT NULL,
+                disponibilidade TEXT,
+                experiencia TEXT,
+                data_envio TEXT NOT NULL,
+                status TEXT DEFAULT 'Pendente'
+            )
         """)
-    except Exception:
-        pass
-    # Gerenciamento de credenciais do administrador via variáveis de ambiente (.env)
-    admin_user = os.environ.get("ADMIN_USER", "admin").strip()
-    admin_pass = os.environ.get("ADMIN_PASSWORD", "").strip()
-
-    cursor.execute("SELECT id, username, password_hash, salt FROM usuarios_admin WHERE username = ?", (admin_user,))
-    row = cursor.fetchone()
-
-    if admin_pass:
-        # Se uma senha foi definida no .env/ambiente, sincroniza com o banco de dados
-        p_hash, salt = hash_password(admin_pass)
-        if row:
-            cursor.execute("UPDATE usuarios_admin SET password_hash = ?, salt = ? WHERE username = ?", (p_hash, salt, admin_user))
-        else:
-            data_criacao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS usuarios_admin (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                salt TEXT NOT NULL,
+                data_criacao TEXT NOT NULL
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS sessoes_admin (
+                token TEXT PRIMARY KEY,
+                username TEXT NOT NULL,
+                criado_em TEXT NOT NULL,
+                expira_em TEXT NOT NULL
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS historico_contatos (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                original_id INTEGER,
+                nome TEXT NOT NULL,
+                email TEXT NOT NULL,
+                telefone TEXT,
+                assunto TEXT,
+                mensagem TEXT NOT NULL,
+                data_envio TEXT NOT NULL,
+                status_admin TEXT DEFAULT 'Ativo',
+                apagado_em TEXT,
+                UNIQUE(nome, email, data_envio, mensagem)
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS historico_voluntarios (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                original_id INTEGER,
+                nome TEXT NOT NULL,
+                email TEXT NOT NULL,
+                whatsapp TEXT NOT NULL,
+                area_interesse TEXT NOT NULL,
+                disponibilidade TEXT,
+                experiencia TEXT,
+                data_envio TEXT NOT NULL,
+                status TEXT DEFAULT 'Pendente',
+                status_admin TEXT DEFAULT 'Ativo',
+                apagado_em TEXT,
+                UNIQUE(nome, email, data_envio, area_interesse)
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS historico_config (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                data_salvamento TEXT NOT NULL,
+                config_json TEXT NOT NULL
+            )
+        """)
+        try:
             cursor.execute("""
-                INSERT INTO usuarios_admin (username, password_hash, salt, data_criacao)
-                VALUES (?, ?, ?, ?)
-            """, (admin_user, p_hash, salt, data_criacao))
-    elif not row:
-        cursor.execute("SELECT COUNT(*) FROM usuarios_admin")
-        if cursor.fetchone()[0] == 0:
-            temp_pass = secrets.token_urlsafe(10)
-            p_hash, salt = hash_password(temp_pass)
-            data_criacao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                INSERT OR IGNORE INTO historico_contatos (original_id, nome, email, telefone, assunto, mensagem, data_envio, status_admin)
+                SELECT id, nome, email, telefone, assunto, mensagem, data_envio, 'Ativo' FROM contatos
+            """)
             cursor.execute("""
-                INSERT INTO usuarios_admin (username, password_hash, salt, data_criacao)
-                VALUES (?, ?, ?, ?)
-            """, (admin_user, p_hash, salt, data_criacao))
-            print("\n" + "=" * 65)
-            print("  [SEGURANÇA] Nenhum ADMIN_PASSWORD foi definido no .env!")
-            print(f"  -> Usuário inicial: {admin_user}")
-            print(f"  -> Senha gerada temporária: {temp_pass}")
-            print("  -> Dica: Crie o arquivo .env com ADMIN_PASSWORD=sua_senha")
-            print("=" * 65 + "\n")
+                INSERT OR IGNORE INTO historico_voluntarios (original_id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status, status_admin)
+                SELECT id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status, 'Ativo' FROM voluntarios
+            """)
+        except Exception:
+            pass
 
-    conn.commit()
-    conn.close()
+        # Gerenciamento de credenciais do administrador via variáveis de ambiente (.env)
+        admin_user = os.environ.get("ADMIN_USER", "admin").strip()
+        admin_pass = os.environ.get("ADMIN_PASSWORD", "").strip()
 
+        cursor.execute("SELECT id, username, password_hash, salt FROM usuarios_admin WHERE username = ?", (admin_user,))
+        row = cursor.fetchone()
+
+        if admin_pass:
+            # Se uma senha foi definida no .env/ambiente, sincroniza com o banco de dados
+            p_hash, salt = hash_password(admin_pass)
+            if row:
+                cursor.execute("UPDATE usuarios_admin SET password_hash = ?, salt = ? WHERE username = ?", (p_hash, salt, admin_user))
+            else:
+                data_criacao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                cursor.execute("""
+                    INSERT INTO usuarios_admin (username, password_hash, salt, data_criacao)
+                    VALUES (?, ?, ?, ?)
+                """, (admin_user, p_hash, salt, data_criacao))
+        elif not row:
+            cursor.execute("SELECT COUNT(*) FROM usuarios_admin")
+            if cursor.fetchone()[0] == 0:
+                temp_pass = secrets.token_urlsafe(10)
+                p_hash, salt = hash_password(temp_pass)
+                data_criacao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                cursor.execute("""
+                    INSERT INTO usuarios_admin (username, password_hash, salt, data_criacao)
+                    VALUES (?, ?, ?, ?)
+                """, (admin_user, p_hash, salt, data_criacao))
+                print("\n" + "=" * 65)
+                print("  [SEGURANÇA] Nenhum ADMIN_PASSWORD foi definido no .env!")
+                print(f"  -> Usuário inicial: {admin_user}")
+                print(f"  -> Senha gerada temporária: {temp_pass}")
+                print("  -> Dica: Crie o arquivo .env com ADMIN_PASSWORD=sua_senha")
+                print("=" * 65 + "\n")
+
+        conn.commit()
 init_db()
 
 def salvar_banco_nuvem():
@@ -337,39 +369,37 @@ def salvar_banco_nuvem():
        o histórico completo permaneça guardado para sempre na nuvem.
     """
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # 1. Contatos e Voluntários ativos da caixa
-        cursor.execute("SELECT id, nome, email, telefone, assunto, mensagem, data_envio, lido FROM contatos ORDER BY id ASC")
-        contatos = [
-            {"id": row[0], "nome": row[1], "email": row[2], "telefone": row[3],
-             "assunto": row[4], "mensagem": row[5], "data_envio": row[6], "lido": row[7]}
-            for row in cursor.fetchall()
-        ]
-        cursor.execute("SELECT id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status FROM voluntarios ORDER BY id ASC")
-        voluntarios = [
-            {"id": row[0], "nome": row[1], "email": row[2], "whatsapp": row[3],
-             "area_interesse": row[4], "disponibilidade": row[5], "experiencia": row[6],
-             "data_envio": row[7], "status": row[8]}
-            for row in cursor.fetchall()
-        ]
-        
-        # 2. Histórico permanente perpétuo (nunca perde dados de exclusões)
-        cursor.execute("SELECT id, original_id, nome, email, telefone, assunto, mensagem, data_envio, status_admin, apagado_em FROM historico_contatos ORDER BY id ASC")
-        hist_contatos = [
-            {"id": row[0], "original_id": row[1], "nome": row[2], "email": row[3], "telefone": row[4],
-             "assunto": row[5], "mensagem": row[6], "data_envio": row[7], "status_admin": row[8], "apagado_em": row[9]}
-            for row in cursor.fetchall()
-        ]
-        cursor.execute("SELECT id, original_id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status, status_admin, apagado_em FROM historico_voluntarios ORDER BY id ASC")
-        hist_voluntarios = [
-            {"id": row[0], "original_id": row[1], "nome": row[2], "email": row[3], "whatsapp": row[4],
-             "area_interesse": row[5], "disponibilidade": row[6], "experiencia": row[7],
-             "data_envio": row[8], "status": row[9], "status_admin": row[10], "apagado_em": row[11]}
-            for row in cursor.fetchall()
-        ]
-        conn.close()
+        with get_db() as conn:
+            cursor = conn.cursor()
+            # 1. Contatos e Voluntários ativos da caixa
+            cursor.execute("SELECT id, nome, email, telefone, assunto, mensagem, data_envio, lido FROM contatos ORDER BY id ASC")
+            contatos = [
+                {"id": row[0], "nome": row[1], "email": row[2], "telefone": row[3],
+                 "assunto": row[4], "mensagem": row[5], "data_envio": row[6], "lido": row[7]}
+                for row in cursor.fetchall()
+            ]
+            cursor.execute("SELECT id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status FROM voluntarios ORDER BY id ASC")
+            voluntarios = [
+                {"id": row[0], "nome": row[1], "email": row[2], "whatsapp": row[3],
+                 "area_interesse": row[4], "disponibilidade": row[5], "experiencia": row[6],
+                 "data_envio": row[7], "status": row[8]}
+                for row in cursor.fetchall()
+            ]
+            
+            # 2. Histórico permanente perpétuo (nunca perde dados de exclusões)
+            cursor.execute("SELECT id, original_id, nome, email, telefone, assunto, mensagem, data_envio, status_admin, apagado_em FROM historico_contatos ORDER BY id ASC")
+            hist_contatos = [
+                {"id": row[0], "original_id": row[1], "nome": row[2], "email": row[3], "telefone": row[4],
+                 "assunto": row[5], "mensagem": row[6], "data_envio": row[7], "status_admin": row[8], "apagado_em": row[9]}
+                for row in cursor.fetchall()
+            ]
+            cursor.execute("SELECT id, original_id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status, status_admin, apagado_em FROM historico_voluntarios ORDER BY id ASC")
+            hist_voluntarios = [
+                {"id": row[0], "original_id": row[1], "nome": row[2], "email": row[3], "whatsapp": row[4],
+                 "area_interesse": row[5], "disponibilidade": row[6], "experiencia": row[7],
+                 "data_envio": row[8], "status": row[9], "status_admin": row[10], "apagado_em": row[11]}
+                for row in cursor.fetchall()
+            ]
 
         ctx = ssl.create_default_context()
 
@@ -418,6 +448,11 @@ def salvar_banco_nuvem():
     except Exception as e:
         print(f"[AVISO] Falha ao fazer backup do histórico na nuvem: {e}")
 
+def disparar_salvar_banco_nuvem_async():
+    """Dispara a sincronização de nuvem em thread de fundo para não travar respostas HTTP."""
+    t = threading.Thread(target=salvar_banco_nuvem, daemon=True)
+    t.start()
+
 def sincronizar_banco_nuvem():
     """
     1. Restaura contatos e voluntários ativos da nuvem.
@@ -437,24 +472,23 @@ def sincronizar_banco_nuvem():
                 raw = res.read().decode('utf-8').strip()
                 if raw:
                     data = json.loads(raw)
-                    conn = get_db_connection()
-                    cursor = conn.cursor()
-                    if "contatos" in data:
-                        cursor.execute("DELETE FROM contatos")
-                        for c in data.get("contatos", []):
-                            cursor.execute("""
-                                INSERT INTO contatos (id, nome, email, telefone, assunto, mensagem, data_envio, lido)
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                            """, (c["id"], c["nome"], c["email"], c.get("telefone", ""), c.get("assunto", ""), c["mensagem"], c["data_envio"], c.get("lido", 0)))
-                    if "voluntarios" in data:
-                        cursor.execute("DELETE FROM voluntarios")
-                        for v in data.get("voluntarios", []):
-                            cursor.execute("""
-                                INSERT INTO voluntarios (id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status)
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                            """, (v["id"], v["nome"], v["email"], v["whatsapp"], v["area_interesse"], v.get("disponibilidade", ""), v.get("experiencia", ""), v["data_envio"], v.get("status", "Pendente")))
-                    conn.commit()
-                    conn.close()
+                    with get_db() as conn:
+                        cursor = conn.cursor()
+                        if "contatos" in data:
+                            cursor.execute("DELETE FROM contatos")
+                            for c in data.get("contatos", []):
+                                cursor.execute("""
+                                    INSERT INTO contatos (id, nome, email, telefone, assunto, mensagem, data_envio, lido)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                                """, (c["id"], c["nome"], c["email"], c.get("telefone", ""), c.get("assunto", ""), c["mensagem"], c["data_envio"], c.get("lido", 0)))
+                        if "voluntarios" in data:
+                            cursor.execute("DELETE FROM voluntarios")
+                            for v in data.get("voluntarios", []):
+                                cursor.execute("""
+                                    INSERT INTO voluntarios (id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                """, (v["id"], v["nome"], v["email"], v["whatsapp"], v["area_interesse"], v.get("disponibilidade", ""), v.get("experiencia", ""), v["data_envio"], v.get("status", "Pendente")))
+                        conn.commit()
     except Exception as e:
         print(f"[AVISO] Falha ao sincronizar ativos da nuvem: {e}")
 
@@ -470,22 +504,21 @@ def sincronizar_banco_nuvem():
                 raw_h = res_h.read().decode('utf-8').strip()
                 if raw_h:
                     data_h = json.loads(raw_h)
-                    conn = get_db_connection()
-                    cursor = conn.cursor()
-                    if "historico_contatos" in data_h:
-                        for c in data_h.get("historico_contatos", []):
-                            cursor.execute("""
-                                INSERT OR REPLACE INTO historico_contatos (id, original_id, nome, email, telefone, assunto, mensagem, data_envio, status_admin, apagado_em)
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                            """, (c.get("id"), c.get("original_id"), c["nome"], c["email"], c.get("telefone", ""), c.get("assunto", ""), c["mensagem"], c["data_envio"], c.get("status_admin", "Ativo"), c.get("apagado_em")))
-                    if "historico_voluntarios" in data_h:
-                        for v in data_h.get("historico_voluntarios", []):
-                            cursor.execute("""
-                                INSERT OR REPLACE INTO historico_voluntarios (id, original_id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status, status_admin, apagado_em)
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                            """, (v.get("id"), v.get("original_id"), v["nome"], v["email"], v["whatsapp"], v["area_interesse"], v.get("disponibilidade", ""), v.get("experiencia", ""), v["data_envio"], v.get("status", "Pendente"), v.get("status_admin", "Ativo"), v.get("apagado_em")))
-                    conn.commit()
-                    conn.close()
+                    with get_db() as conn:
+                        cursor = conn.cursor()
+                        if "historico_contatos" in data_h:
+                            for c in data_h.get("historico_contatos", []):
+                                cursor.execute("""
+                                    INSERT OR REPLACE INTO historico_contatos (id, original_id, nome, email, telefone, assunto, mensagem, data_envio, status_admin, apagado_em)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                """, (c.get("id"), c.get("original_id"), c["nome"], c["email"], c.get("telefone", ""), c.get("assunto", ""), c["mensagem"], c["data_envio"], c.get("status_admin", "Ativo"), c.get("apagado_em")))
+                        if "historico_voluntarios" in data_h:
+                            for v in data_h.get("historico_voluntarios", []):
+                                cursor.execute("""
+                                    INSERT OR REPLACE INTO historico_voluntarios (id, original_id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status, status_admin, apagado_em)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                                """, (v.get("id"), v.get("original_id"), v["nome"], v["email"], v["whatsapp"], v["area_interesse"], v.get("disponibilidade", ""), v.get("experiencia", ""), v["data_envio"], v.get("status", "Pendente"), v.get("status_admin", "Ativo"), v.get("apagado_em")))
+                        conn.commit()
                     print("[PERSISTÊNCIA] Histórico permanente completo restaurado da nuvem com sucesso!")
     except Exception as e:
         print(f"[AVISO] Falha ao sincronizar histórico da nuvem: {e}")
@@ -965,13 +998,12 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 self.send_json({"sucesso": False, "erro": "Acesso não autorizado. Faça login como administrador."}, 401)
                 return
             try:
-                conn = get_db_connection()
-                cursor = conn.cursor()
-                cursor.execute("SELECT COUNT(*) FROM contatos")
-                total_contatos = cursor.fetchone()[0]
-                cursor.execute("SELECT COUNT(*) FROM voluntarios")
-                total_voluntarios = cursor.fetchone()[0]
-                conn.close()
+                with get_db() as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT COUNT(*) FROM contatos")
+                    total_contatos = cursor.fetchone()[0]
+                    cursor.execute("SELECT COUNT(*) FROM voluntarios")
+                    total_voluntarios = cursor.fetchone()[0]
                 self.send_json({
                     "sucesso": True,
                     "total_contatos": total_contatos,
@@ -986,12 +1018,11 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 self.send_json({"sucesso": False, "erro": "Acesso não autorizado. Faça login como administrador."}, 401)
                 return
             try:
-                conn = get_db_connection()
-                conn.row_factory = sqlite3.Row
-                cursor = conn.cursor()
-                cursor.execute("SELECT * FROM contatos ORDER BY id DESC LIMIT 100")
-                rows = [dict(r) for r in cursor.fetchall()]
-                conn.close()
+                with get_db() as conn:
+                    conn.row_factory = sqlite3.Row
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT * FROM contatos ORDER BY id DESC LIMIT 100")
+                    rows = [dict(r) for r in cursor.fetchall()]
                 self.send_json(rows)
             except Exception as e:
                 self.send_json({"erro": str(e)}, 500)
@@ -1002,12 +1033,11 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 self.send_json({"sucesso": False, "erro": "Acesso não autorizado. Faça login como administrador."}, 401)
                 return
             try:
-                conn = get_db_connection()
-                conn.row_factory = sqlite3.Row
-                cursor = conn.cursor()
-                cursor.execute("SELECT * FROM voluntarios ORDER BY id DESC LIMIT 100")
-                rows = [dict(r) for r in cursor.fetchall()]
-                conn.close()
+                with get_db() as conn:
+                    conn.row_factory = sqlite3.Row
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT * FROM voluntarios ORDER BY id DESC LIMIT 100")
+                    rows = [dict(r) for r in cursor.fetchall()]
                 self.send_json(rows)
             except Exception as e:
                 self.send_json({"erro": str(e)}, 500)
@@ -1018,13 +1048,12 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 self.send_json({"sucesso": False, "erro": "Acesso não autorizado."}, 401)
                 return
             try:
-                conn = get_db_connection()
-                cursor = conn.cursor()
-                cursor.execute("SELECT COUNT(*) FROM contatos")
-                n_contatos = cursor.fetchone()[0]
-                cursor.execute("SELECT COUNT(*) FROM voluntarios")
-                n_voluntarios = cursor.fetchone()[0]
-                conn.close()
+                with get_db() as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT COUNT(*) FROM contatos")
+                    n_contatos = cursor.fetchone()[0]
+                    cursor.execute("SELECT COUNT(*) FROM voluntarios")
+                    n_voluntarios = cursor.fetchone()[0]
                 tamanho_kb = round(os.path.getsize(DB_FILE) / 1024, 1) if os.path.exists(DB_FILE) else 0
                 self.send_json({
                     "sucesso": True,
@@ -1044,14 +1073,13 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 self.send_json({"sucesso": False, "erro": "Acesso não autorizado."}, 401)
                 return
             try:
-                conn = get_db_connection()
-                conn.row_factory = sqlite3.Row
-                cursor = conn.cursor()
-                cursor.execute("SELECT * FROM historico_contatos ORDER BY id DESC")
-                h_contatos = [dict(r) for r in cursor.fetchall()]
-                cursor.execute("SELECT * FROM historico_voluntarios ORDER BY id DESC")
-                h_voluntarios = [dict(r) for r in cursor.fetchall()]
-                conn.close()
+                with get_db() as conn:
+                    conn.row_factory = sqlite3.Row
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT * FROM historico_contatos ORDER BY id DESC")
+                    h_contatos = [dict(r) for r in cursor.fetchall()]
+                    cursor.execute("SELECT * FROM historico_voluntarios ORDER BY id DESC")
+                    h_voluntarios = [dict(r) for r in cursor.fetchall()]
                 self.send_json({
                     "sucesso": True,
                     "total_contatos": len(h_contatos),
@@ -1074,31 +1102,30 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                     self.send_json({"sucesso": False, "erro": "ID inválido."}, 400)
                     return
 
-                conn = get_db_connection()
-                cursor = conn.cursor()
+                with get_db() as conn:
+                    cursor = conn.cursor()
 
-                if tipo == 'contato':
-                    cursor.execute("SELECT original_id, nome, email, telefone, assunto, mensagem, data_envio FROM historico_contatos WHERE id = ?", (item_id,))
-                    row = cursor.fetchone()
-                    if row:
-                        cursor.execute("""
-                            INSERT INTO contatos (nome, email, telefone, assunto, mensagem, data_envio, lido)
-                            VALUES (?, ?, ?, ?, ?, ?, 0)
-                        """, (row[1], row[2], row[3], row[4], row[5], row[6]))
-                        cursor.execute("UPDATE historico_contatos SET status_admin = 'Ativo', apagado_em = NULL WHERE id = ?", (item_id,))
-                else:
-                    cursor.execute("SELECT original_id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status FROM historico_voluntarios WHERE id = ?", (item_id,))
-                    row = cursor.fetchone()
-                    if row:
-                        cursor.execute("""
-                            INSERT INTO voluntarios (nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                        """, (row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8]))
-                        cursor.execute("UPDATE historico_voluntarios SET status_admin = 'Ativo', apagado_em = NULL WHERE id = ?", (item_id,))
+                    if tipo == 'contato':
+                        cursor.execute("SELECT original_id, nome, email, telefone, assunto, mensagem, data_envio FROM historico_contatos WHERE id = ?", (item_id,))
+                        row = cursor.fetchone()
+                        if row:
+                            cursor.execute("""
+                                INSERT INTO contatos (nome, email, telefone, assunto, mensagem, data_envio, lido)
+                                VALUES (?, ?, ?, ?, ?, ?, 0)
+                            """, (row[1], row[2], row[3], row[4], row[5], row[6]))
+                            cursor.execute("UPDATE historico_contatos SET status_admin = 'Ativo', apagado_em = NULL WHERE id = ?", (item_id,))
+                    else:
+                        cursor.execute("SELECT original_id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status FROM historico_voluntarios WHERE id = ?", (item_id,))
+                        row = cursor.fetchone()
+                        if row:
+                            cursor.execute("""
+                                INSERT INTO voluntarios (nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                            """, (row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8]))
+                            cursor.execute("UPDATE historico_voluntarios SET status_admin = 'Ativo', apagado_em = NULL WHERE id = ?", (item_id,))
 
-                conn.commit()
-                conn.close()
-                salvar_banco_nuvem()
+                    conn.commit()
+                disparar_salvar_banco_nuvem_async()
                 self.send_json({"sucesso": True, "mensagem": "Item restaurado com sucesso para a caixa de entrada ativa!"})
             except Exception as e:
                 self.send_json({"sucesso": False, "erro": str(e)}, 500)
@@ -1109,18 +1136,17 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 self.send_json({"sucesso": False, "erro": "Acesso não autorizado."}, 401)
                 return
             try:
-                conn = get_db_connection()
-                conn.row_factory = sqlite3.Row
-                cursor = conn.cursor()
-                cursor.execute("SELECT * FROM contatos ORDER BY id ASC")
-                contatos = [dict(r) for r in cursor.fetchall()]
-                cursor.execute("SELECT * FROM voluntarios ORDER BY id ASC")
-                voluntarios = [dict(r) for r in cursor.fetchall()]
-                cursor.execute("SELECT * FROM historico_contatos ORDER BY id ASC")
-                h_contatos = [dict(r) for r in cursor.fetchall()]
-                cursor.execute("SELECT * FROM historico_voluntarios ORDER BY id ASC")
-                h_voluntarios = [dict(r) for r in cursor.fetchall()]
-                conn.close()
+                with get_db() as conn:
+                    conn.row_factory = sqlite3.Row
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT * FROM contatos ORDER BY id ASC")
+                    contatos = [dict(r) for r in cursor.fetchall()]
+                    cursor.execute("SELECT * FROM voluntarios ORDER BY id ASC")
+                    voluntarios = [dict(r) for r in cursor.fetchall()]
+                    cursor.execute("SELECT * FROM historico_contatos ORDER BY id ASC")
+                    h_contatos = [dict(r) for r in cursor.fetchall()]
+                    cursor.execute("SELECT * FROM historico_voluntarios ORDER BY id ASC")
+                    h_voluntarios = [dict(r) for r in cursor.fetchall()]
 
                 export_data = {
                     "sistema": "Instituto Sementes do Amanhã - Exportação Oficial do Banco de Dados",
@@ -1158,23 +1184,22 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 query_params = parse_qs(parsed.query)
                 periodo_solicitado = query_params.get('periodo', [''])[0].strip()
 
-                conn = get_db_connection()
-                conn.row_factory = sqlite3.Row
-                cursor = conn.cursor()
-                # Lê dados do HISTÓRICO PERMANENTE PERPÉTUO (mesmo que tenham sido apagados do painel)
-                cursor.execute("SELECT * FROM historico_contatos ORDER BY id DESC")
-                todos_contatos = [dict(r) for r in cursor.fetchall()]
-                cursor.execute("SELECT * FROM historico_voluntarios ORDER BY id DESC")
-                todos_voluntarios = [dict(r) for r in cursor.fetchall()]
-
-                # Fallback de segurança se historico estiver vazio
-                if not todos_contatos:
-                    cursor.execute("SELECT * FROM contatos ORDER BY id DESC")
+                with get_db() as conn:
+                    conn.row_factory = sqlite3.Row
+                    cursor = conn.cursor()
+                    # Lê dados do HISTÓRICO PERMANENTE PERPÉTUO (mesmo que tenham sido apagados do painel)
+                    cursor.execute("SELECT * FROM historico_contatos ORDER BY id DESC")
                     todos_contatos = [dict(r) for r in cursor.fetchall()]
-                if not todos_voluntarios:
-                    cursor.execute("SELECT * FROM voluntarios ORDER BY id DESC")
+                    cursor.execute("SELECT * FROM historico_voluntarios ORDER BY id DESC")
                     todos_voluntarios = [dict(r) for r in cursor.fetchall()]
-                conn.close()
+
+                    # Fallback de segurança se historico estiver vazio
+                    if not todos_contatos:
+                        cursor.execute("SELECT * FROM contatos ORDER BY id DESC")
+                        todos_contatos = [dict(r) for r in cursor.fetchall()]
+                    if not todos_voluntarios:
+                        cursor.execute("SELECT * FROM voluntarios ORDER BY id DESC")
+                        todos_voluntarios = [dict(r) for r in cursor.fetchall()]
 
                 def extrair_ano_mes(d_str):
                     if not d_str:
@@ -1387,11 +1412,10 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 self.send_json({"sucesso": False, "erro": "Informe o usuário e a senha."}, 400)
                 return
 
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute("SELECT username, password_hash, salt FROM usuarios_admin WHERE LOWER(username) = LOWER(?)", (username,))
-            row = cursor.fetchone()
-            conn.close()
+            with get_db() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT username, password_hash, salt FROM usuarios_admin WHERE LOWER(username) = LOWER(?)", (username,))
+                row = cursor.fetchone()
 
             if not row or not verify_password(password, row[1], row[2]):
                 self.send_json({"sucesso": False, "erro": "Usuário ou senha incorretos."}, 401)
@@ -1502,22 +1526,23 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
 
             try:
                 data_envio = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-                conn = get_db_connection()
-                cursor = conn.cursor()
-                cursor.execute("""
-                    INSERT INTO contatos (nome, email, telefone, assunto, mensagem, data_envio)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """, (nome, email, telefone_formatado, assunto, mensagem, data_envio))
-                novo_id = cursor.lastrowid
+                with get_db() as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        INSERT INTO contatos (nome, email, telefone, assunto, mensagem, data_envio)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    """, (nome, email, telefone_formatado, assunto, mensagem, data_envio))
+                    novo_id = cursor.lastrowid
 
-                # Salva também no HISTÓRICO PERMANENTE PERPÉTUO (nunca se perde)
-                cursor.execute("""
-                    INSERT OR IGNORE INTO historico_contatos (original_id, nome, email, telefone, assunto, mensagem, data_envio, status_admin)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, 'Ativo')
-                """, (novo_id, nome, email, telefone_formatado, assunto, mensagem, data_envio))
-                conn.commit()
-                conn.close()
-                salvar_banco_nuvem()
+                    # Salva também no HISTÓRICO PERMANENTE PERPÉTUO (nunca se perde)
+                    cursor.execute("""
+                        INSERT OR IGNORE INTO historico_contatos (original_id, nome, email, telefone, assunto, mensagem, data_envio, status_admin)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, 'Ativo')
+                    """, (novo_id, nome, email, telefone_formatado, assunto, mensagem, data_envio))
+                    conn.commit()
+
+                # Sincroniza em background sem prender a conexão ou bloquear a resposta do formulário
+                disparar_salvar_banco_nuvem_async()
 
                 self.send_json({
                     "sucesso": True,
@@ -1596,22 +1621,23 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
 
             try:
                 data_envio = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-                conn = get_db_connection()
-                cursor = conn.cursor()
-                cursor.execute("""
-                    INSERT INTO voluntarios (nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, (nome, email, whatsapp_formatado, area_interesse, disponibilidade, experiencia, data_envio))
-                novo_v_id = cursor.lastrowid
+                with get_db() as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        INSERT INTO voluntarios (nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, (nome, email, whatsapp_formatado, area_interesse, disponibilidade, experiencia, data_envio))
+                    novo_v_id = cursor.lastrowid
 
-                # Salva também no HISTÓRICO PERMANENTE PERPÉTUO (nunca se perde)
-                cursor.execute("""
-                    INSERT OR IGNORE INTO historico_voluntarios (original_id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status, status_admin)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, 'Pendente', 'Ativo')
-                """, (novo_v_id, nome, email, whatsapp_formatado, area_interesse, disponibilidade, experiencia, data_envio))
-                conn.commit()
-                conn.close()
-                salvar_banco_nuvem()
+                    # Salva também no HISTÓRICO PERMANENTE PERPÉTUO (nunca se perde)
+                    cursor.execute("""
+                        INSERT OR IGNORE INTO historico_voluntarios (original_id, nome, email, whatsapp, area_interesse, disponibilidade, experiencia, data_envio, status, status_admin)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pendente', 'Ativo')
+                    """, (novo_v_id, nome, email, whatsapp_formatado, area_interesse, disponibilidade, experiencia, data_envio))
+                    conn.commit()
+
+                # Sincroniza em background sem prender a conexão ou bloquear a resposta do formulário
+                disparar_salvar_banco_nuvem_async()
 
                 self.send_json({
                     "sucesso": True,
@@ -1631,32 +1657,31 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 return
             try:
                 vol_id = int(vol_id)
-                conn = get_db_connection()
-                cursor = conn.cursor()
-                cursor.execute("SELECT id, nome, email, data_envio FROM voluntarios WHERE id = ?", (vol_id,))
-                v_row = cursor.fetchone()
-                
-                # Remove da lista ativa da caixa de entrada
-                cursor.execute("DELETE FROM voluntarios WHERE id = ?", (vol_id,))
+                with get_db() as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT id, nome, email, data_envio FROM voluntarios WHERE id = ?", (vol_id,))
+                    v_row = cursor.fetchone()
+                    
+                    # Remove da lista ativa da caixa de entrada
+                    cursor.execute("DELETE FROM voluntarios WHERE id = ?", (vol_id,))
 
-                # NO HISTÓRICO PERMANENTE NA NUVEM: NUNCA APAGA! Marca como arquivado
-                data_exclusao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-                if v_row:
-                    cursor.execute("""
-                        UPDATE historico_voluntarios 
-                        SET status_admin = 'Arquivado do Painel', apagado_em = ?
-                        WHERE original_id = ? OR (nome = ? AND email = ? AND data_envio = ?)
-                    """, (data_exclusao, vol_id, v_row[1], v_row[2], v_row[3]))
-                else:
-                    cursor.execute("""
-                        UPDATE historico_voluntarios 
-                        SET status_admin = 'Arquivado do Painel', apagado_em = ?
-                        WHERE original_id = ?
-                    """, (data_exclusao, vol_id))
+                    # NO HISTÓRICO PERMANENTE NA NUVEM: NUNCA APAGA! Marca como arquivado
+                    data_exclusao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                    if v_row:
+                        cursor.execute("""
+                            UPDATE historico_voluntarios 
+                            SET status_admin = 'Arquivado do Painel', apagado_em = ?
+                            WHERE original_id = ? OR (nome = ? AND email = ? AND data_envio = ?)
+                        """, (data_exclusao, vol_id, v_row[1], v_row[2], v_row[3]))
+                    else:
+                        cursor.execute("""
+                            UPDATE historico_voluntarios 
+                            SET status_admin = 'Arquivado do Painel', apagado_em = ?
+                            WHERE original_id = ?
+                        """, (data_exclusao, vol_id))
 
-                conn.commit()
-                conn.close()
-                salvar_banco_nuvem()
+                    conn.commit()
+                disparar_salvar_banco_nuvem_async()
                 self.send_json({
                     "sucesso": True, 
                     "mensagem": "Inscrição removida da caixa de entrada. O registro histórico permanece salvo com segurança na nuvem!"
@@ -1675,32 +1700,31 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 return
             try:
                 contato_id = int(contato_id)
-                conn = get_db_connection()
-                cursor = conn.cursor()
-                cursor.execute("SELECT id, nome, email, data_envio FROM contatos WHERE id = ?", (contato_id,))
-                c_row = cursor.fetchone()
+                with get_db() as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT id, nome, email, data_envio FROM contatos WHERE id = ?", (contato_id,))
+                    c_row = cursor.fetchone()
 
-                # Remove da lista ativa da caixa de entrada
-                cursor.execute("DELETE FROM contatos WHERE id = ?", (contato_id,))
+                    # Remove da lista ativa da caixa de entrada
+                    cursor.execute("DELETE FROM contatos WHERE id = ?", (contato_id,))
 
-                # NO HISTÓRICO PERMANENTE NA NUVEM: NUNCA APAGA! Marca como arquivado
-                data_exclusao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-                if c_row:
-                    cursor.execute("""
-                        UPDATE historico_contatos 
-                        SET status_admin = 'Arquivado do Painel', apagado_em = ?
-                        WHERE original_id = ? OR (nome = ? AND email = ? AND data_envio = ?)
-                    """, (data_exclusao, contato_id, c_row[1], c_row[2], c_row[3]))
-                else:
-                    cursor.execute("""
-                        UPDATE historico_contatos 
-                        SET status_admin = 'Arquivado do Painel', apagado_em = ?
-                        WHERE original_id = ?
-                    """, (data_exclusao, contato_id))
+                    # NO HISTÓRICO PERMANENTE NA NUVEM: NUNCA APAGA! Marca como arquivado
+                    data_exclusao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                    if c_row:
+                        cursor.execute("""
+                            UPDATE historico_contatos 
+                            SET status_admin = 'Arquivado do Painel', apagado_em = ?
+                            WHERE original_id = ? OR (nome = ? AND email = ? AND data_envio = ?)
+                        """, (data_exclusao, contato_id, c_row[1], c_row[2], c_row[3]))
+                    else:
+                        cursor.execute("""
+                            UPDATE historico_contatos 
+                            SET status_admin = 'Arquivado do Painel', apagado_em = ?
+                            WHERE original_id = ?
+                        """, (data_exclusao, contato_id))
 
-                conn.commit()
-                conn.close()
-                salvar_banco_nuvem()
+                    conn.commit()
+                disparar_salvar_banco_nuvem_async()
                 self.send_json({
                     "sucesso": True, 
                     "mensagem": "Mensagem removida da caixa de entrada. O registro histórico permanece salvo com segurança na nuvem!"
@@ -1878,7 +1902,7 @@ def run_server(port=8000):
         pass
 
     server_address = ('', port)
-    httpd = HTTPServer(server_address, ONGRequestHandler)
+    httpd = ThreadingHTTPServer(server_address, ONGRequestHandler)
 
     local_ip = "localhost"
     try:
