@@ -1,408 +1,418 @@
 {
   "meta": {
-    "titulo_site": "Instituto Sementes do Amanhã | Transformando Vidas através da Educação",
-    "descricao": "Organização da Sociedade Civil dedicada ao reforço escolar, oficinas culturais, esporte e apoio comunitário.",
-    "tema_cor_principal": "#10B981"
+    "titulo_site": "SPA GLOW PARTY | Beleza que Acolhe, Autoestima que Transforma e Oportunidades que Mudam Vidas",
+    "descricao": "O Spa Glow Party é um projeto de transformação social idealizado por Rayane Gomes, unindo acolhimento, beleza, capacitação profissional gratuita e a força do Esquadrão Rosa.",
+    "tema_cor_principal": "#EC4899"
   },
   "instituicao": {
-    "nome": "instituto",
-    "sigla": "ISA",
-    "slogan": "Educação, acolhimento e oportunidades para transformar realidades",
-    "ano_fundacao": "2018",
-    "cnpj": "12.345.678/0001-90",
-    "registro_osc": "OSC Registrada sob nº 4589/SP",
-    "utilidade_publica": "Declaração de Utilidade Pública Municipal Lei nº 5.821/2021"
+    "nome": "Spa Glow Party",
+    "sigla": "SGP",
+    "slogan": "Beleza que acolhe, autoestima que transforma e oportunidades que mudam vidas.",
+    "ano_fundacao": "2024",
+    "cnpj": "Iniciativa Rayane Gomes & Instituto Rainhas da Favela",
+    "registro_osc": "Uberaba / MG — Projeto de Transformação Social através da Beleza",
+    "utilidade_publica": "Desenvolvimento Humano, Inclusão Social e Capacitação Profissional Gratuita"
   },
   "hero": {
-    "badge": "🌱 Educação e Futuro para Crianças",
-    "titulo_destaque": "Educação, acolhimento e futuro para crianças da comunidade.",
-    "subtitulo": "Apoio pedagógico, alimentação saudável e oficinas gratuitas no contraturno escolar para mais de 450 crianças e suas famílias.",
-    "foto_url": "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=1200&auto=format&fit=crop",
-    "foto_legenda": "Oficina de leitura e contação de histórias com nossos educandos",
+    "badge": "✨ Transformação Social, Autoestima e Oportunidades",
+    "titulo_destaque": "Beleza que acolhe, autoestima que transforma e oportunidades que mudam vidas.",
+    "subtitulo": "Muito mais do que um evento de beleza: uma experiência de acolhimento, valorização humana e capacitação profissional gratuita para pessoas em situação de vulnerabilidade.",
+    "foto_url": "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=1200&auto=format&fit=crop",
+    "foto_legenda": "Oficinas de formação profissional gratuita e acolhimento humano do Spa Glow Party",
     "video_url": "",
     "campanha_urgente": {
-      "ativa": false,
-      "titulo": "Campanha Volta às Aulas 2026",
-      "texto": "Meta de 300 kits escolares completos para o início do semestre letivo. Participe com qualquer valor!",
+      "ativa": true,
+      "titulo": "Nova Turma de Formação em Maquiagem Gratuita",
+      "texto": "Apoie a capacitação de novas profissionais da beleza para geração de renda, dignidade e independência. Junte-se ao Esquadrão Rosa!",
       "link_acao": "#como-ajudar"
     },
     "botoes": {
-      "doar": "Doe pelo PIX",
-      "voluntario": "Seja Voluntário",
-      "contato": "Contato"
+      "doar": "Apoie o Projeto",
+      "voluntario": "Seja Voluntária (Esquadrão Rosa)",
+      "contato": "Fale Conosco"
     }
   },
   "quem_somos": {
-    "titulo": "Quem Somos",
-    "subtitulo": "Conheça nosso compromisso em acolher e educar crianças para um futuro com mais oportunidades.",
-    "historia": "O Instituto Sementes do Amanhã nasceu da união de educadores voluntários para acolher crianças no contraturno escolar. O que começou com aulas de reforço e cadernos doados hoje é um polo comunitário com biblioteca, oficinas pedagógicas e alimentação saudável diária para centenas de famílias.",
-    "missao": "Oferecer educação complementar, alimentação de qualidade e acolhimento socioemocional a crianças em vulnerabilidade, fortalecendo sua autonomia.",
-    "visao": "Ser referência comunitária em transformação social até 2030, erradicando a evasão escolar na nossa região.",
+    "titulo": "O que é o Spa Glow Party?",
+    "subtitulo": "Conheça nosso propósito, a idealizadora Rayane Gomes e a força coletiva do Esquadrão Rosa.",
+    "historia": "O Spa Glow Party é um projeto de transformação social idealizado por Rayane Gomes, maquiadora profissional, palestrante e fundadora do Instituto Rainhas da Favela. Muito mais do que um evento de beleza, o Spa Glow Party é uma experiência de acolhimento, valorização humana, capacitação profissional e resgate da autoestima. O projeto nasceu da convicção de que a beleza pode ser uma poderosa ferramenta de transformação social, especialmente quando associada à educação, à solidariedade e à geração de oportunidades. Nosso propósito é alcançar pessoas que muitas vezes não têm acesso a cuidados pessoais, formação profissional ou espaços onde possam se sentir valorizadas, respeitadas e acolhidas. Não transformamos apenas aparências: ajudamos pessoas a redescobrirem seu valor, sua força e sua capacidade de recomeçar.",
+    "missao": "Promover autoestima, inclusão social, desenvolvimento pessoal e capacitação profissional por meio da beleza, da educação e do acolhimento, criando oportunidades para pessoas em situação de vulnerabilidade.",
+    "visao": "Nosso sonho não tem fronteiras: queremos levar o Spa Glow Party a diferentes bairros, cidades, estados e países, conectando pessoas e construindo uma rede de acolhimento, conhecimento e oportunidades cada vez mais longe.",
     "valores": [
       {
-        "titulo": "Empatia e Amor",
-        "descricao": "Acolhemos cada indivíduo com escuta atenta, respeito e afeto genuíno."
+        "titulo": "Beleza que Acolhe",
+        "descricao": "Cada atendimento é uma oportunidade de proporcionar carinho, atenção genuína, respeito às histórias individuais e valorização pessoal."
       },
       {
-        "titulo": "Transparência Radical",
-        "descricao": "Cada centavo arrecadado e cada projeto realizado é aberto e prestado publicamente."
+        "titulo": "Capacitação Emancipatória",
+        "descricao": "Acreditamos que ensinar uma profissão é oferecer ferramentas concretas para construir independência financeira, dignidade e novas perspectivas de futuro."
       },
       {
-        "titulo": "Educação Emancipatória",
-        "descricao": "Acreditamos no conhecimento crítico como instrumento de liberdade e futuro."
+        "titulo": "Solidariedade em Ação",
+        "descricao": "Por meio de iniciativas como o Varal Solidário e campanhas de arrecadação, mobilizamos recursos e doações para quem mais precisa."
       },
       {
-        "titulo": "Sustentabilidade Comunitária",
-        "descricao": "Desenvolvemos soluções em parceria com os moradores, respeitando saberes locais."
+        "titulo": "Força Coletiva do Esquadrão Rosa",
+        "descricao": "O projeto tem uma idealizadora, mas sua realização é uma conquista coletiva feita pelo amor, energia e dedicação das voluntárias."
       }
     ],
     "equipe": [
       {
-        "nome": "Carlos Eduardo Ribeiro",
-        "cargo": "Coordenador de Projetos e Esporte",
-        "foto": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop",
-        "bio": "Educador físico e ex-atleta social, coordena os polos esportivos e o programa de artes marciais."
+        "nome": "Rayane Gomes",
+        "cargo": "Idealizadora & Fundadora",
+        "foto": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400&auto=format&fit=crop",
+        "bio": "Maquiadora profissional, palestrante e fundadora do Instituto Rainhas da Favela, dedica sua trajetória a inspirar pessoas e transformar vidas através da beleza e da capacitação."
       },
       {
-        "nome": "Camila Guimarães",
-        "cargo": "Assistente Social & Relações Comunitárias",
-        "foto": "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=400&auto=format&fit=crop",
-        "bio": "Mestre em Políticas Públicas, responsável pelo acolhimento familiar e triagem de vulnerabilidade."
+        "nome": "Esquadrão Rosa",
+        "cargo": "Coração Pulsante do Projeto",
+        "foto": "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=400&auto=format&fit=crop",
+        "bio": "Voluntárias que dedicam tempo, talento, energia e amor para organizar, mobilizar, acolher, divulgar e executar cada ação e oficina do projeto."
       },
       {
-        "nome": "Rodrigo Mendes",
-        "cargo": "Gestor Financeiro e Parcerias",
-        "foto": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&auto=format&fit=crop",
-        "bio": "Administrador de empresas e voluntário executivo, responsável pela prestação de contas e editais."
+        "nome": "Instituto Rainhas da Favela",
+        "cargo": "Articulação Social & Apoio Comunitário",
+        "foto": "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?q=80&w=400&auto=format&fit=crop",
+        "bio": "Movimento comunitário parceiro que fortalece as ações de inclusão, ampliando oportunidades para mulheres e famílias em situação de vulnerabilidade."
       }
     ]
   },
   "o_que_fazemos": {
-    "titulo": "O Que Fazemos",
-    "subtitulo": "Projetos práticos no contraturno escolar que desenvolvem o aprendizado e a cidadania.",
-    "publico_alvo": "Crianças e adolescentes de 6 a 17 anos da rede pública, com suporte contínuo para suas famílias.",
-    "regiao_atuacao": "Comunidade Jardim Esperança e bairros adjacentes (Zona Leste), com 3 polos de atendimento.",
+    "titulo": "Como Funciona o Projeto?",
+    "subtitulo": "Reunimos profissionais da beleza, voluntários e empresas parceiras em ações de cuidado, aprendizado e fortalecimento pessoal.",
+    "publico_alvo": "Mulheres, adolescentes, jovens e famílias em situação de vulnerabilidade social, com acolhimento caloroso e respeito à diversidade.",
+    "regiao_atuacao": "Com trajetória consolidada em Uberaba (MG) — incluindo turmas formadas com a Casa de Sopa Adolfo Fritz — e expansão para novas comunidades.",
     "projetos": [
       {
-        "id": "reforco-escolar",
-        "titulo": "Reforço Escolar e Alfabetização",
-        "categoria": "Educação",
-        "faixa_etaria": "6 a 14 anos",
-        "horario": "Contraturno escolar (manhã e tarde)",
-        "foto": "/assets/img/Sociedade_Esportiva_Palmeiras_logo__1_red_star__svg_20261011_192029.webp",
-        "descricao": "Acompanhamento pedagógico individualizado em Português e Matemática, alfabetização lúdica e oficina de incentivo à leitura com acervo de livros infantojuvenis.",
-        "icone": "book-open"
+        "id": "beleza-autoestima",
+        "titulo": "Beleza e Autoestima",
+        "categoria": "Autocuidado & Dignidade",
+        "faixa_etaria": "Todas as idades",
+        "horario": "Mutirões e encontros comunitários",
+        "foto": "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=600&auto=format&fit=crop",
+        "descricao": "Atividades de autocuidado, como maquiagem, cuidados com cabelos, design de sobrancelhas e outros serviços realizados por profissionais e voluntárias. Cada atendimento é uma oportunidade de proporcionar acolhimento e valorização pessoal.",
+        "icone": "sparkles"
       },
       {
-        "id": "nutricao-solidaria",
-        "titulo": "Cozinha Comunitária e Nutrição",
-        "categoria": "Acolhimento",
-        "faixa_etaria": "Todas as famílias",
-        "horario": "Diário (refeições balanceadas)",
-        "foto": "https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=600&auto=format&fit=crop",
-        "descricao": "Refeições quentes e balanceadas servidas diariamente para todos os atendidos, além de distribuição mensal de cestas de alimentos orgânicos para as famílias.",
-        "icone": "utensils"
+        "id": "capacitacao-profissional",
+        "titulo": "Capacitação Profissional Gratuita",
+        "categoria": "Formação & Renda",
+        "faixa_etaria": "Jovens e adultas",
+        "horario": "Cursos regulares e oficinas práticas",
+        "foto": "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=600&auto=format&fit=crop",
+        "descricao": "Formação de novas profissionais da área da beleza. Por meio de cursos e oficinas gratuitas, incentivamos o empreendedorismo e a inserção no mercado de trabalho, com histórico de turmas de 30 alunos formados em parceria com a Casa de Sopa Adolfo Fritz.",
+        "icone": "award"
       },
       {
-        "id": "jovem-futuro",
-        "titulo": "Inclusão Digital e Primeiro Emprego",
-        "categoria": "Juventude",
-        "faixa_etaria": "14 a 18 anos",
-        "horario": "Sábados intensivos",
-        "foto": "https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=600&auto=format&fit=crop",
-        "descricao": "Aulas de informática prática, programação básica, elaboração de currículos, postura profissional e mentoria para processos seletivos de Jovem Aprendiz.",
-        "icone": "laptop"
+        "id": "acolhimento-desenvolvimento",
+        "titulo": "Acolhimento e Desenvolvimento Humano",
+        "categoria": "Empoderamento",
+        "faixa_etaria": "Comunidade em geral",
+        "horario": "Palestras e rodas de escuta",
+        "foto": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=600&auto=format&fit=crop",
+        "descricao": "Palestras motivacionais, rodas de conversa, dinâmicas de valorização pessoal e encontros inspiradores que fortalecem a autoconfiança e incentivam os participantes a acreditarem nos seus próprios sonhos.",
+        "icone": "heart-handshake"
+      },
+      {
+        "id": "cultura-integracao",
+        "titulo": "Cultura, Alegria e Integração",
+        "categoria": "Celebração Comunitária",
+        "faixa_etaria": "Toda a família",
+        "horario": "Eventos e celebrações",
+        "foto": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=600&auto=format&fit=crop",
+        "descricao": "Nossos eventos reúnem música, dança, apresentações artísticas e momentos de festa e integração, proporcionando vivências memoráveis e fortalecendo os laços comunitários.",
+        "icone": "music"
+      },
+      {
+        "id": "solidariedade-varal",
+        "titulo": "Solidariedade em Ação & Varal Solidário",
+        "categoria": "Apoio Social",
+        "faixa_etaria": "Famílias atendidas",
+        "horario": "Campanhas contínuas",
+        "foto": "https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?q=80&w=600&auto=format&fit=crop",
+        "descricao": "Mobilização de doações, roupas, agasalhos e produtos de beleza e higiene por meio do Varal Solidário e campanhas de arrecadação para apoiar famílias em vulnerabilidade.",
+        "icone": "gift"
       }
     ]
   },
   "impacto": {
-    "titulo": "Nosso Impacto em Números",
-    "subtitulo": "Resultados transparentes e vidas transformadas através da educação e do acolhimento.",
+    "titulo": "Nosso Impacto Social",
+    "subtitulo": "A transformação que buscamos vai muito além da aparência: reconstruímos a autoestima e geramos autonomia real.",
     "metricas": [
       {
-        "valor": "1.450+",
-        "label": "Crianças e Jovens Atendidos",
-        "detalhe": "Em nossos programas regulares desde 2018"
+        "valor": "30+",
+        "label": "Alunas Formadas em Maquiagem",
+        "detalhe": "Turma de formação profissional gratuita em Uberaba/MG"
       },
       {
-        "valor": "52.000+",
-        "label": "Refeições Nutritivas Servidas",
-        "detalhe": "Alimentação balanceada supervisionada por nutricionista"
+        "valor": "100%",
+        "label": "Atendimento Acolhedor e Gratuito",
+        "detalhe": "Resgate da autoestima, respeito à dignidade e novas perspectivas"
       },
       {
-        "valor": "620+",
-        "label": "Oficinas Educativas Realizadas",
-        "detalhe": "Robótica, esportes, artes e apoio pedagógico"
+        "valor": "5",
+        "label": "Pilares de Transformação Social",
+        "detalhe": "Beleza, capacitação, desenvolvimento humano, cultura e solidariedade"
       },
       {
-        "valor": "380+",
-        "label": "Famílias Apoiadas Mensalmente",
-        "detalhe": "Com cestas de alimentos, apoio psicossocial e cursos"
+        "valor": "∞",
+        "label": "Sonho Sem Fronteiras",
+        "detalhe": "Conectando pessoas para levar essa rede a novos bairros, cidades e estados"
       }
     ],
     "depoimentos": [
       {
-        "nome": "Dona Cleide Souza",
-        "cargo": "Mãe do Pedro (9 anos) e da Júlia (12 anos)",
-        "foto": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop",
-        "texto": "Antes do Instituto, eu saía para trabalhar apreensiva. Hoje meus filhos têm onde almoçar, fazem reforço escolar e o Pedro até aprendeu a tocar violão! Eles melhoraram as notas e eu tenho paz no coração.",
-        "autorizacao": "Depoimento e imagem autorizados conforme termo de consentimento"
+        "nome": "Rayane Gomes",
+        "cargo": "Idealizadora do Spa Glow Party & Fundadora do Rainhas da Favela",
+        "foto": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop",
+        "texto": "Não transformamos apenas aparências. Ajudamos pessoas a redescobrirem seu valor, sua força e sua capacidade de recomeçar. A beleza é um instrumento poderoso quando unida à solidariedade e à oportunidade.",
+        "autorizacao": "Depoimento da idealizadora e fundadora"
       },
       {
-        "nome": "Lucas Gabriel",
-        "cargo": "Ex-aluno, hoje Jovem Aprendiz em TI (17 anos)",
-        "foto": "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop",
-        "texto": "Eu participei do laboratório de informática do projeto durante dois anos. Foi lá que montei meu primeiro currículo e aprendi lógica de programação. Semana passada fui efetivado na minha empresa!",
-        "autorizacao": "Depoimento e imagem autorizados conforme termo de consentimento"
+        "nome": "Aluna de Formação Profissional",
+        "cargo": "Turma de Maquiagem em Uberaba/MG (Casa de Sopa Adolfo Fritz)",
+        "foto": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop",
+        "texto": "Ter a oportunidade de aprender maquiagem de forma gratuita mudou a minha vida. Recuperei a vontade de sonhar e hoje já consigo atender clientes e garantir uma renda extra com orgulho!",
+        "autorizacao": "Depoimento de aluna beneficiada pelo projeto"
       },
       {
-        "nome": "Prof. Ana Beatriz Lima",
-        "cargo": "Voluntária de Alfabetização há 3 anos",
-        "foto": "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=200&auto=format&fit=crop",
-        "texto": "Ser voluntária aqui mudou minha visão de mundo. Ver o brilho nos olhos de uma criança que decifrou as primeiras palavras não tem preço. É um trabalho sério, transparente e feito de coração.",
-        "autorizacao": "Depoimento e imagem autorizados"
+        "nome": "Voluntária do Esquadrão Rosa",
+        "cargo": "Profissional da Beleza & Voluntária Ativa",
+        "foto": "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=200&auto=format&fit=crop",
+        "texto": "Dedicar meu talento no Esquadrão Rosa me faz ver o poder do acolhimento. O brilho nos olhos de cada mulher ao se olhar no espelho e se sentir linda e capaz não tem preço. É gratidão pura.",
+        "autorizacao": "Depoimento de voluntária do Esquadrão Rosa"
       }
     ],
     "galeria": [
       {
-        "titulo": "Oficina de Robótica com Sucata",
-        "categoria": "Tecnologia",
-        "url": "https://images.unsplash.com/photo-1581092921461-eab62e97a780?q=80&w=800&auto=format&fit=crop"
+        "titulo": "Oficina Prática de Maquiagem Profissional",
+        "categoria": "Capacitação",
+        "url": "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=800&auto=format&fit=crop"
       },
       {
-        "titulo": "Formatura da Turma de Alfabetização",
-        "categoria": "Educação",
-        "url": "https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=800&auto=format&fit=crop"
+        "titulo": "Sessão de Autocuidado e Autoestima",
+        "categoria": "Beleza",
+        "url": "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=800&auto=format&fit=crop"
       },
       {
-        "titulo": "Torneio Comunitário de Judô",
-        "categoria": "Esporte",
-        "url": "https://images.unsplash.com/photo-1526232761682-d26e03ac148e?q=80&w=800&auto=format&fit=crop"
-      },
-      {
-        "titulo": "Dia da Horta Comunitária",
-        "categoria": "Sustentabilidade",
-        "url": "https://images.unsplash.com/photo-1464226184884-fa280b87c399?q=80&w=800&auto=format&fit=crop"
-      },
-      {
-        "titulo": "Apresentação Teatral de Fim de Ano",
-        "categoria": "Cultura",
-        "url": "https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?q=80&w=800&auto=format&fit=crop"
-      },
-      {
-        "titulo": "Almoço Comunitário e Distribuição de Cestas",
+        "titulo": "Palestra Motivacional e Roda de Conversa",
         "categoria": "Acolhimento",
-        "url": "https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=800&auto=format&fit=crop"
+        "url": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&auto=format&fit=crop"
+      },
+      {
+        "titulo": "Mobilização das Voluntárias do Esquadrão Rosa",
+        "categoria": "Voluntariado",
+        "url": "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=800&auto=format&fit=crop"
+      },
+      {
+        "titulo": "Varal Solidário e Entrega de Doações",
+        "categoria": "Solidariedade",
+        "url": "https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?q=80&w=800&auto=format&fit=crop"
+      },
+      {
+        "titulo": "Formatura da Turma de Maquiagem em Uberaba",
+        "categoria": "Conquistas",
+        "url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=800&auto=format&fit=crop"
       }
     ]
   },
   "como_ajudar": {
-    "titulo": "Como Você Pode Ajudar",
-    "subtitulo": "Contribua pelo PIX ou junte-se a nós como voluntário.",
+    "titulo": "Seja um Parceiro do Spa Glow Party",
+    "subtitulo": "Empresas, profissionais e apoiadores podem contribuir com patrocínios, materiais, serviços, apoio logístico ou juntando-se ao Esquadrão Rosa.",
     "pix": {
-      "chave": "+5517988160761",
+      "chave": "+5534999990000",
       "tipo_chave": "Telefone Celular",
-      "favorecido": "Instituto Sementes do Amanhã",
-      "banco": "Banco Inter",
-      "cnpj": "12.345.678/0001-90"
+      "favorecido": "Spa Glow Party / Rayane Gomes",
+      "banco": "Banco Digital / Chave PIX",
+      "cnpj": "Projeto Social Spa Glow Party"
     },
     "dados_bancarios": {
-      "banco": "Banco do Brasil (001)",
-      "agencia": "1234-5",
-      "conta_corrente": "98765-4",
-      "titular": "Instituto Sementes do Amanhã",
-      "cnpj": "12.345.678/0001-90"
+      "banco": "Banco Inter / Conta Social",
+      "agencia": "0001",
+      "conta_corrente": "1234567-8",
+      "titular": "Spa Glow Party - Rayane Gomes",
+      "cnpj": "Iniciativa Social Rayane Gomes"
     },
     "valores_sugeridos": [
       {
         "valor": "R$ 30",
-        "impacto": "Garante lanches nutritivos para 1 criança durante 1 semana inteira"
+        "impacto": "Garante materiais descartáveis e de higiene para 2 atendimentos de beleza"
       },
       {
         "valor": "R$ 60",
-        "impacto": "Fornece 1 kit completo de material escolar e livros de apoio"
+        "impacto": "Fornece 1 kit básico de pincéis e maquiagem para aluna em formação"
       },
       {
         "valor": "R$ 120",
-        "impacto": "Cobre 1 mês de oficinas esportivas e artísticas para um educando"
+        "impacto": "Cobre os custos de insumos para a formação completa de 1 participante"
       },
       {
         "valor": "R$ 250",
-        "impacto": "Cesta básica completa + kit de higiene para uma família atendida"
+        "impacto": "Apoia a estrutura completa de uma oficina de capacitação e acolhimento"
       }
     ],
     "doacao_itens": {
-      "titulo": "Doação de Materiais e Alimentos",
-      "descricao": "Recebemos doações diretamente na nossa sede de segunda a sábado. Veja nossa lista de necessidades atualizada:",
+      "titulo": "Doação de Materiais e Produtos de Beleza",
+      "descricao": "Recebemos produtos de maquiagem, itens de higiene, roupas para o Varal Solidário e materiais para nossas oficinas:",
       "itens": [
         {
-          "item": "Alimentos não perecíveis (arroz, feijão, leite em pó)",
+          "item": "Pincéis, esponjas e maquiagens novas ou lacradas",
           "status": "Urgente",
           "cor": "red"
         },
         {
-          "item": "Cadernos universitários e lápis de cor",
-          "status": "Necessário",
-          "cor": "amber"
-        },
-        {
-          "item": "Materiais de higiene e limpeza",
+          "item": "Produtos para cuidados com cabelos e pele",
           "status": "Urgente",
           "cor": "red"
         },
         {
-          "item": "Agasalhos e calçados infantis em bom estado",
+          "item": "Roupas e calçados em bom estado para o Varal Solidário",
           "status": "Contínuo",
           "cor": "blue"
         },
         {
-          "item": "Computadores ou tablets funcionando (para laboratório)",
+          "item": "Espelhos, iluminadores e itens de apoio para cursos",
           "status": "Necessário",
           "cor": "amber"
+        },
+        {
+          "item": "Kits de higiene pessoal e autocuidado feminino",
+          "status": "Urgente",
+          "cor": "red"
         }
       ]
     },
     "voluntariado": {
-      "titulo": "Seja Voluntário(a)",
-      "descricao": "Doe seu tempo, seu conhecimento e seu carinho. Temos vagas em diversas áreas para atuação semanal ou quinzenal.",
+      "titulo": "Junte-se ao Esquadrão Rosa",
+      "descricao": "O Esquadrão Rosa é formado por voluntárias que dedicam tempo, talento, energia e amor para tornar cada ação possível. Doe seu talento e ajude a transformar vidas!",
       "areas": [
-        "Apoio Escolar e Pedagogia",
-        "Aulas de Informática e Tecnologia",
-        "Esportes (Futebol, Judô, Yoga)",
-        "Música, Teatro e Expressão Artística",
-        "Cozinha Solidária e Apoio Nutricional",
-        "Atendimento Psicológico e Jurídico",
-        "Comunicação, Redes Sociais e Fotografia",
-        "Captação de Recursos e Eventos"
+        "Maquiagem e Autocuidado",
+        "Cuidados com Cabelos e Penteados",
+        "Design de Sobrancelhas e Estética",
+        "Instrutora de Cursos e Oficinas Profissionais",
+        "Palestras Motivacionais e Acolhimento",
+        "Organização, Acolhimento e Logística de Eventos",
+        "Fotografia, Filmagem e Redes Sociais",
+        "Varal Solidário e Arrecadação de Doações",
+        "Apoio Geral e Integração Comunitária"
       ]
     },
     "parcerias_empresas": {
       "titulo": "Sua Empresa Pode Fazer a Diferença",
-      "descricao": "Desenvolvemos parcerias estratégicas com empresas alinhadas às diretrizes ESG, investimento social privado e leis de incentivo fiscal (FIA / Fundo da Criança).",
+      "descricao": "Empresas e marcas de beleza podem apoiar com patrocínios, produtos, apoio logístico e responsabilidade social alinhada às diretrizes ESG.",
       "beneficios": [
-        "Relatório de impacto personalizado para balanço socioambiental ESG",
-        "Visibilidade da marca no site, redes sociais e eventos institucionais",
-        "Ações de voluntariado corporativo presenciais para colaboradores",
-        "Dedução fiscal conforme legislação vigente (OSC qualificada)"
+        "Doação de kits e produtos para alunas das turmas de capacitação gratuita",
+        "Visibilidade da marca no site, redes sociais e eventos do projeto",
+        "Ações de voluntariado corporativo presenciais com o Esquadrão Rosa",
+        "Impacto social direto na geração de renda e fortalecimento de mulheres"
       ]
     }
   },
   "transparencia": {
-    "titulo": "Transparência",
-    "subtitulo": "Prestação de contas aberta e documentos oficiais acessíveis a qualquer cidadão.",
+    "titulo": "Transparência e Compromisso",
+    "subtitulo": "Prestação de contas aberta, relatórios de impacto e compromisso com a transformação social.",
     "documentos_legais": [
       {
-        "nome": "Estatuto Social Registrado",
-        "descricao": "Registrado no 4º Cartório de Registro Civil de Pessoas Jurídicas",
-        "arquivo": "/docs/Material_Aula_Estruturas_Programacao_C_UNIP__1__20261011_191928.pdf"
-      },
-      {
-        "nome": "Cartão CNPJ e Comprovante de Inscrição",
-        "descricao": "CNPJ 12.345.678/0001-90 - Situação Cadastral Ativa na Receita Federal",
+        "nome": "Apresentação Institucional Spa Glow Party",
+        "descricao": "Missão, metodologia de atendimento, público-alvo e histórico do projeto",
         "arquivo": "/public/docs/cartao_cnpj_exemplo.pdf"
       },
       {
-        "nome": "Certificado de OSC (Marco Regulatório)",
-        "descricao": "Declaração de adequação à Lei Federal nº 13.019/2014",
+        "nome": "Termo de Parceria Social - Casa de Sopa Adolfo Fritz",
+        "descricao": "Registro de cooperação comunitária para realização dos cursos em Uberaba/MG",
         "arquivo": "/public/docs/certificado_osc_exemplo.pdf"
       },
       {
-        "nome": "Certidão Negativa de Débitos Federais",
-        "descricao": "Tributos Federais e Dívida Ativa da União em dia",
+        "nome": "Manual de Voluntariado do Esquadrão Rosa",
+        "descricao": "Diretrizes de acolhimento, conduta e atuação em mutirões de beleza",
         "arquivo": "/public/docs/cnd_federal_exemplo.pdf"
       }
     ],
     "relatorios_atividades": [
       {
-        "ano": "2025",
-        "titulo": "Relatório Anual de Atividades e DRE 2025",
-        "status": "Auditado e Aprovado",
+        "ano": "2026",
+        "titulo": "Relatório de Atividades e Formação Profissional 2026",
+        "status": "Ações em Andamento",
         "link": "/public/docs/relatorio_anual_2025.pdf"
       },
       {
-        "ano": "2024",
-        "titulo": "Balanço Patrimonial e Demonstrativo 2024",
-        "status": "Auditado e Aprovado",
+        "ano": "2025",
+        "titulo": "Balanço de Atendimentos e Turmas Formadas 2025",
+        "status": "Concluído e Disponível",
         "link": "/public/docs/relatorio_anual_2024.pdf"
-      },
-      {
-        "ano": "2023",
-        "titulo": "Prestação de Contas Consolidada 2023",
-        "status": "Aprovado em Assembleia Geral",
-        "link": "/public/docs/relatorio_anual_2023.pdf"
       }
     ],
     "destinacao_recursos": {
-      "descricao": "Veja graficamente como cada R$ 1,00 recebido é empregado na nossa organização:",
+      "descricao": "Veja graficamente como cada recurso e doação é aplicado diretamente na transformação das vidas atendidas:",
       "distribuicao": [
         {
-          "categoria": "Atividades Pedagógicas, Oficinas e Materiais",
-          "percentual": 1,
-          "cor": "#10b981"
+          "categoria": "Kits e Insumos para Cursos Profissionalizantes Gratuitos",
+          "percentual": 50,
+          "cor": "#ec4899"
         },
         {
-          "categoria": "Alimentação Diária e Cestas Nutricionais",
-          "percentual": 2,
-          "cor": "#3b82f6"
+          "categoria": "Mutirões de Beleza, Acolhimento e Eventos Comunitários",
+          "percentual": 30,
+          "cor": "#db2777"
         },
         {
-          "categoria": "Administração, Manutenção e Prestação de Contas",
-          "percentual": 3,
+          "categoria": "Logística, Varal Solidário e Apoio a Famílias",
+          "percentual": 20,
           "cor": "#f59e0b"
         }
       ]
     }
   },
   "noticias_blog": {
-    "titulo": "Últimas Notícias",
-    "subtitulo": "Acompanhe as ações, eventos e conquistas dos nossos educandos.",
+    "titulo": "Últimas Notícias e Ações",
+    "subtitulo": "Acompanhe as oficinas, histórias de superação e novidades do Spa Glow Party.",
     "artigos": [
       {
-        "id": "volta-as-aulas-2026",
-        "titulo": "Lançamento da Campanha Volta às Aulas: Doe um Kit Escolar",
-        "data": "10 de Outubro de 2026",
-        "categoria": "Campanhas",
-        "foto": "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=600&auto=format&fit=crop",
-        "resumo": "Nosso objetivo é arrecadar 300 kits completos contendo mochila, cadernos, lápis de cor e uniforme para nossos educandos.",
-        "conteudo_completo": "Com o início do novo período de matrículas, iniciamos oficialmente a Campanha Volta às Aulas 2026. Um kit escolar completo custa em média R$ 60,00 e faz toda a diferença para motivar uma criança a permanecer nos estudos. Você pode doar tanto o valor pelo PIX quanto entregar materiais físicos na nossa sede até o final deste mês."
+        "id": "formatura-turma-maquiagem-uberaba",
+        "titulo": "Turma de 30 alunas conclui curso gratuito de maquiagem profissional em Uberaba",
+        "data": "20 de Outubro de 2026",
+        "categoria": "Capacitação",
+        "foto": "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=600&auto=format&fit=crop",
+        "resumo": "Em ação vinculada à Casa de Sopa Adolfo Fritz, 30 mulheres concluíram a formação prática para geração de renda e autonomia.",
+        "conteudo_completo": "O Spa Glow Party comemorou a formatura de mais uma turma de maquiagem profissional gratuita em Uberaba/MG. A iniciativa, realizada em parceria com a Casa de Sopa Adolfo Fritz, ofereceu aulas práticas, técnicas profissionais e desenvolvimento do espírito empreendedor, reforçando o compromisso do projeto em transformar conhecimento em oportunidades reais de independência e dignidade."
       },
       {
-        "id": "feira-ciencias-comunidade",
-        "titulo": "Educandos conquistam 2º lugar na Feira Regional de Ciências",
-        "data": "28 de Setembro de 2026",
-        "categoria": "Conquistas",
-        "foto": "https://images.unsplash.com/photo-1581092921461-eab62e97a780?q=80&w=600&auto=format&fit=crop",
-        "resumo": "A turma de robótica com sucata apresentou um sistema inteligente de irrigação para hortas verticais comunitárias.",
-        "conteudo_completo": "Com muito orgulho, compartilhamos que a turma orientada pelo nosso voluntário de informática conquistou o segundo lugar na Feira de Ciências da região leste. O projeto foi construído inteiramente com sensores reutilizados de eletrônicos descartados e garrafas pet. Parabéns aos jovens participantes!"
+        "id": "esquadrao-rosa-forca-voluntariado",
+        "titulo": "Esquadrão Rosa: a rede de voluntárias que move o Spa Glow Party",
+        "data": "12 de Outubro de 2026",
+        "categoria": "Comunidade",
+        "foto": "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=600&auto=format&fit=crop",
+        "resumo": "Profissionais da beleza e voluntárias dedicam seu talento e tempo para acolher, empoderar e inspirar centenas de mulheres.",
+        "conteudo_completo": "Se o Spa Glow Party é um sonho que transforma vidas, o Esquadrão Rosa é o coração pulsante que faz esse sonho acontecer. Formado por mulheres voluntárias apaixonadas, o grupo atua no acolhimento, execução das oficinas e apoio logístico de cada ação social. Conheça como se juntar a essa causa e fazer a diferença."
       },
       {
-        "id": "mutirao-saude-comunitaria",
-        "titulo": "Mutirão da Saúde realiza mais de 180 atendimentos na sede",
-        "data": "15 de Setembro de 2026",
-        "categoria": "Eventos",
-        "foto": "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=600&auto=format&fit=crop",
-        "resumo": "Em parceria com estudantes universitários, oferecemos testes oftalmológicos, orientação nutricional e triagem odontológica.",
-        "conteudo_completo": "No último sábado, realizamos o nosso tradicional Mutirão da Saúde Solidária. Contamos com a participação de mais de 25 profissionais voluntários das áreas de medicina, enfermagem e odontologia. As crianças diagnosticadas com necessidade de óculos receberão armações e lentes gratuitas viabilizadas por nossa rede de padrinhos."
+        "id": "varal-solidario-mobilizacao",
+        "titulo": "Varal Solidário e campanhas mobilizam doações e fortalecem famílias",
+        "data": "02 de Outubro de 2026",
+        "categoria": "Solidariedade",
+        "foto": "https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?q=80&w=600&auto=format&fit=crop",
+        "resumo": "Iniciativa comunitária distribui roupas, agasalhos e kits de autocuidado para pessoas em situação de vulnerabilidade.",
+        "conteudo_completo": "Além da capacitação e dos atendimentos de beleza, o Spa Glow Party mantém viva a solidariedade em ação por meio do Varal Solidário. A ação arrecadou roupas, calçados e produtos de autocuidado essenciais, distribuídos diretamente a famílias da comunidade. O carinho e a dignidade chegam de mãos dadas com cada doação."
       }
     ]
   },
   "contato": {
-    "titulo": "Fale Conosco",
-    "subtitulo": "Envie sua mensagem ou fale diretamente com a nossa equipe.",
-    "endereco_completo": "Rua das Acácias, 450 - Bairro Jardim Esperança - São Paulo/SP - CEP 03980-000",
-    "ponto_referencia": "Próximo à Escola Estadual Ayrton Senna e à UBS Jardim Esperança",
-    "telefone": "(11) 3214-8765",
-    "whatsapp": "(11) 98765-4321",
-    "whatsapp_link": "https://wa.me/5511987654321?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20o%20Instituto%20Sementes%20do%20Amanh%C3%A3.",
-    "email_geral": "contato@sementesdoamanha.org.br",
-    "email_doacoes": "doacoes@sementesdoamanha.org.br",
-    "horario_funcionamento": "Segunda a Sexta das 08h às 18h | Sábados das 08h às 13h",
+    "titulo": "Faça Parte Dessa Transformação",
+    "subtitulo": "Existe algo poderoso em fazer alguém voltar a sorrir, acreditar em si e enxergar possibilidades onde antes existiam dificuldades.",
+    "endereco_completo": "Uberaba - Minas Gerais, Brasil",
+    "ponto_referencia": "Ações comunitárias integradas (Casa de Sopa Adolfo Fritz e comunidades parceiras)",
+    "telefone": "(34) 99999-0000",
+    "whatsapp": "(34) 99999-0000",
+    "whatsapp_link": "https://wa.me/5534999990000?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20o%20Spa%20Glow%20Party%20e%20como%20apoiar%20ou%20participar.",
+    "email_geral": "contato@spaglowparty.org",
+    "email_doacoes": "parcerias@spaglowparty.org",
+    "horario_funcionamento": "Segunda a Sábado com oficinas e mutirões agendados",
     "redes_sociais": {
-      "instagram": "https://instagram.com/sementesdoamanha",
-      "facebook": "https://facebook.com/sementesdoamanha",
-      "youtube": "https://youtube.com/@sementesdoamanha",
-      "linkedin": "https://linkedin.com/company/sementesdoamanha"
+      "instagram": "https://instagram.com/rayanegomesoficial",
+      "facebook": "https://facebook.com/spaglowparty",
+      "youtube": "https://youtube.com/@spaglowparty",
+      "linkedin": "https://linkedin.com/company/spaglowparty"
     },
-    "mapa_embed_url": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d117072.84657159757!2d-46.721464359253724!3d-23.550519904294065!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94ce59c8da0aa315%3A0xd59f9431f2c9776a!2zU8OjbyBQYXVsbywgU1A!5e0!3m2!1spt-BR!2sbr!4v1700000000000!5m2!1spt-BR!2sbr"
+    "mapa_embed_url": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d120562.33923984364!2d-47.99427672322304!3d-19.747306232338148!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94bad1b621516f49%3A0xbc4e57e3bf8e29a9!2sUberaba%2C%20MG!5e0!3m2!1spt-BR!2sbr!4v1700000000000!5m2!1spt-BR!2sbr"
   }
 }

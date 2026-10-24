@@ -1149,7 +1149,7 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                     h_voluntarios = [dict(r) for r in cursor.fetchall()]
 
                 export_data = {
-                    "sistema": "Instituto Sementes do Amanhã - Exportação Oficial do Banco de Dados",
+                    "sistema": "Spa Glow Party - Exportação Oficial do Banco de Dados",
                     "data_exportacao": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
                     "resumo": {
                         "mensagens_ativas": len(contatos),
@@ -1294,7 +1294,7 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                 total_imagens = len([f for f in os.listdir(IMG_DIR) if os.path.isfile(os.path.join(IMG_DIR, f))]) if os.path.exists(IMG_DIR) else 0
                 total_docs = len([f for f in os.listdir(DOCS_DIR) if os.path.isfile(os.path.join(DOCS_DIR, f))]) if os.path.exists(DOCS_DIR) else 0
 
-                nome_instituicao = "Instituto Sementes do Amanhã"
+                nome_instituicao = "Spa Glow Party"
                 if os.path.exists(CONFIG_FILE):
                     try:
                         with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
