@@ -400,24 +400,33 @@
       <!-- Depoimentos e Histórias Reais -->
       <div class="mb-16">
         <div class="text-center max-w-2xl mx-auto mb-8">
-          <span class="text-xs font-black uppercase tracking-widest text-emerald-600">Depoimentos</span>
-          <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mt-1 font-heading">Histórias de Transformação</h3>
+          <span class="text-xs font-black uppercase tracking-widest text-pink-600">Depoimentos & Relatos em Vídeo</span>
+          <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mt-1 font-heading">Histórias Reais de Transformação</h3>
+          <p class="text-xs sm:text-sm text-slate-500 mt-2">Depoimentos em vídeo de alunas formadas, acolhidas pelo projeto e da idealizadora Rayane Gomes.</p>
         </div>
-        <div id="imp-depoimentos-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div id="imp-depoimentos-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <!-- Preenchido dinamicamente via JS -->
         </div>
       </div>
 
-      <!-- Galeria de Fotos -->
+      <!-- Galeria de Fotos e Vídeos -->
       <div>
         <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
           <div>
-            <h3 class="text-xl font-black text-slate-900 font-heading">Galeria em Campo</h3>
-            <p class="text-xs text-slate-500">Momentos das oficinas e atendimentos com as crianças.</p>
+            <span class="text-xs font-bold uppercase tracking-wider text-pink-600">Registros em Campo</span>
+            <h3 class="text-2xl font-black text-slate-900 font-heading">Galeria de Ações & Vídeos</h3>
+            <p class="text-xs text-slate-500">Oficinas práticas, atendimentos do Esquadrão Rosa, rodas de conversa e momentos Glow Party.</p>
           </div>
-          <span class="text-xs text-emerald-700 font-semibold">Clique para ampliar</span>
+          <div id="galeria-filtros" class="flex flex-wrap gap-2">
+            <button onclick="filtrarGaleria('todas')" class="gal-btn active px-3.5 py-1.5 rounded-full text-xs font-bold bg-pink-600 text-white shadow-sm transition">Todas</button>
+            <button onclick="filtrarGaleria('Capacitação')" class="gal-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-slate-700 hover:bg-pink-50 hover:text-pink-600 border border-slate-200 transition">Capacitação</button>
+            <button onclick="filtrarGaleria('Beleza')" class="gal-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-slate-700 hover:bg-pink-50 hover:text-pink-600 border border-slate-200 transition">Beleza</button>
+            <button onclick="filtrarGaleria('Acolhimento')" class="gal-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-slate-700 hover:bg-pink-50 hover:text-pink-600 border border-slate-200 transition">Acolhimento</button>
+            <button onclick="filtrarGaleria('Comunidade')" class="gal-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-slate-700 hover:bg-pink-50 hover:text-pink-600 border border-slate-200 transition">Comunidade</button>
+            <button onclick="filtrarGaleria('Eventos')" class="gal-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-slate-700 hover:bg-pink-50 hover:text-pink-600 border border-slate-200 transition">Eventos & Vídeos</button>
+          </div>
         </div>
-        <div id="imp-galeria-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div id="imp-galeria-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
           <!-- Preenchido dinamicamente via JS -->
         </div>
       </div>
@@ -969,10 +978,10 @@
 
       <div class="w-full mb-3 text-left">
         <span class="text-xs font-bold text-pink-400 uppercase tracking-wider flex items-center gap-1.5">
-          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Vídeo de Apresentação
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Vídeo do Projeto
         </span>
-        <h3 class="text-xl font-black text-white font-heading mt-0.5">Spa Glow Party — Rayane Gomes</h3>
-        <p class="text-xs text-slate-400">Beleza que acolhe, autoestima que transforma e oportunidades que mudam vidas.</p>
+        <h3 id="modal-video-titulo" class="text-xl font-black text-white font-heading mt-0.5">Spa Glow Party — Rayane Gomes</h3>
+        <p id="modal-video-subtitulo" class="text-xs text-slate-400">Beleza que acolhe, autoestima que transforma e oportunidades que mudam vidas.</p>
       </div>
 
       <!-- Video Player -->
@@ -993,6 +1002,6 @@
   </div>
 
   <!-- Scripts -->
-  <script src="/assets/js/main.js?v=18"></script>
+  <script src="/assets/js/main.js?v=19"></script>
 </body>
 </html>

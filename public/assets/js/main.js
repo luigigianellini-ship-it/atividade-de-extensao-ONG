@@ -199,37 +199,43 @@ function aplicarDadosNoDOM(config) {
 
     const depContainer = document.getElementById("imp-depoimentos-grid");
     if (depContainer && imp.depoimentos) {
-      depContainer.innerHTML = imp.depoimentos.map(d => `
-        <div class="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-sm hover-lift flex flex-col justify-between">
-          <div class="text-emerald-500 text-3xl font-serif mb-2 leading-none">“</div>
-          <p class="text-sm text-slate-700 italic leading-relaxed mb-6">"${d.texto}"</p>
-          <div class="flex items-center gap-4 pt-4 border-t border-slate-100">
-            <img src="${d.foto}" alt="${d.nome}" class="w-12 h-12 rounded-full object-cover ring-2 ring-emerald-100">
+      depContainer.innerHTML = imp.depoimentos.map(d => {
+        const nomeEsc = (d.nome || "").replace(/'/g, "\\'");
+        const cargoEsc = (d.cargo || "").replace(/'/g, "\\'");
+        const vidUrl = d.video_url || "";
+        return `
+          <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm hover-lift flex flex-col justify-between">
             <div>
-              <h5 class="text-sm font-bold text-slate-900">${d.nome}</h5>
-              <p class="text-xs text-slate-500">${d.cargo}</p>
-              ${d.autorizacao ? `<span class="text-[10px] text-emerald-600">✓ ${d.autorizacao}</span>` : ""}
+              <div class="text-pink-500 text-3xl font-serif mb-1 leading-none">“</div>
+              <p class="text-xs sm:text-sm text-slate-700 italic leading-relaxed mb-4">"${d.texto}"</p>
+            </div>
+            <div class="pt-4 border-t border-slate-100 flex flex-col gap-3">
+              <div class="flex items-center gap-3">
+                <div class="relative flex-shrink-0">
+                  <img src="${d.foto}" alt="${d.nome}" class="w-12 h-12 rounded-full object-cover ring-2 ring-pink-200 shadow-sm">
+                  ${vidUrl ? `<span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-pink-600 text-white flex items-center justify-center text-[10px] shadow-sm"><i data-lucide="play" class="w-3 h-3 fill-white text-white"></i></span>` : ""}
+                </div>
+                <div class="min-w-0">
+                  <h5 class="text-xs sm:text-sm font-bold text-slate-900 truncate">${d.nome}</h5>
+                  <p class="text-[11px] text-slate-500 truncate">${d.cargo}</p>
+                  ${d.autorizacao ? `<span class="text-[10px] text-pink-600 block truncate">✓ ${d.autorizacao}</span>` : ""}
+                </div>
+              </div>
+              ${vidUrl ? `
+                <button onclick="abrirModalVideo('${vidUrl}', '${nomeEsc}', '${cargoEsc}')" class="w-full py-2 px-3 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-700 hover:text-pink-800 text-xs font-bold border border-pink-200/80 flex items-center justify-center gap-1.5 transition">
+                  <i data-lucide="play-circle" class="w-4 h-4 text-pink-600"></i>
+                  Assistir ao Relato em Vídeo
+                </button>
+              ` : ""}
             </div>
           </div>
-        </div>
-      `).join("");
+        `;
+      }).join("");
+      if (window.lucide) lucide.createIcons();
     }
 
-    // Galeria
-    const galContainer = document.getElementById("imp-galeria-grid");
-    if (galContainer && imp.galeria) {
-      galContainer.innerHTML = imp.galeria.map(g => `
-        <div class="group relative rounded-2xl overflow-hidden aspect-video bg-slate-100 cursor-pointer shadow-sm hover-lift" onclick="abrirLightbox('${g.url}', '${g.titulo}')">
-          <img src="${g.url}" alt="${g.titulo}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
-            <div>
-              <span class="text-[10px] font-semibold text-emerald-300 uppercase">${g.categoria}</span>
-              <p class="text-xs font-medium text-white">${g.titulo}</p>
-            </div>
-          </div>
-        </div>
-      `).join("");
-    }
+    // Galeria Dinâmica com Filtros
+    renderizarGaleria();
   }
 
   // 6. Como Ajudar & Gerador Automático de PIX (Padrão Banco Central BR Code)
@@ -910,15 +916,96 @@ function fecharModalNoticia() {
   }
 }
 
-// Modal Vídeo Oficial
-function abrirModalVideo() {
+// Galeria Dinâmica e Filtros
+let categoriaGaleriaAtual = "todas";
+
+function filtrarGaleria(cat) {
+  categoriaGaleriaAtual = cat;
+  document.querySelectorAll("#galeria-filtros .gal-btn").forEach(btn => {
+    const txt = btn.textContent.trim().toLowerCase();
+    const match = (cat === "todas" && txt === "todas") ||
+                  (cat !== "todas" && txt.includes(cat.toLowerCase().slice(0, 4)));
+    if (match) {
+      btn.className = "gal-btn active px-3.5 py-1.5 rounded-full text-xs font-bold bg-pink-600 text-white shadow-sm transition";
+    } else {
+      btn.className = "gal-btn px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-slate-700 hover:bg-pink-50 hover:text-pink-600 border border-slate-200 transition";
+    }
+  });
+  renderizarGaleria();
+}
+
+function renderizarGaleria() {
+  const galContainer = document.getElementById("imp-galeria-grid");
+  const lista = siteConfig?.impacto?.galeria || [];
+  if (!galContainer) return;
+
+  const itensFiltrados = lista.filter(g => {
+    if (categoriaGaleriaAtual === "todas") return true;
+    if (categoriaGaleriaAtual === "Eventos") return g.categoria.includes("Eventos") || !!g.video_url;
+    return g.categoria.toLowerCase().includes(categoriaGaleriaAtual.toLowerCase());
+  });
+
+  galContainer.innerHTML = itensFiltrados.map(g => {
+    const titEsc = (g.titulo || "").replace(/'/g, "\\'");
+    const catEsc = (g.categoria || "").replace(/'/g, "\\'");
+    if (g.video_url) {
+      return `
+        <div class="group relative rounded-2xl overflow-hidden aspect-video bg-slate-900 cursor-pointer shadow-sm hover-lift" onclick="abrirModalVideo('${g.video_url}', '${titEsc}', '${catEsc}')">
+          <img src="${g.url}" alt="${g.titulo}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-85 group-hover:opacity-100">
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class="w-11 h-11 rounded-full bg-pink-600/90 group-hover:bg-pink-600 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition pl-0.5">
+              <i data-lucide="play" class="w-5 h-5 fill-white text-white"></i>
+            </div>
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent flex items-end p-3.5">
+            <div>
+              <span class="text-[10px] font-bold text-pink-300 uppercase tracking-wider">${g.categoria} • VÍDEO</span>
+              <p class="text-xs font-bold text-white mt-0.5">${g.titulo}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="group relative rounded-2xl overflow-hidden aspect-video bg-slate-100 cursor-pointer shadow-sm hover-lift" onclick="abrirLightbox('${g.url}', '${titEsc}')">
+          <img src="${g.url}" alt="${g.titulo}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3.5">
+            <div>
+              <span class="text-[10px] font-bold text-pink-300 uppercase tracking-wider">${g.categoria}</span>
+              <p class="text-xs font-bold text-white mt-0.5">${g.titulo}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  }).join("");
+
+  if (window.lucide) lucide.createIcons();
+}
+
+// Modal Vídeo Oficial & Depoimentos
+function abrirModalVideo(url, titulo, subtitulo) {
   const modal = document.getElementById("modal-video");
   const player = document.getElementById("player-video-modal");
+  const titEl = document.getElementById("modal-video-titulo");
+  const subEl = document.getElementById("modal-video-subtitulo");
+
+  const targetUrl = url || siteConfig?.hero?.video_url || "/assets/videos/spa_glow_party.mp4";
+  const targetTit = titulo || "Spa Glow Party — Rayane Gomes";
+  const targetSub = subtitulo || "Beleza que acolhe, autoestima que transforma e oportunidades que mudam vidas.";
+
+  if (titEl) titEl.textContent = targetTit;
+  if (subEl) subEl.textContent = targetSub;
+
   if (modal) {
     modal.classList.add("ativo");
     modal.classList.remove("hidden");
     modal.style.display = "flex";
     if (player) {
+      if (!player.src.endsWith(targetUrl) && player.src !== targetUrl) {
+        player.src = targetUrl;
+        player.load();
+      }
       player.play().catch(() => {});
     }
   }
@@ -949,6 +1036,8 @@ document.addEventListener("keydown", (e) => {
 });
 
 // Garante disponibilidade global das funções no window
+window.renderizarGaleria = renderizarGaleria;
+window.filtrarGaleria = filtrarGaleria;
 window.abrirModalVideo = abrirModalVideo;
 window.fecharModalVideo = fecharModalVideo;
 window.abrirModalDoacao = abrirModalDoacao;
