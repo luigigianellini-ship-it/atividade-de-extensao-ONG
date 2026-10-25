@@ -69,13 +69,24 @@ KVDB_CONFIG_HISTORICO_URL = os.environ.get("KVDB_CONFIG_HISTORICO_URL", "https:/
 def sincronizar_config_nuvem():
     """
     Sincroniza o arquivo local config.json com o banco de dados em nuvem permanente (KVDB).
-    Isso garante que todas as alterações feitas no painel administrativo sobrevivam
-    permanentemente, mesmo quando o Render reinicia ou recria o container.
+    Garante que:
+    1. Se houver alterações na nuvem mais recentes (ex: feitas no painel admin no Render), elas são restauradas localmente.
+    2. Se o arquivo local tiver alterações mais recentes (ex: deploy novo de código, git pull ou edição local), ele atualiza a nuvem automaticamente.
+    3. Gravação atômica em disco com flush e fsync para evitar qualquer risco de arquivo corrompido em reinicializações forçadas.
     """
+    local_cfg = None
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+                local_cfg = json.load(f)
+        except Exception as e:
+            print(f"[AVISO] Falha ao ler config.json local: {e}")
+
+    cloud_cfg = None
     try:
         req = urllib.request.Request(
             KVDB_BUCKET_URL,
-            headers={"User-Agent": "Instituto-Sementes-Amanha/1.0"}
+            headers={"User-Agent": "Spa-Glow-Party/1.0"}
         )
         ctx = ssl.create_default_context()
         try:
@@ -88,21 +99,55 @@ def sincronizar_config_nuvem():
             if res.status == 200:
                 raw_data = res.read().decode('utf-8').strip()
                 if raw_data:
-                    cloud_json = json.loads(raw_data)
-                    if isinstance(cloud_json, dict) and "instituicao" in cloud_json:
-                        with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
-                            json.dump(cloud_json, f, ensure_ascii=False, indent=2)
-                        print("[PERSISTÊNCIA] Configurações sincronizadas da nuvem permanente com sucesso!")
-                        return cloud_json
+                    cloud_cfg = json.loads(raw_data)
     except Exception as e:
-        print(f"[AVISO] Não foi possível carregar configurações da nuvem (mantendo local): {e}")
+        print(f"[AVISO] Não foi possível contatar nuvem KVDB (mantendo arquivo local): {e}")
+
+    # Decisão inteligente de sincronização bidirecional
+    if cloud_cfg and isinstance(cloud_cfg, dict) and "instituicao" in cloud_cfg:
+        cloud_time_str = cloud_cfg.get("_atualizado_em")
+        local_time_str = local_cfg.get("_atualizado_em") if local_cfg else None
+
+        deve_usar_nuvem = True
+        if local_cfg and local_time_str and cloud_time_str:
+            try:
+                t_local = datetime.fromisoformat(local_time_str)
+                t_cloud = datetime.fromisoformat(cloud_time_str)
+                if t_local > t_cloud:
+                    deve_usar_nuvem = False
+            except Exception:
+                pass
+        elif local_cfg and not cloud_time_str and local_time_str:
+            deve_usar_nuvem = False
+
+        if deve_usar_nuvem:
+            tmp_file = CONFIG_FILE + ".tmp"
+            with open(tmp_file, 'w', encoding='utf-8') as f:
+                json.dump(cloud_cfg, f, ensure_ascii=False, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp_file, CONFIG_FILE)
+            print("[PERSISTÊNCIA] Configurações sincronizadas da nuvem permanente com sucesso!")
+            return cloud_cfg
+        else:
+            salvar_config_nuvem(local_cfg)
+            print("[PERSISTÊNCIA] Configurações locais mais recentes sincronizadas para a nuvem com sucesso!")
+            return local_cfg
+    elif local_cfg:
+        salvar_config_nuvem(local_cfg)
+        return local_cfg
+
     return None
 
 def salvar_config_nuvem(dados_dict):
     """
     Salva imediatamente as novas configurações no banco de dados persistente em nuvem (KVDB).
+    Também salva uma cópia histórica em 'site_config_historico' para backup perpétuo.
     """
     try:
+        if not dados_dict.get("_atualizado_em"):
+            dados_dict["_atualizado_em"] = datetime.now().isoformat()
+
         body_bytes = json.dumps(dados_dict, ensure_ascii=False, indent=2).encode('utf-8')
         req = urllib.request.Request(
             KVDB_BUCKET_URL,
@@ -110,7 +155,7 @@ def salvar_config_nuvem(dados_dict):
             method="POST",
             headers={
                 "Content-Type": "application/json; charset=utf-8",
-                "User-Agent": "Instituto-Sementes-Amanha/1.0"
+                "User-Agent": "Spa-Glow-Party/1.0"
             }
         )
         ctx = ssl.create_default_context()
@@ -123,7 +168,25 @@ def salvar_config_nuvem(dados_dict):
         with res:
             if res.status in (200, 201):
                 print("[PERSISTÊNCIA] Configurações salvas permanentemente na nuvem!")
-                return True
+
+        # Envia também para histórico perpétuo de configurações
+        try:
+            req_h = urllib.request.Request(
+                KVDB_CONFIG_HISTORICO_URL,
+                data=body_bytes,
+                method="POST",
+                headers={"Content-Type": "application/json; charset=utf-8", "User-Agent": "Spa-Glow-Party/1.0"}
+            )
+            try:
+                res_h = urllib.request.urlopen(req_h, timeout=8, context=ctx)
+            except Exception:
+                res_h = urllib.request.urlopen(req_h, timeout=8, context=ssl._create_unverified_context())
+            with res_h:
+                pass
+        except Exception:
+            pass
+
+        return True
     except Exception as e:
         print(f"[AVISO] Falha ao enviar configurações para a nuvem permanente: {e}")
     return False
@@ -520,6 +583,8 @@ def sincronizar_banco_nuvem():
                                 """, (v.get("id"), v.get("original_id"), v["nome"], v["email"], v["whatsapp"], v["area_interesse"], v.get("disponibilidade", ""), v.get("experiencia", ""), v["data_envio"], v.get("status", "Pendente"), v.get("status_admin", "Ativo"), v.get("apagado_em")))
                         conn.commit()
                     print("[PERSISTÊNCIA] Histórico permanente completo restaurado da nuvem com sucesso!")
+                    # Sincroniza qualquer dado residual local de volta para a nuvem
+                    disparar_salvar_banco_nuvem_async()
     except Exception as e:
         print(f"[AVISO] Falha ao sincronizar histórico da nuvem: {e}")
 
@@ -1804,8 +1869,26 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
                     with open(backup_file, 'w', encoding='utf-8') as f_bkp:
                         json.dump(config_anterior, f_bkp, ensure_ascii=False, indent=2)
 
-                with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
+                body_json['_atualizado_em'] = datetime.now().isoformat()
+
+                # Gravação atômica em disco para proteção contra reinicialização abrupta
+                tmp_cfg = CONFIG_FILE + ".tmp"
+                with open(tmp_cfg, 'w', encoding='utf-8') as f:
                     json.dump(body_json, f, ensure_ascii=False, indent=2)
+                    f.flush()
+                    os.fsync(f.fileno())
+                os.replace(tmp_cfg, CONFIG_FILE)
+
+                # Salva snapshot na tabela SQLite historico_config
+                try:
+                    with get_db() as conn:
+                        conn.execute(
+                            "INSERT INTO historico_config (data_salvamento, config_json) VALUES (?, ?)",
+                            (datetime.now().strftime("%d/%m/%Y %H:%M:%S"), json.dumps(body_json, ensure_ascii=False))
+                        )
+                        conn.commit()
+                except Exception as e_hist:
+                    print(f"[AVISO] Falha ao registrar historico_config no SQLite: {e_hist}")
 
                 # Salva na nuvem permanente para nunca perder alterações em reinicializações do Render
                 nuvem_salva = salvar_config_nuvem(body_json)
