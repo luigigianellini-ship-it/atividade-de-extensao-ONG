@@ -741,6 +741,23 @@
           </div>
         </div>
 
+        <!-- Voluntariado & Formulário Google Forms -->
+        <div class="pt-4 border-t border-slate-100 space-y-4">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Formulário de Inscrição de Voluntariado (Esquadrão Rosa)</h3>
+            <p class="text-xs text-slate-500">Link oficial do Google Forms exibido no site e nos modais.</p>
+          </div>
+          <div>
+            <label for="adm-voluntariado-link-forms" class="block text-xs font-bold text-slate-700 uppercase mb-1">Link do Google Forms (forms.gle ou docs.google.com)</label>
+            <div class="flex items-center gap-2">
+              <input type="url" id="adm-voluntariado-link-forms" oninput="document.getElementById('adm-voluntariado-link-test').href = this.value" class="flex-1 p-2.5 border rounded-xl text-sm font-mono focus:ring-2 focus:ring-pink-500" placeholder="https://forms.gle/EXf95hre8ezb4zNd9">
+              <a id="adm-voluntariado-link-test" href="https://forms.gle/EXf95hre8ezb4zNd9" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2.5 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-700 font-bold text-xs border border-pink-200 transition flex items-center gap-1.5 whitespace-nowrap">
+                <i data-lucide="external-link" class="w-4 h-4"></i> Testar Link
+              </a>
+            </div>
+          </div>
+        </div>
+
         <!-- Preview do QR Code Gerado Automaticamente -->
         <div class="p-5 bg-emerald-50/70 rounded-2xl border border-emerald-200 flex flex-col sm:flex-row items-center gap-5">
           <div class="w-32 h-32 bg-white p-2 rounded-xl border border-emerald-200 flex-shrink-0 flex items-center justify-center shadow-sm">
@@ -1527,6 +1544,11 @@
         document.getElementById("adm-banco-nome").value = globalConfig.como_ajudar?.dados_bancarios?.banco || "";
         document.getElementById("adm-banco-agencia").value = globalConfig.como_ajudar?.dados_bancarios?.agencia || "";
         document.getElementById("adm-banco-conta").value = globalConfig.como_ajudar?.dados_bancarios?.conta_corrente || "";
+        if (document.getElementById("adm-voluntariado-link-forms")) {
+          const vLink = globalConfig.como_ajudar?.voluntariado?.link_formulario || "";
+          document.getElementById("adm-voluntariado-link-forms").value = vLink;
+          if (vLink) document.getElementById("adm-voluntariado-link-test").href = vLink;
+        }
         atualizarPreviewPixAdmin();
 
         document.getElementById("adm-pix-chave").addEventListener("input", atualizarPreviewPixAdmin);
@@ -2316,6 +2338,15 @@
       globalConfig.como_ajudar.dados_bancarios.agencia = document.getElementById("adm-banco-agencia").value;
       globalConfig.como_ajudar.dados_bancarios.conta_corrente = document.getElementById("adm-banco-conta").value;
       globalConfig.como_ajudar.dados_bancarios.cnpj = document.getElementById("adm-cnpj").value;
+      if (!globalConfig.como_ajudar.voluntariado) globalConfig.como_ajudar.voluntariado = {};
+      const elVLink = document.getElementById("adm-voluntariado-link-forms");
+      if (elVLink) {
+        globalConfig.como_ajudar.voluntariado.link_formulario = elVLink.value.trim();
+        if (elVLink.value.includes("docs.google.com/forms") && !elVLink.value.includes("embedded=true")) {
+          const sep = elVLink.value.includes("?") ? "&" : "?";
+          globalConfig.como_ajudar.voluntariado.link_embed = elVLink.value + sep + "embedded=true";
+        }
+      }
 
       // 6. Transparência & Documentos
       globalConfig.transparencia.subtitulo = document.getElementById("adm-trans-subtitulo").value;

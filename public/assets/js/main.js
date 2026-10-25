@@ -288,6 +288,16 @@ function aplicarDadosNoDOM(config) {
         ${ajuda.voluntariado.areas.map(a => `<option value="${a}">${a}</option>`).join("")}
       `;
     }
+
+    // Link do formulário oficial de voluntário (Google Forms)
+    const formsLink = ajuda.voluntariado?.link_formulario || "https://forms.gle/EXf95hre8ezb4zNd9";
+    const btnLinkForms = document.getElementById("btn-link-google-forms");
+    if (btnLinkForms) btnLinkForms.href = formsLink;
+
+    const iframeForms = document.getElementById("iframe-google-forms");
+    if (iframeForms && ajuda.voluntariado?.link_embed) {
+      iframeForms.src = ajuda.voluntariado.link_embed;
+    }
   }
 
   // 7. Transparência
