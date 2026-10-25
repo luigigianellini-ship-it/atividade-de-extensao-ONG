@@ -8,10 +8,11 @@
     "nome": "Spa Glow Party",
     "sigla": "SGP",
     "slogan": "Beleza que acolhe, autoestima que transforma e oportunidades que mudam vidas.",
-    "ano_fundacao": "2024",
+    "ano_fundacao": "2025",
     "cnpj": "Iniciativa Rayane Gomes & Instituto Rainhas da Favela",
     "registro_osc": "Uberaba / MG — Projeto de Transformação Social através da Beleza",
-    "utilidade_publica": "Desenvolvimento Humano, Inclusão Social e Capacitação Profissional Gratuita"
+    "utilidade_publica": "Desenvolvimento Humano, Inclusão Social e Capacitação Profissional Gratuita",
+    "data_fundacao": "15 de Julho de 2025"
   },
   "hero": {
     "badge": "✨ Transformação Social, Autoestima e Oportunidades",
@@ -75,7 +76,9 @@
         "foto": "/assets/img/comunidade_unida_comemoracao.jpg",
         "bio": "Rede comunitária que fortalece a inclusão social, abrindo oportunidades reais de geração de renda, dignidade e protagonismo para famílias em vulnerabilidade."
       }
-    ]
+    ],
+    "data_fundacao": "15 de Julho de 2025",
+    "ano_fundacao": "2025"
   },
   "o_que_fazemos": {
     "titulo": "Como Funciona o Projeto?",

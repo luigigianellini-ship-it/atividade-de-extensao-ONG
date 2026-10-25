@@ -113,6 +113,12 @@ function aplicarDadosNoDOM(config) {
     const histEl = document.getElementById("qs-historia");
     if (histEl) histEl.textContent = qs.historia;
 
+    const fundBadge = document.getElementById("qs-fundacao-badge");
+    if (fundBadge) {
+      const dataFund = qs.data_fundacao || config.instituicao?.data_fundacao || (config.instituicao?.ano_fundacao ? `Fundado em ${config.instituicao.ano_fundacao}` : "Fundado em 15 de Julho de 2025");
+      fundBadge.textContent = dataFund.startsWith("Fundado") ? dataFund : `Fundado em ${dataFund}`;
+    }
+
     const misEl = document.getElementById("qs-missao");
     if (misEl) misEl.textContent = qs.missao;
 

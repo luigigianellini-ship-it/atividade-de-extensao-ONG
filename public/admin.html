@@ -495,8 +495,8 @@
             <input type="text" id="adm-hero-badge" class="w-full p-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500">
           </div>
           <div>
-            <label for="adm-ano-fundacao" class="block text-xs font-bold text-slate-700 uppercase mb-1">Ano de Fundação</label>
-            <input type="text" id="adm-ano-fundacao" class="w-full p-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500">
+            <label for="adm-ano-fundacao" class="block text-xs font-bold text-slate-700 uppercase mb-1">Data / Ano de Fundação</label>
+            <input type="text" id="adm-ano-fundacao" placeholder="Ex: 15 de Julho de 2025" class="w-full p-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500">
           </div>
         </div>
 
@@ -1506,7 +1506,7 @@
         document.getElementById("adm-nome").value = globalConfig.instituicao?.nome || "";
         document.getElementById("adm-slogan").value = globalConfig.instituicao?.slogan || "";
         document.getElementById("adm-hero-badge").value = globalConfig.hero?.badge || "";
-        document.getElementById("adm-ano-fundacao").value = globalConfig.instituicao?.ano_fundacao || "";
+        document.getElementById("adm-ano-fundacao").value = globalConfig.instituicao?.data_fundacao || globalConfig.instituicao?.ano_fundacao || "15 de Julho de 2025";
         document.getElementById("adm-hero-titulo").value = globalConfig.hero?.titulo_destaque || "";
         document.getElementById("adm-hero-subtitulo").value = globalConfig.hero?.subtitulo || "";
         document.getElementById("adm-hero-foto").value = globalConfig.hero?.foto_url || "";
@@ -2247,7 +2247,12 @@
       // 1. Instituição & Hero
       globalConfig.instituicao.nome = document.getElementById("adm-nome").value;
       globalConfig.instituicao.slogan = document.getElementById("adm-slogan").value;
-      globalConfig.instituicao.ano_fundacao = document.getElementById("adm-ano-fundacao").value;
+      const valFund = document.getElementById("adm-ano-fundacao").value.trim();
+      globalConfig.instituicao.data_fundacao = valFund;
+      globalConfig.instituicao.ano_fundacao = (valFund.match(/\b(20\d\d)\b/) ? valFund.match(/\b(20\d\d)\b/)[0] : "2025");
+      if (!globalConfig.quem_somos) globalConfig.quem_somos = {};
+      globalConfig.quem_somos.data_fundacao = valFund;
+      globalConfig.quem_somos.ano_fundacao = globalConfig.instituicao.ano_fundacao;
       globalConfig.instituicao.cnpj = document.getElementById("adm-cnpj").value;
       globalConfig.instituicao.registro_osc = document.getElementById("adm-registro-osc").value;
       globalConfig.instituicao.utilidade_publica = document.getElementById("adm-utilidade-publica").value;
