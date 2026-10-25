@@ -66,7 +66,7 @@
       {
         "nome": "Esquadrão Rosa",
         "cargo": "Coração Pulsante do Projeto",
-        "foto": "/assets/img/design_sobrancelhas_voluntarias.jpg",
+        "foto": "/assets/img/esquadrao_rosa_oficial.jpg",
         "bio": "Voluntárias e profissionais da beleza que dedicam tempo, talento, amor e compromisso para acolher, atender e capacitar cada aluna e participante."
       },
       {
@@ -238,9 +238,9 @@
         "url": "/assets/img/rayane_gomes_palestrante.jpg"
       },
       {
-        "titulo": "A Força e União do Esquadrão Rosa",
+        "titulo": "Esquadrão Rosa: União e Transformação",
         "categoria": "Comunidade",
-        "url": "/assets/img/rayane_gomes_fundadora.jpg"
+        "url": "/assets/img/esquadrao_rosa_oficial.jpg"
       }
     ]
   },
@@ -411,7 +411,7 @@
         "titulo": "Esquadrão Rosa: a rede de voluntárias que move o Spa Glow Party",
         "data": "12 de Outubro de 2026",
         "categoria": "Comunidade",
-        "foto": "/assets/img/design_sobrancelhas_voluntarias.jpg",
+        "foto": "/assets/img/esquadrao_rosa_oficial.jpg",
         "resumo": "Profissionais da beleza e voluntárias dedicam seu talento e tempo para acolher, empoderar e inspirar centenas de mulheres.",
         "conteudo_completo": "Se o Spa Glow Party é um sonho que transforma vidas, o Esquadrão Rosa é o coração pulsante que faz esse sonho acontecer. Formado por mulheres voluntárias apaixonadas, o grupo atua no acolhimento, execução das oficinas e apoio logístico de cada ação social. Conheça como se juntar a essa causa e fazer a diferença."
       },
