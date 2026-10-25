@@ -741,6 +741,17 @@
           </div>
         </div>
 
+        <!-- Valores Sugeridos de Doação -->
+        <div class="pt-4 border-t border-slate-100 space-y-3">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Valores Sugeridos e Mensagens de Doação</h3>
+            <p class="text-xs text-slate-500">Valores e itens de impacto que aparecem nos cartões de doação da landing page.</p>
+          </div>
+          <div id="adm-valores-sugeridos-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Renderizado via JS -->
+          </div>
+        </div>
+
         <!-- Voluntariado & Formulário Google Forms -->
         <div class="pt-4 border-t border-slate-100 space-y-4">
           <div>
@@ -1549,12 +1560,29 @@
           document.getElementById("adm-voluntariado-link-forms").value = vLink;
           if (vLink) document.getElementById("adm-voluntariado-link-test").href = vLink;
         }
+
+        const vsContainer = document.getElementById("adm-valores-sugeridos-list");
+        if (vsContainer) {
+          const vsList = globalConfig.como_ajudar?.valores_sugeridos || [];
+          vsContainer.innerHTML = vsList.map((vs, idx) => `
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 adm-vs-item">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 uppercase mb-0.5">Valor</label>
+                <input type="text" value="${vs.valor}" class="w-full p-2 border rounded-lg text-sm adm-vs-valor">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 uppercase mb-0.5">Mensagem / Item de Impacto</label>
+                <input type="text" value="${vs.impacto}" class="w-full p-2 border rounded-lg text-sm adm-vs-impacto">
+              </div>
+            </div>
+          `).join("");
+        }
         atualizarPreviewPixAdmin();
 
         document.getElementById("adm-pix-chave").addEventListener("input", atualizarPreviewPixAdmin);
         document.getElementById("adm-pix-favorecido").addEventListener("input", atualizarPreviewPixAdmin);
 
-        // 6. Transparência & Documentos
+      // 6. Transparência & Documentos
         document.getElementById("adm-trans-subtitulo").value = globalConfig.transparencia?.subtitulo || "";
         document.getElementById("adm-cnpj").value = globalConfig.instituicao?.cnpj || "";
         document.getElementById("adm-registro-osc").value = globalConfig.instituicao?.registro_osc || "";
@@ -2351,6 +2379,14 @@
           const sep = elVLink.value.includes("?") ? "&" : "?";
           globalConfig.como_ajudar.voluntariado.link_embed = elVLink.value + sep + "embedded=true";
         }
+      }
+
+      const vsItems = document.querySelectorAll("#adm-valores-sugeridos-list .adm-vs-item");
+      if (vsItems.length > 0) {
+        globalConfig.como_ajudar.valores_sugeridos = Array.from(vsItems).map(item => ({
+          valor: item.querySelector(".adm-vs-valor")?.value.trim() || "",
+          impacto: item.querySelector(".adm-vs-impacto")?.value.trim() || ""
+        }));
       }
 
       // 6. Transparência & Documentos

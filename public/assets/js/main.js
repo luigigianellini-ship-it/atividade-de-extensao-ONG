@@ -256,6 +256,18 @@ function aplicarDadosNoDOM(config) {
       atualizarPixDinamico();
     }
 
+    // Valores Sugeridos Dinâmicos
+    const valContainer = document.getElementById("valores-sugeridos-grid");
+    if (valContainer && ajuda.valores_sugeridos && ajuda.valores_sugeridos.length > 0) {
+      valContainer.innerHTML = ajuda.valores_sugeridos.map(v => `
+        <button class="btn-valor-doacao p-3 rounded-2xl border border-slate-200 hover:border-emerald-500 text-center transition bg-slate-50 hover:bg-emerald-50 cursor-pointer" data-valor="${v.valor}">
+          <span class="block text-lg font-black text-slate-900">${v.valor}</span>
+          <span class="block text-[11px] text-slate-500 leading-tight mt-0.5">${v.impacto}</span>
+        </button>
+      `).join("");
+      configurarBotoesValoresDoacao();
+    }
+
     if (ajuda.dados_bancarios) {
       const b = ajuda.dados_bancarios;
       const bEl = document.getElementById("dados-bancarios-info");
@@ -532,6 +544,24 @@ function atualizarPixDinamico(valor = null) {
 }
 
 // Configurações de eventos interativos
+function configurarBotoesValoresDoacao() {
+  document.querySelectorAll(".btn-valor-doacao").forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll(".btn-valor-doacao").forEach(b => b.classList.remove("ring-2", "ring-emerald-500", "bg-emerald-50"));
+      btn.classList.add("ring-2", "ring-emerald-500", "bg-emerald-50");
+      
+      const valorStr = btn.getAttribute("data-valor") || "";
+      const numValor = valorStr.replace(/\D/g, "");
+      
+      if (typeof atualizarPixDinamico === 'function') {
+        atualizarPixDinamico(numValor);
+      }
+      showToast(`QR Code e chave PIX atualizados para ${valorStr}!`);
+    };
+  });
+}
+window.configurarBotoesValoresDoacao = configurarBotoesValoresDoacao;
+
 function inicializarEventos() {
   // 1. Botão Copiar Chave PIX
   const btnCopiarPix = document.getElementById("btn-copiar-pix");
@@ -574,20 +604,7 @@ function inicializarEventos() {
   }
 
   // 2. Botões de Valores Sugeridos (atualiza QR Code e Copia e Cola em tempo real)
-  document.querySelectorAll(".btn-valor-doacao").forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      document.querySelectorAll(".btn-valor-doacao").forEach(b => b.classList.remove("ring-2", "ring-emerald-500", "bg-emerald-50"));
-      btn.classList.add("ring-2", "ring-emerald-500", "bg-emerald-50");
-      
-      const valorStr = btn.getAttribute("data-valor"); // ex "R$ 30"
-      const numValor = valorStr.replace(/\D/g, ""); // "30"
-      
-      // Atualiza QR Code com o valor selecionado
-      atualizarPixDinamico(numValor);
-
-      showToast(`QR Code atualizado para doação de ${valorStr}! Pode escanear ou copiar.`);
-    });
-  });
+  configurarBotoesValoresDoacao();
 
   // 3. Envio do Formulário de Contato com Validação Estrita
   const formContato = document.getElementById("form-contato");
