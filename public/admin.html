@@ -529,6 +529,17 @@
           <input type="text" id="adm-hero-foto-legenda" class="w-full p-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-emerald-500">
         </div>
 
+        <div>
+          <label for="adm-hero-video" class="block text-xs font-bold text-slate-700 uppercase mb-1">Vídeo Oficial do Projeto (URL do Vídeo MP4)</label>
+          <div class="flex items-center gap-2">
+            <input type="text" id="adm-hero-video" class="flex-1 p-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-pink-500 font-mono" placeholder="/assets/videos/spa_glow_party.mp4">
+            <button type="button" onclick="abrirSeletorArquivo(this, 'video', '#adm-hero-video')" class="px-3 py-2.5 bg-pink-600 hover:bg-pink-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 whitespace-nowrap shadow-sm transition">
+              <i data-lucide="upload" class="w-4 h-4"></i> Subir Vídeo
+            </button>
+          </div>
+          <span class="text-xs text-slate-500 mt-1 block">Vídeo institucional em MP4 exibido no Hero e no botão "Assistir ao Vídeo".</span>
+        </div>
+
         <!-- Banner de Campanha Urgente -->
         <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-100 space-y-3">
           <div class="flex items-center gap-2">
@@ -1484,6 +1495,7 @@
         document.getElementById("adm-hero-foto").value = globalConfig.hero?.foto_url || "";
         document.getElementById("preview-hero-foto").src = globalConfig.hero?.foto_url || "";
         document.getElementById("adm-hero-foto-legenda").value = globalConfig.hero?.foto_legenda || "";
+        if (document.getElementById("adm-hero-video")) document.getElementById("adm-hero-video").value = globalConfig.hero?.video_url || "";
 
         document.getElementById("adm-campanha-ativa").checked = !!globalConfig.hero?.campanha_urgente?.ativa;
         document.getElementById("adm-campanha-titulo").value = globalConfig.hero?.campanha_urgente?.titulo || "";
@@ -2223,6 +2235,7 @@
       globalConfig.hero.subtitulo = document.getElementById("adm-hero-subtitulo").value;
       globalConfig.hero.foto_url = document.getElementById("adm-hero-foto").value;
       globalConfig.hero.foto_legenda = document.getElementById("adm-hero-foto-legenda").value;
+      if (document.getElementById("adm-hero-video")) globalConfig.hero.video_url = document.getElementById("adm-hero-video").value;
 
       if (!globalConfig.hero.campanha_urgente) globalConfig.hero.campanha_urgente = {};
       globalConfig.hero.campanha_urgente.ativa = document.getElementById("adm-campanha-ativa").checked;

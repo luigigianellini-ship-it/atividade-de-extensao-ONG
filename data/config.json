@@ -17,9 +17,9 @@
     "badge": "✨ Transformação Social, Autoestima e Oportunidades",
     "titulo_destaque": "Beleza que acolhe, autoestima que transforma e oportunidades que mudam vidas.",
     "subtitulo": "Muito mais do que um evento de beleza: uma experiência de acolhimento, valorização humana e capacitação profissional gratuita para pessoas em situação de vulnerabilidade.",
-    "foto_url": "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=1200&auto=format&fit=crop",
-    "foto_legenda": "Oficinas de formação profissional gratuita e acolhimento humano do Spa Glow Party",
-    "video_url": "",
+    "foto_url": "/assets/videos/spa_glow_party_poster.jpg",
+    "foto_legenda": "Vídeo Oficial: Conheça a transformação do Spa Glow Party",
+    "video_url": "/assets/videos/spa_glow_party.mp4",
     "campanha_urgente": {
       "ativa": true,
       "titulo": "Nova Turma de Formação em Maquiagem Gratuita",

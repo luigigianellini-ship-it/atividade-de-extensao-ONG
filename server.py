@@ -867,18 +867,64 @@ class ONGRequestHandler(BaseHTTPRequestHandler):
         if not content_type:
             content_type = 'application/octet-stream'
 
+        file_size = os.path.getsize(file_path)
+        range_header = self.headers.get('Range')
+
         try:
-            with open(file_path, 'rb') as f:
-                content = f.read()
-            self.send_response(200)
-            self.send_header('Content-Type', content_type)
-            self.send_header('Content-Length', str(len(content)))
-            self.end_headers()
-            self.wfile.write(content)
+            if range_header and range_header.startswith('bytes='):
+                # Suporte a HTTP Range Requests (streaming de video e audio para navegadores)
+                ranges = range_header[6:].split('-')
+                start = int(ranges[0]) if ranges[0] else 0
+                end = int(ranges[1]) if len(ranges) > 1 and ranges[1] else file_size - 1
+                if start >= file_size:
+                    self.send_response(416)
+                    self.send_header('Content-Range', f'bytes */{file_size}')
+                    self.end_headers()
+                    return
+                end = min(end, file_size - 1)
+                chunk_len = end - start + 1
+
+                self.send_response(206)
+                self.send_header('Content-Type', content_type)
+                self.send_header('Content-Range', f'bytes {start}-{end}/{file_size}')
+                self.send_header('Content-Length', str(chunk_len))
+                self.send_header('Accept-Ranges', 'bytes')
+                self.end_headers()
+
+                with open(file_path, 'rb') as f:
+                    f.seek(start)
+                    bytes_remaining = chunk_len
+                    buffer_size = 64 * 1024
+                    while bytes_remaining > 0:
+                        to_read = min(bytes_remaining, buffer_size)
+                        buf = f.read(to_read)
+                        if not buf:
+                            break
+                        self.wfile.write(buf)
+                        bytes_remaining -= len(buf)
+            else:
+                self.send_response(200)
+                self.send_header('Content-Type', content_type)
+                self.send_header('Content-Length', str(file_size))
+                self.send_header('Accept-Ranges', 'bytes')
+                self.end_headers()
+
+                with open(file_path, 'rb') as f:
+                    buffer_size = 64 * 1024
+                    while True:
+                        buf = f.read(buffer_size)
+                        if not buf:
+                            break
+                        self.wfile.write(buf)
+        except (ConnectionResetError, BrokenPipeError):
+            pass
         except Exception as e:
-            self.send_response(500)
-            self.end_headers()
-            self.wfile.write(f"Erro ao carregar arquivo: {str(e)}".encode('utf-8'))
+            try:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(f"Erro ao carregar arquivo: {str(e)}".encode('utf-8'))
+            except Exception:
+                pass
 
     def get_session_token(self):
         # 1. Verifica Cookie HTTP

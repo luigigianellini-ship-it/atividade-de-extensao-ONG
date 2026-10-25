@@ -910,7 +910,47 @@ function fecharModalNoticia() {
   }
 }
 
+// Modal Vídeo Oficial
+function abrirModalVideo() {
+  const modal = document.getElementById("modal-video");
+  const player = document.getElementById("player-video-modal");
+  if (modal) {
+    modal.classList.add("ativo");
+    modal.classList.remove("hidden");
+    modal.style.display = "flex";
+    if (player) {
+      player.play().catch(() => {});
+    }
+  }
+}
+
+function fecharModalVideo() {
+  const modal = document.getElementById("modal-video");
+  const player = document.getElementById("player-video-modal");
+  if (modal) {
+    modal.classList.remove("ativo");
+    modal.classList.add("hidden");
+    modal.style.display = "none";
+    if (player) {
+      player.pause();
+    }
+  }
+}
+
+// Fechar com tecla ESC
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    fecharModalVideo();
+    fecharModalDoacao();
+    fecharModalVoluntario();
+    fecharModalNoticia();
+    fecharLightbox();
+  }
+});
+
 // Garante disponibilidade global das funções no window
+window.abrirModalVideo = abrirModalVideo;
+window.fecharModalVideo = fecharModalVideo;
 window.abrirModalDoacao = abrirModalDoacao;
 window.fecharModalDoacao = fecharModalDoacao;
 window.abrirModalVoluntario = abrirModalVoluntario;
