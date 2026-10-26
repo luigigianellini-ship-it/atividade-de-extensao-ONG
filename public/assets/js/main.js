@@ -41,22 +41,49 @@ function showToast(mensagem, tipo = "sucesso") {
   }, 4500);
 }
 
-// Carrega os dados do backend ou usa fallback
+// Carrega os dados do backend com cache instantâneo e fallback direto na nuvem KVDB
 async function carregarConfiguracoes() {
+  // 1. Cache Local no Navegador (renderização instantânea sem tela em branco)
   try {
-    const res = await fetch("/api/config");
+    const cached = localStorage.getItem("sgp_site_config");
+    if (cached) {
+      siteConfig = JSON.parse(cached);
+      aplicarDadosNoDOM(siteConfig);
+    }
+  } catch (e) {}
+
+  // 2. Busca da API do Backend Python (/api/config)
+  try {
+    const res = await fetch("/api/config", { cache: "no-store" });
     if (res.ok) {
       siteConfig = await res.json();
-    } else {
-      console.warn("API de configuração indisponível, usando dados embutidos.");
-      siteConfig = getFallbackConfig();
+      try { localStorage.setItem("sgp_site_config", JSON.stringify(siteConfig)); } catch (e) {}
+      aplicarDadosNoDOM(siteConfig);
+      return;
     }
   } catch (err) {
-    console.warn("Erro ao buscar /api/config, usando fallback local:", err);
-    siteConfig = getFallbackConfig();
+    console.warn("Backend /api/config não respondeu (possível cold start), tentando nuvem permanente KVDB...", err);
   }
 
-  aplicarDadosNoDOM(siteConfig);
+  // 3. Fallback Direto na Nuvem Permanente (KVDB)
+  // Caso o container do Render esteja em modo de repouso (cold start de 50s no free tier)
+  try {
+    const cloudRes = await fetch("https://kvdb.io/CRiiwUrgTkUsVqFprcTA67/site_config", { cache: "no-store" });
+    if (cloudRes.ok) {
+      siteConfig = await cloudRes.json();
+      try { localStorage.setItem("sgp_site_config", JSON.stringify(siteConfig)); } catch (e) {}
+      aplicarDadosNoDOM(siteConfig);
+      return;
+    }
+  } catch (errCloud) {
+    console.warn("Nuvem KVDB indisponível, usando fallback embutido:", errCloud);
+  }
+
+  // 4. Fallback embutido com dados oficiais do Spa Glow Party
+  if (!siteConfig) {
+    siteConfig = getFallbackConfig();
+    aplicarDadosNoDOM(siteConfig);
+  }
 }
 
 // Aplica todos os dados nos elementos do HTML
@@ -1103,35 +1130,458 @@ window.alternarModoEscuro = alternarModoEscuro;
 window.atualizarIconeTema = atualizarIconeTema;
 
 // Dados de Fallback (caso abra o HTML estático direto pelo navegador sem o backend)
+// Dados de Fallback com todas as informações oficiais do Spa Glow Party
 function getFallbackConfig() {
   return {
-    meta: {
-      titulo_site: "Instituto Sementes do Amanhã"
+  "meta": {
+    "titulo_site": "SPA GLOW PARTY | Beleza que Acolhe, Autoestima que Transforma e Oportunidades que Mudam Vidas",
+    "descricao": "O Spa Glow Party é um projeto de transformação social idealizado por Rayane Gomes, unindo acolhimento, beleza, capacitação profissional gratuita e a força do Esquadrão Rosa.",
+    "tema_cor_principal": "#EC4899"
+  },
+  "instituicao": {
+    "nome": "Spa Glow Party",
+    "sigla": "SGP",
+    "slogan": "Beleza que acolhe, autoestima que transforma e oportunidades que mudam vidas.",
+    "ano_fundacao": "2025",
+    "cnpj": "Iniciativa Rayane Gomes & Instituto Rainhas da Favela",
+    "registro_osc": "Uberaba / MG — Projeto de Transformação Social através da Beleza",
+    "utilidade_publica": "Desenvolvimento Humano, Inclusão Social e Capacitação Profissional Gratuita",
+    "data_fundacao": "15 de Julho de 2025"
+  },
+  "hero": {
+    "badge": "✨ Transformação Social, Autoestima e Oportunidades",
+    "titulo_destaque": "Beleza que acolhe, autoestima que transforma e oportunidades que mudam vidas.",
+    "subtitulo": "Muito mais do que um evento de beleza: uma experiência de acolhimento, valorização humana e capacitação profissional gratuita para pessoas em situação de vulnerabilidade.",
+    "foto_url": "/assets/img/rayane_gomes_fundadora.jpg",
+    "foto_legenda": "Rayane Gomes — Idealizadora do Spa Glow Party & Fundadora do Rainhas da Favela",
+    "video_url": "/assets/videos/spa_glow_party.mp4",
+    "campanha_urgente": {
+      "ativa": true,
+      "titulo": "Nova Turma de Formação em Maquiagem Gratuita",
+      "texto": "Apoie a capacitação de novas profissionais da beleza para geração de renda, dignidade e independência. Junte-se ao Esquadrão Rosa!",
+      "link_acao": "#como-ajudar"
     },
-    instituicao: {
-      nome: "Instituto Sementes do Amanhã",
-      sigla: "ISA",
-      slogan: "Educação, acolhimento e oportunidades para transformar realidades",
-      cnpj: "12.345.678/0001-90"
-    },
-    hero: {
-      badge: "🌱 Atuação em campo com amor e transparência",
-      titulo_destaque: "Reforço escolar gratuito, cultura e acolhimento para crianças da comunidade.",
-      subtitulo: "Acreditamos que a educação transforma realidades. Atendemos centenas de crianças com oficinas e alimentação balanceada.",
-      foto_url: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=1200&auto=format&fit=crop",
-      foto_legenda: "Oficina de leitura comunitária",
-      campanha_urgente: {
-        ativa: true,
-        titulo: "Campanha Volta às Aulas 2026",
-        texto: "Meta de 300 kits escolares completos. Participe com qualquer valor!"
-      }
-    },
-    como_ajudar: {
-      pix: {
-        chave: "pix@sementesdoamanha.org.br",
-        favorecido: "Instituto Sementes do Amanhã",
-        banco: "Banco Cooperativo Sicredi (748)"
-      }
+    "botoes": {
+      "doar": "Apoie o Projeto",
+      "voluntario": "Seja Voluntária (Esquadrão Rosa)",
+      "contato": "Fale Conosco"
     }
-  };
+  },
+  "quem_somos": {
+    "titulo": "O que é o Spa Glow Party?",
+    "subtitulo": "Conheça nosso propósito, a idealizadora Rayane Gomes e a força coletiva do Esquadrão Rosa.",
+    "historia": "O Spa Glow Party é um projeto de transformação social idealizado por Rayane Gomes, maquiadora profissional, palestrante e fundadora do Instituto Rainhas da Favela. Muito mais do que um evento de beleza, o Spa Glow Party é uma experiência de acolhimento, valorização humana, capacitação profissional e resgate da autoestima. O projeto nasceu da convicção de que a beleza pode ser uma poderosa ferramenta de transformação social, especialmente quando associada à educação, à solidariedade e à geração de oportunidades. Nosso propósito é alcançar pessoas que muitas vezes não têm acesso a cuidados pessoais, formação profissional ou espaços onde possam se sentir valorizadas, respeitadas e acolhidas. Não transformamos apenas aparências: ajudamos pessoas a redescobrirem seu valor, sua força e sua capacidade de recomeçar.",
+    "missao": "Promover autoestima, inclusão social, desenvolvimento pessoal e capacitação profissional por meio da beleza, da educação e do acolhimento, criando oportunidades para pessoas em situação de vulnerabilidade.",
+    "visao": "Nosso sonho não tem fronteiras: queremos levar o Spa Glow Party a diferentes bairros, cidades, estados e países, conectando pessoas e construindo uma rede de acolhimento, conhecimento e oportunidades cada vez mais longe.",
+    "valores": [
+      {
+        "titulo": "Beleza que Acolhe",
+        "descricao": "Cada atendimento é uma oportunidade de proporcionar carinho, atenção genuína, respeito às histórias individuais e valorização pessoal."
+      },
+      {
+        "titulo": "Capacitação Emancipatória",
+        "descricao": "Acreditamos que ensinar uma profissão é oferecer ferramentas concretas para construir independência financeira, dignidade e novas perspectivas de futuro."
+      },
+      {
+        "titulo": "Solidariedade em Ação",
+        "descricao": "Por meio de iniciativas como o Varal Solidário e campanhas de arrecadação, mobilizamos recursos e doações para quem mais precisa."
+      },
+      {
+        "titulo": "Força Coletiva do Esquadrão Rosa",
+        "descricao": "O projeto tem uma idealizadora, mas sua realização é uma conquista coletiva feita pelo amor, energia e dedicação das voluntárias."
+      }
+    ],
+    "equipe": [
+      {
+        "nome": "Rayane Gomes",
+        "cargo": "Idealizadora & Fundadora",
+        "foto": "/assets/img/rayane_gomes_fundadora.jpg",
+        "bio": "Maquiadora profissional, palestrante e fundadora do Instituto Rainhas da Favela. Dedica sua vida a transformar comunidades e resgatar a autoestima através da beleza e da solidariedade."
+      },
+      {
+        "nome": "Esquadrão Rosa",
+        "cargo": "Coração Pulsante do Projeto",
+        "foto": "/assets/img/esquadrao_rosa_oficial.jpg",
+        "bio": "Voluntárias e profissionais da beleza que dedicam tempo, talento, amor e compromisso para acolher, atender e capacitar cada aluna e participante."
+      },
+      {
+        "nome": "Instituto Rainhas da Favela & Comunidade",
+        "cargo": "Articulação Social & Força Comunitária",
+        "foto": "/assets/img/comunidade_unida_comemoracao.jpg",
+        "bio": "Rede comunitária que fortalece a inclusão social, abrindo oportunidades reais de geração de renda, dignidade e protagonismo para famílias em vulnerabilidade."
+      }
+    ],
+    "data_fundacao": "15 de Julho de 2025",
+    "ano_fundacao": "2025"
+  },
+  "o_que_fazemos": {
+    "titulo": "Como Funciona o Projeto?",
+    "subtitulo": "Reunimos profissionais da beleza, voluntários e empresas parceiras em ações de cuidado, aprendizado e fortalecimento pessoal.",
+    "publico_alvo": "Mulheres, adolescentes, jovens e famílias em situação de vulnerabilidade social, com acolhimento caloroso e respeito à diversidade.",
+    "regiao_atuacao": "Com trajetória consolidada em Uberaba (MG) — incluindo turmas formadas com a Casa de Sopa Adolfo Fritz — e expansão para novas comunidades.",
+    "projetos": [
+      {
+        "id": "beleza-autoestima",
+        "titulo": "Beleza e Autoestima",
+        "categoria": "Autocuidado & Dignidade",
+        "faixa_etaria": "Todas as idades",
+        "horario": "Mutirões e encontros comunitários",
+        "foto": "/assets/img/atendimento_estetica_spa.jpg",
+        "descricao": "Atividades de autocuidado, como maquiagem, cuidados com cabelos, design de sobrancelhas e outros serviços realizados por profissionais e voluntárias. Cada atendimento é uma oportunidade de proporcionar acolhimento e valorização pessoal.",
+        "icone": "sparkles"
+      },
+      {
+        "id": "capacitacao-profissional",
+        "titulo": "Capacitação Profissional Gratuita",
+        "categoria": "Formação & Renda",
+        "faixa_etaria": "Jovens e adultas",
+        "horario": "Cursos regulares e oficinas práticas",
+        "foto": "/assets/img/oficina_turma_maquiagem.jpg",
+        "descricao": "Formação de novas profissionais da área da beleza. Por meio de cursos e oficinas gratuitas, incentivamos o empreendedorismo e a inserção no mercado de trabalho, com histórico de turmas de 30 alunos formados em parceria com a Casa de Sopa Adolfo Fritz.",
+        "icone": "award"
+      },
+      {
+        "id": "acolhimento-desenvolvimento",
+        "titulo": "Acolhimento e Desenvolvimento Humano",
+        "categoria": "Empoderamento",
+        "faixa_etaria": "Comunidade em geral",
+        "horario": "Palestras e rodas de escuta",
+        "foto": "/assets/img/roda_conversa_ar_livre.jpg",
+        "descricao": "Palestras motivacionais, rodas de conversa, dinâmicas de valorização pessoal e encontros inspiradores que fortalecem a autoconfiança e incentivam os participantes a acreditarem nos seus próprios sonhos.",
+        "icone": "heart-handshake"
+      },
+      {
+        "id": "cultura-integracao",
+        "titulo": "Cultura, Alegria e Integração",
+        "categoria": "Celebração Comunitária",
+        "faixa_etaria": "Toda a família",
+        "horario": "Eventos e celebrações",
+        "foto": "/assets/videos/evento_glow_party_poster.jpg",
+        "video_url": "/assets/videos/evento_glow_party.mp4",
+        "descricao": "Nossos eventos reúnem música, dança, apresentações artísticas e momentos de festa e integração com maquiagens vibrantes neon, proporcionando vivências memoráveis e fortalecendo os laços comunitários.",
+        "icone": "music"
+      },
+      {
+        "id": "solidariedade-varal",
+        "titulo": "Solidariedade em Ação & Varal Solidário",
+        "categoria": "Apoio Social",
+        "faixa_etaria": "Famílias atendidas",
+        "horario": "Campanhas contínuas",
+        "foto": "/assets/img/bancada_maquiagem_oficina.jpg",
+        "descricao": "Mobilização de doações, roupas, agasalhos e produtos de beleza e higiene por meio do Varal Solidário e campanhas de arrecadação para apoiar famílias em vulnerabilidade.",
+        "icone": "gift"
+      }
+    ]
+  },
+  "impacto": {
+    "titulo": "Nosso Impacto Social",
+    "subtitulo": "A transformação que buscamos vai muito além da aparência: reconstruímos a autoestima e geramos autonomia real.",
+    "metricas": [
+      {
+        "valor": "30+",
+        "label": "Alunas Formadas em Maquiagem",
+        "detalhe": "Turma de formação profissional gratuita em Uberaba/MG"
+      },
+      {
+        "valor": "100%",
+        "label": "Atendimento Acolhedor e Gratuito",
+        "detalhe": "Resgate da autoestima, respeito à dignidade e novas perspectivas"
+      },
+      {
+        "valor": "5",
+        "label": "Pilares de Transformação Social",
+        "detalhe": "Beleza, capacitação, desenvolvimento humano, cultura e solidariedade"
+      },
+      {
+        "valor": "∞",
+        "label": "Sonho Sem Fronteiras",
+        "detalhe": "Conectando pessoas para levar essa rede a novos bairros, cidades e estados"
+      }
+    ],
+    "depoimentos": [
+      {
+        "nome": "Rayane Gomes",
+        "cargo": "Idealizadora do Spa Glow Party & Palestrante",
+        "foto": "/assets/img/rayane_gomes_perfil.jpg",
+        "texto": "Não transformamos apenas aparências. Ajudamos pessoas a redescobrirem seu valor, sua força e sua capacidade de recomeçar. A beleza é uma poderosa ferramenta de transformação social quando associada à educação e à solidariedade.",
+        "autorizacao": "Depoimento da idealizadora e fundadora",
+        "video_url": "/assets/videos/spa_glow_party.mp4"
+      },
+      {
+        "nome": "Aluna de Formação Profissional",
+        "cargo": "Turma de Maquiagem Gratuita (Uberaba/MG)",
+        "foto": "/assets/videos/depoimento_aluna_1_poster.jpg",
+        "texto": "Aprender uma profissão de forma gratuita mudou a minha perspectiva de futuro. O projeto me deu confiança, independência e a certeza de que sou capaz de transformar a minha realidade através da beleza.",
+        "autorizacao": "Depoimento em vídeo de aluna formada",
+        "video_url": "/assets/videos/depoimento_aluna_1.mp4"
+      },
+      {
+        "nome": "Participante & Voluntária",
+        "cargo": "Acolhida pelo Esquadrão Rosa",
+        "foto": "/assets/videos/depoimento_aluna_2_poster.jpg",
+        "texto": "Estar no Spa Glow Party é se sentir amada e respeitada. O carinho e a atenção com que fomos acolhidas desde o primeiro dia me inspiraram a continuar sonhando e querendo retribuir todo esse amor.",
+        "autorizacao": "Depoimento em vídeo de aluna do projeto",
+        "video_url": "/assets/videos/depoimento_aluna_2.mp4"
+      },
+      {
+        "nome": "Aluno da Turma de Maquiagem",
+        "cargo": "Capacitação e Geração de Renda",
+        "foto": "/assets/videos/depoimento_aluno_3_poster.jpg",
+        "texto": "A maquiagem abriu portas que eu nunca imaginei. A equipe me acolheu com tanto carinho, me ensinou técnicas incríveis e me deu coragem para atender clientes e começar a minha própria renda.",
+        "autorizacao": "Depoimento em vídeo de aluno beneficiado",
+        "video_url": "/assets/videos/depoimento_aluno_3.mp4"
+      }
+    ],
+    "galeria": [
+      {
+        "titulo": "Turma de Formação Gratuita em Maquiagem",
+        "categoria": "Capacitação",
+        "url": "/assets/img/oficina_turma_maquiagem.jpg"
+      },
+      {
+        "titulo": "Atendimento Facial no Spa Glow Party",
+        "categoria": "Beleza",
+        "url": "/assets/img/atendimento_estetica_spa.jpg"
+      },
+      {
+        "titulo": "Roda de Conversa e Desenvolvimento Humano",
+        "categoria": "Acolhimento",
+        "url": "/assets/img/roda_conversa_ar_livre.jpg"
+      },
+      {
+        "titulo": "Comunidade, Alunas e Voluntárias Unidas",
+        "categoria": "Comunidade",
+        "url": "/assets/img/comunidade_unida_comemoracao.jpg"
+      },
+      {
+        "titulo": "Design de Sobrancelhas pelo Esquadrão Rosa",
+        "categoria": "Voluntariado",
+        "url": "/assets/img/design_sobrancelhas_voluntarias.jpg"
+      },
+      {
+        "titulo": "Bancada Prática e Cosméticos Profissionais",
+        "categoria": "Capacitação",
+        "url": "/assets/img/bancada_maquiagem_oficina.jpg"
+      },
+      {
+        "titulo": "Noite Spa Glow Party com Maquiagem Neon",
+        "categoria": "Eventos",
+        "url": "/assets/videos/evento_glow_party_poster.jpg",
+        "video_url": "/assets/videos/evento_glow_party.mp4"
+      },
+      {
+        "titulo": "Rayane Gomes em Palestra Motivacional",
+        "categoria": "Acolhimento",
+        "url": "/assets/img/rayane_gomes_palestrante.jpg"
+      },
+      {
+        "titulo": "Esquadrão Rosa: União e Transformação",
+        "categoria": "Comunidade",
+        "url": "/assets/img/esquadrao_rosa_oficial.jpg"
+      }
+    ]
+  },
+  "como_ajudar": {
+    "titulo": "Seja um Parceiro do Spa Glow Party",
+    "subtitulo": "Empresas, profissionais e apoiadores podem contribuir com patrocínios, materiais, serviços, apoio logístico ou juntando-se ao Esquadrão Rosa.",
+    "pix": {
+      "chave": "+5534999990000",
+      "tipo_chave": "Telefone Celular",
+      "favorecido": "Spa Glow Party / Rayane Gomes",
+      "banco": "Banco Digital / Chave PIX",
+      "cnpj": "Projeto Social Spa Glow Party"
+    },
+    "dados_bancarios": {
+      "banco": "Banco Inter / Conta Social",
+      "agencia": "0001",
+      "conta_corrente": "1234567-8",
+      "titular": "Spa Glow Party - Rayane Gomes",
+      "cnpj": "Iniciativa Social Rayane Gomes"
+    },
+    "valores_sugeridos": [
+      {
+        "valor": "R$ 30",
+        "impacto": "Kit de pincéis de maquiagem"
+      },
+      {
+        "valor": "R$ 60",
+        "impacto": "Maleta de maquiagem para os alunos"
+      },
+      {
+        "valor": "R$ 120",
+        "impacto": "Kit de criação de conteúdo (tripé e suporte para celular)"
+      },
+      {
+        "valor": "R$ 250",
+        "impacto": "Kit de maquiagem"
+      }
+    ],
+    "doacao_itens": {
+      "titulo": "Doação de Materiais e Produtos de Beleza",
+      "descricao": "Recebemos produtos de maquiagem, itens de higiene, roupas para o Varal Solidário e materiais para nossas oficinas:",
+      "itens": [
+        {
+          "item": "Pincéis, esponjas e maquiagens novas ou lacradas",
+          "status": "Urgente",
+          "cor": "red"
+        },
+        {
+          "item": "Produtos para cuidados com cabelos e pele",
+          "status": "Urgente",
+          "cor": "red"
+        },
+        {
+          "item": "Roupas e calçados em bom estado para o Varal Solidário",
+          "status": "Contínuo",
+          "cor": "blue"
+        },
+        {
+          "item": "Espelhos, iluminadores e itens de apoio para cursos",
+          "status": "Necessário",
+          "cor": "amber"
+        },
+        {
+          "item": "Kits de higiene pessoal e autocuidado feminino",
+          "status": "Urgente",
+          "cor": "red"
+        }
+      ]
+    },
+    "voluntariado": {
+      "titulo": "Junte-se ao Esquadrão Rosa",
+      "descricao": "O Esquadrão Rosa é formado por voluntárias que dedicam tempo, talento, energia e amor para tornar cada ação possível. Doe seu talento e ajude a transformar vidas!",
+      "areas": [
+        "Maquiagem e Autocuidado",
+        "Cuidados com Cabelos e Penteados",
+        "Design de Sobrancelhas e Estética",
+        "Instrutora de Cursos e Oficinas Profissionais",
+        "Palestras Motivacionais e Acolhimento",
+        "Organização, Acolhimento e Logística de Eventos",
+        "Fotografia, Filmagem e Redes Sociais",
+        "Varal Solidário e Arrecadação de Doações",
+        "Apoio Geral e Integração Comunitária"
+      ],
+      "link_formulario": "https://forms.gle/EXf95hre8ezb4zNd9",
+      "link_embed": "https://docs.google.com/forms/d/e/1FAIpQLSdPWdeM72hoVf4qhRpqP8mWYVx4G70UgFXbeen7GShEvyijQA/viewform?embedded=true"
+    },
+    "parcerias_empresas": {
+      "titulo": "Sua Empresa Pode Fazer a Diferença",
+      "descricao": "Empresas e marcas de beleza podem apoiar com patrocínios, produtos, apoio logístico e responsabilidade social alinhada às diretrizes ESG.",
+      "beneficios": [
+        "Doação de kits e produtos para alunas das turmas de capacitação gratuita",
+        "Visibilidade da marca no site, redes sociais e eventos do projeto",
+        "Ações de voluntariado corporativo presenciais com o Esquadrão Rosa",
+        "Impacto social direto na geração de renda e fortalecimento de mulheres"
+      ]
+    }
+  },
+  "transparencia": {
+    "titulo": "Transparência e Compromisso",
+    "subtitulo": "Prestação de contas aberta, relatórios de impacto e compromisso com a transformação social.",
+    "documentos_legais": [
+      {
+        "nome": "Apresentação Institucional Spa Glow Party",
+        "descricao": "Missão, metodologia de atendimento, público-alvo e histórico do projeto",
+        "arquivo": "/public/docs/cartao_cnpj_exemplo.pdf"
+      },
+      {
+        "nome": "Termo de Parceria Social - Casa de Sopa Adolfo Fritz",
+        "descricao": "Registro de cooperação comunitária para realização dos cursos em Uberaba/MG",
+        "arquivo": "/public/docs/certificado_osc_exemplo.pdf"
+      },
+      {
+        "nome": "Manual de Voluntariado do Esquadrão Rosa",
+        "descricao": "Diretrizes de acolhimento, conduta e atuação em mutirões de beleza",
+        "arquivo": "/public/docs/cnd_federal_exemplo.pdf"
+      }
+    ],
+    "relatorios_atividades": [
+      {
+        "ano": "2026",
+        "titulo": "Relatório de Atividades e Formação Profissional 2026",
+        "status": "Ações em Andamento",
+        "link": "/public/docs/relatorio_anual_2025.pdf"
+      },
+      {
+        "ano": "2025",
+        "titulo": "Balanço de Atendimentos e Turmas Formadas 2025",
+        "status": "Concluído e Disponível",
+        "link": "/public/docs/relatorio_anual_2024.pdf"
+      }
+    ],
+    "destinacao_recursos": {
+      "descricao": "Veja graficamente como cada recurso e doação é aplicado diretamente na transformação das vidas atendidas:",
+      "distribuicao": [
+        {
+          "categoria": "Kits e Insumos para Cursos Profissionalizantes Gratuitos",
+          "percentual": 50,
+          "cor": "#ec4899"
+        },
+        {
+          "categoria": "Mutirões de Beleza, Acolhimento e Eventos Comunitários",
+          "percentual": 30,
+          "cor": "#db2777"
+        },
+        {
+          "categoria": "Logística, Varal Solidário e Apoio a Famílias",
+          "percentual": 20,
+          "cor": "#f59e0b"
+        }
+      ]
+    }
+  },
+  "noticias_blog": {
+    "titulo": "Últimas Notícias e Ações",
+    "subtitulo": "Acompanhe as oficinas, histórias de superação e novidades do Spa Glow Party.",
+    "artigos": [
+      {
+        "id": "formatura-turma-maquiagem-uberaba",
+        "titulo": "Turma de 30 alunas conclui curso gratuito de maquiagem profissional em Uberaba",
+        "data": "20 de Outubro de 2026",
+        "categoria": "Capacitação",
+        "foto": "/assets/img/oficina_turma_maquiagem.jpg",
+        "resumo": "Em ação vinculada à Casa de Sopa Adolfo Fritz, 30 mulheres concluíram a formação prática para geração de renda e autonomia.",
+        "conteudo_completo": "O Spa Glow Party comemorou a formatura de mais uma turma de maquiagem profissional gratuita em Uberaba/MG. A iniciativa, realizada em parceria com a Casa de Sopa Adolfo Fritz, ofereceu aulas práticas, técnicas profissionais e desenvolvimento do espírito empreendedor, reforçando o compromisso do projeto em transformar conhecimento em oportunidades reais de independência e dignidade."
+      },
+      {
+        "id": "esquadrao-rosa-forca-voluntariado",
+        "titulo": "Esquadrão Rosa: a rede de voluntárias que move o Spa Glow Party",
+        "data": "12 de Outubro de 2026",
+        "categoria": "Comunidade",
+        "foto": "/assets/img/esquadrao_rosa_oficial.jpg",
+        "resumo": "Profissionais da beleza e voluntárias dedicam seu talento e tempo para acolher, empoderar e inspirar centenas de mulheres.",
+        "conteudo_completo": "Se o Spa Glow Party é um sonho que transforma vidas, o Esquadrão Rosa é o coração pulsante que faz esse sonho acontecer. Formado por mulheres voluntárias apaixonadas, o grupo atua no acolhimento, execução das oficinas e apoio logístico de cada ação social. Conheça como se juntar a essa causa e fazer a diferença."
+      },
+      {
+        "id": "varal-solidario-mobilizacao",
+        "titulo": "Varal Solidário e campanhas mobilizam doações e fortalecem famílias",
+        "data": "02 de Outubro de 2026",
+        "categoria": "Solidariedade",
+        "foto": "/assets/img/comunidade_unida_comemoracao.jpg",
+        "resumo": "Iniciativa comunitária distribui roupas, agasalhos e kits de autocuidado para pessoas em situação de vulnerabilidade.",
+        "conteudo_completo": "Além da capacitação e dos atendimentos de beleza, o Spa Glow Party mantém viva a solidariedade em ação por meio do Varal Solidário. A ação arrecadou roupas, calçados e produtos de autocuidado essenciais, distribuídos diretamente a famílias da comunidade. O carinho e a dignidade chegam de mãos dadas com cada doação."
+      }
+    ]
+  },
+  "contato": {
+    "titulo": "Faça Parte Dessa Transformação",
+    "subtitulo": "Existe algo poderoso em fazer alguém voltar a sorrir, acreditar em si e enxergar possibilidades onde antes existiam dificuldades.",
+    "endereco_completo": "Uberaba - Minas Gerais, Brasil",
+    "ponto_referencia": "Ações comunitárias integradas (Casa de Sopa Adolfo Fritz e comunidades parceiras)",
+    "telefone": "(34) 99999-0000",
+    "whatsapp": "(34) 99999-0000",
+    "whatsapp_link": "https://wa.me/5534999990000?text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20o%20Spa%20Glow%20Party%20e%20como%20apoiar%20ou%20participar.",
+    "email_geral": "contato@spaglowparty.org",
+    "email_doacoes": "parcerias@spaglowparty.org",
+    "horario_funcionamento": "Segunda a Sábado com oficinas e mutirões agendados",
+    "redes_sociais": {
+      "instagram": "https://instagram.com/rayanegomesoficial",
+      "facebook": "https://facebook.com/spaglowparty",
+      "youtube": "https://youtube.com/@spaglowparty",
+      "linkedin": "https://linkedin.com/company/spaglowparty"
+    },
+    "mapa_embed_url": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d120562.33923984364!2d-47.99427672322304!3d-19.747306232338148!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94bad1b621516f49%3A0xbc4e57e3bf8e29a9!2sUberaba%2C%20MG!5e0!3m2!1spt-BR!2sbr!4v1700000000000!5m2!1spt-BR!2sbr"
+  },
+  "_atualizado_em": "2026-10-25T19:07:51.309388"
+};
 }

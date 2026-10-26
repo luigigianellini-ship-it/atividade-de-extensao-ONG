@@ -343,6 +343,11 @@
           <i data-lucide="moon" id="icon-theme" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
         </button>
 
+        <button type="button" onclick="baixarConfigJson()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1 transition" title="Baixar arquivo config.json com todas as alterações">
+          <i data-lucide="download" class="w-3.5 h-3.5 text-pink-400"></i>
+          <span class="hidden sm:inline">Exportar JSON</span>
+        </button>
+
         <a href="/" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1 transition" title="Ver Site">
           <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
           <span class="hidden sm:inline">Ver Site</span>
@@ -1507,6 +1512,22 @@
       if (abaNome === 'inbox') atualizarInboxAtual();
       if (window.lucide) lucide.createIcons();
     }
+
+        function baixarConfigJson() {
+      if (!globalConfig) {
+        showToast("Carregando dados para exportar...", "aviso");
+        return;
+      }
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(globalConfig, null, 2));
+      const downloadAnchor = document.createElement("a");
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "config.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast("Arquivo config.json baixado com sucesso!", "sucesso");
+    }
+    window.baixarConfigJson = baixarConfigJson;
 
     async function carregarDadosConfig() {
       try {

@@ -103,38 +103,22 @@ def sincronizar_config_nuvem():
     except Exception as e:
         print(f"[AVISO] Não foi possível contatar nuvem KVDB (mantendo arquivo local): {e}")
 
-    # Decisão inteligente de sincronização bidirecional
+    # A nuvem (KVDB) armazena as alterações do usuário no painel administrativo.
+    # Em qualquer deploy ou reinício do container (ex: Render), as alterações da nuvem
+    # DEVEM PREVALECER para que o deploy de código NUNCA apague o conteúdo editado no admin!
     if cloud_cfg and isinstance(cloud_cfg, dict) and "instituicao" in cloud_cfg:
-        cloud_time_str = cloud_cfg.get("_atualizado_em")
-        local_time_str = local_cfg.get("_atualizado_em") if local_cfg else None
-
-        deve_usar_nuvem = True
-        if local_cfg and local_time_str and cloud_time_str:
-            try:
-                t_local = datetime.fromisoformat(local_time_str)
-                t_cloud = datetime.fromisoformat(cloud_time_str)
-                if t_local > t_cloud:
-                    deve_usar_nuvem = False
-            except Exception:
-                pass
-        elif local_cfg and not cloud_time_str and local_time_str:
-            deve_usar_nuvem = False
-
-        if deve_usar_nuvem:
-            tmp_file = CONFIG_FILE + ".tmp"
-            with open(tmp_file, 'w', encoding='utf-8') as f:
-                json.dump(cloud_cfg, f, ensure_ascii=False, indent=2)
-                f.flush()
-                os.fsync(f.fileno())
-            os.replace(tmp_file, CONFIG_FILE)
-            print("[PERSISTÊNCIA] Configurações sincronizadas da nuvem permanente com sucesso!")
-            return cloud_cfg
-        else:
-            salvar_config_nuvem(local_cfg)
-            print("[PERSISTÊNCIA] Configurações locais mais recentes sincronizadas para a nuvem com sucesso!")
-            return local_cfg
+        tmp_file = CONFIG_FILE + ".tmp"
+        with open(tmp_file, 'w', encoding='utf-8') as f:
+            json.dump(cloud_cfg, f, ensure_ascii=False, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_file, CONFIG_FILE)
+        print("[PERSISTÊNCIA] Configurações da nuvem (Admin) restauradas com sucesso após deploy/reboot!")
+        return cloud_cfg
     elif local_cfg:
+        # Se a nuvem estiver vazia na primeira vez, inicializa com o arquivo local
         salvar_config_nuvem(local_cfg)
+        print("[PERSISTÊNCIA] Nuvem inicializada com as configurações locais padrão!")
         return local_cfg
 
     return None
