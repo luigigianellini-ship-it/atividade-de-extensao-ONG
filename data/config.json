@@ -22,7 +22,7 @@
     "foto_legenda": "Rayane Gomes — Idealizadora do Spa Glow Party & Fundadora do Rainhas da Favela",
     "video_url": "/assets/videos/spa_glow_party.mp4",
     "campanha_urgente": {
-      "ativa": true,
+      "ativa": false,
       "titulo": "Nova Turma de Formação em Maquiagem Gratuita",
       "texto": "Apoie a capacitação de novas profissionais da beleza para geração de renda, dignidade e independência. Junte-se ao Esquadrão Rosa!",
       "link_acao": "#como-ajudar"
@@ -123,7 +123,6 @@
         "faixa_etaria": "Toda a família",
         "horario": "Eventos e celebrações",
         "foto": "/assets/videos/evento_glow_party_poster.jpg",
-        "video_url": "/assets/videos/evento_glow_party.mp4",
         "descricao": "Nossos eventos reúnem música, dança, apresentações artísticas e momentos de festa e integração com maquiagens vibrantes neon, proporcionando vivências memoráveis e fortalecendo os laços comunitários.",
         "icone": "music"
       },
@@ -170,32 +169,28 @@
         "cargo": "Idealizadora do Spa Glow Party & Palestrante",
         "foto": "/assets/img/rayane_gomes_perfil.jpg",
         "texto": "Não transformamos apenas aparências. Ajudamos pessoas a redescobrirem seu valor, sua força e sua capacidade de recomeçar. A beleza é uma poderosa ferramenta de transformação social quando associada à educação e à solidariedade.",
-        "autorizacao": "Depoimento da idealizadora e fundadora",
-        "video_url": "/assets/videos/spa_glow_party.mp4"
+        "autorizacao": "Depoimento da idealizadora e fundadora"
       },
       {
         "nome": "Aluna de Formação Profissional",
         "cargo": "Turma de Maquiagem Gratuita (Uberaba/MG)",
         "foto": "/assets/videos/depoimento_aluna_1_poster.jpg",
         "texto": "Aprender uma profissão de forma gratuita mudou a minha perspectiva de futuro. O projeto me deu confiança, independência e a certeza de que sou capaz de transformar a minha realidade através da beleza.",
-        "autorizacao": "Depoimento em vídeo de aluna formada",
-        "video_url": "/assets/videos/depoimento_aluna_1.mp4"
+        "autorizacao": "Depoimento em vídeo de aluna formada"
       },
       {
         "nome": "Participante & Voluntária",
         "cargo": "Acolhida pelo Esquadrão Rosa",
         "foto": "/assets/videos/depoimento_aluna_2_poster.jpg",
         "texto": "Estar no Spa Glow Party é se sentir amada e respeitada. O carinho e a atenção com que fomos acolhidas desde o primeiro dia me inspiraram a continuar sonhando e querendo retribuir todo esse amor.",
-        "autorizacao": "Depoimento em vídeo de aluna do projeto",
-        "video_url": "/assets/videos/depoimento_aluna_2.mp4"
+        "autorizacao": "Depoimento em vídeo de aluna do projeto"
       },
       {
         "nome": "Aluno da Turma de Maquiagem",
         "cargo": "Capacitação e Geração de Renda",
         "foto": "/assets/videos/depoimento_aluno_3_poster.jpg",
         "texto": "A maquiagem abriu portas que eu nunca imaginei. A equipe me acolheu com tanto carinho, me ensinou técnicas incríveis e me deu coragem para atender clientes e começar a minha própria renda.",
-        "autorizacao": "Depoimento em vídeo de aluno beneficiado",
-        "video_url": "/assets/videos/depoimento_aluno_3.mp4"
+        "autorizacao": "Depoimento em vídeo de aluno beneficiado"
       }
     ],
     "galeria": [
@@ -232,8 +227,7 @@
       {
         "titulo": "Noite Spa Glow Party com Maquiagem Neon",
         "categoria": "Eventos",
-        "url": "/assets/videos/evento_glow_party_poster.jpg",
-        "video_url": "/assets/videos/evento_glow_party.mp4"
+        "url": "/assets/videos/evento_glow_party_poster.jpg"
       },
       {
         "titulo": "Rayane Gomes em Palestra Motivacional",
@@ -251,18 +245,18 @@
     "titulo": "Seja um Parceiro do Spa Glow Party",
     "subtitulo": "Empresas, profissionais e apoiadores podem contribuir com patrocínios, materiais, serviços, apoio logístico ou juntando-se ao Esquadrão Rosa.",
     "pix": {
-      "chave": "+5534999990000",
+      "chave": "098.717.316-20",
       "tipo_chave": "Telefone Celular",
       "favorecido": "Spa Glow Party / Rayane Gomes",
       "banco": "Banco Digital / Chave PIX",
       "cnpj": "Projeto Social Spa Glow Party"
     },
     "dados_bancarios": {
-      "banco": "Banco Inter / Conta Social",
-      "agencia": "0001",
-      "conta_corrente": "1234567-8",
+      "banco": "",
+      "agencia": "",
+      "conta_corrente": "",
       "titular": "Spa Glow Party - Rayane Gomes",
-      "cnpj": "Iniciativa Social Rayane Gomes"
+      "cnpj": "Iniciativa Rayane Gomes & Instituto Rainhas da Favela"
     },
     "valores_sugeridos": [
       {
@@ -346,33 +340,17 @@
     "subtitulo": "Prestação de contas aberta, relatórios de impacto e compromisso com a transformação social.",
     "documentos_legais": [
       {
-        "nome": "Apresentação Institucional Spa Glow Party",
-        "descricao": "Missão, metodologia de atendimento, público-alvo e histórico do projeto",
-        "arquivo": "/public/docs/cartao_cnpj_exemplo.pdf"
-      },
-      {
-        "nome": "Termo de Parceria Social - Casa de Sopa Adolfo Fritz",
-        "descricao": "Registro de cooperação comunitária para realização dos cursos em Uberaba/MG",
-        "arquivo": "/public/docs/certificado_osc_exemplo.pdf"
-      },
-      {
-        "nome": "Manual de Voluntariado do Esquadrão Rosa",
-        "descricao": "Diretrizes de acolhimento, conduta e atuação em mutirões de beleza",
-        "arquivo": "/public/docs/cnd_federal_exemplo.pdf"
+        "nome": "",
+        "descricao": "",
+        "arquivo": ""
       }
     ],
     "relatorios_atividades": [
       {
-        "ano": "2026",
-        "titulo": "Relatório de Atividades e Formação Profissional 2026",
-        "status": "Ações em Andamento",
-        "link": "/public/docs/relatorio_anual_2025.pdf"
-      },
-      {
-        "ano": "2025",
-        "titulo": "Balanço de Atendimentos e Turmas Formadas 2025",
-        "status": "Concluído e Disponível",
-        "link": "/public/docs/relatorio_anual_2024.pdf"
+        "ano": "",
+        "titulo": "",
+        "status": "",
+        "link": ""
       }
     ],
     "destinacao_recursos": {
@@ -448,5 +426,5 @@
     },
     "mapa_embed_url": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d120562.33923984364!2d-47.99427672322304!3d-19.747306232338148!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94bad1b621516f49%3A0xbc4e57e3bf8e29a9!2sUberaba%2C%20MG!5e0!3m2!1spt-BR!2sbr!4v1700000000000!5m2!1spt-BR!2sbr"
   },
-  "_atualizado_em": "2026-10-25T19:07:51.309388"
+  "_atualizado_em": "2026-10-26T21:44:13.839219"
 }

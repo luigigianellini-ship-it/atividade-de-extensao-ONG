@@ -1,125 +1,134 @@
-# 🌱 Landing Page Completa para ONG / Projeto Social
+# 🌸 Spa Glow Party — Non-Profit Landing Page & Management System
 
-Landing Page profissional, responsiva, moderna e acolhedora, desenvolvida sob medida para ONGs, coletivos comunitários e projetos sociais.
-
----
-
-## 📋 Estrutura Completa das 8 Seções
-
-1. **Página Inicial Clara (Hero)**:
-   - Frase curta e marcante explicando o que faz e para quem.
-   - Foto real e expressiva do trabalho em andamento.
-   - 3 botões de ação de alto contraste: **"Doe Agora"**, **"Seja Voluntário"** e **"Fale Conosco"**.
-   - Barra superior com alerta para campanhas urgentes (ex.: Volta às Aulas, Inverno Solidário).
-
-2. **Quem Somos**:
-   - História real da fundação e motivação da organização.
-   - Missão, Visão e Valores fundamentais em cards destacados.
-   - Equipe e fundadores com fotos, nomes e minibiografias para gerar máxima credibilidade.
-
-3. **O Que Fazemos**:
-   - Descrição das atividades, oficinas e programas regulares (Educação, Esporte, Artes, Nutrição, Jovens).
-   - Público atendido (crianças, adolescentes e famílias vulneráveis).
-   - Região de atuação e polos comunitários.
-
-4. **Impacto e Resultados**:
-   - Números e contadores auditados (Crianças atendidas, Refeições servidas, Oficinas realizadas, Famílias apoiadas).
-   - Depoimentos reais de mães, alunos e voluntários com indicação de autorização de imagem.
-   - Galeria de fotos com visualizador Lightbox ao clicar.
-
-5. **Como Ajudar**:
-   - **Doações Financeiras**: Chave PIX oficial com botão "Copiar Chave", QR Code automático, valores sugeridos rápidos (R$ 30, R$ 60, R$ 120, R$ 250) e dados para transferência bancária.
-   - **Voluntariado**: Formulário com seleção de áreas de interesse e disponibilidade de horários.
-   - **Doação de Itens**: Tabela de necessidades atuais com status de urgência (alimentos, material escolar, higiene).
-   - **Parcerias com Empresas**: Seção focada em diretrizes ESG e leis de incentivo fiscal.
-
-6. **Transparência**:
-   - Gráfico de distribuição de recursos (*Para onde vai o dinheiro arrecadado?*).
-   - Links para download dos Relatórios Anuais de Atividades e DREs.
-   - Documentos oficiais (CNPJ ativo, Estatuto Social registrado, Certidão de OSC, Utilidade Pública).
-
-7. **Contato**:
-   - Endereço completo com ponto de referência.
-   - Telefone e link direto para WhatsApp (`wa.me`).
-   - E-mails institucionais e horário de funcionamento.
-   - Links para redes sociais (Instagram, Facebook, YouTube, LinkedIn).
-   - Mapa interativo do Google Maps.
-   - Formulário de contato funcional conectado à API Python.
-
-8. **Notícias ou Blog**:
-   - Cards com eventos, conquistas e campanhas ativas para mostrar que o projeto está vivo e atuante.
-   - Leitura completa de artigos em modal integrado.
+Professional, responsive, modern, and welcoming Landing Page and Web Application developed for **Spa Glow Party** — a social transformation project founded by Rayane Gomes in partnership with Instituto Rainhas da Favela and the Pink Squad (*Esquadrão Rosa*).
 
 ---
 
-## 🚀 Como Executar o Projeto
+## 📋 Comprehensive 8-Section Structure
 
-### Opção 1: No Windows (Mais Fácil)
-Dê um duplo clique no arquivo:
+1. **Impactful Hero Section**:
+   - Compelling core message highlighting social inclusion and self-esteem through beauty.
+   - Real high-resolution photography and video player modal for action and event highlights.
+   - Quick action buttons: **"Donate Now"** (Pix & bank transfer), **"Join the Pink Squad"** (volunteer enrollment), and **"Watch Video"**.
+   - Campaign banner for urgent community drives and workshops.
+
+2. **About Us (*Quem Somos*)**:
+   - Official foundation history (Founded on July 15, 2025).
+   - Core Mission, Vision, and Values in highlighted cards.
+   - Team & Leadership section featuring Rayane Gomes, Pink Squad (*Esquadrão Rosa*), and Instituto Rainhas da Favela with biographies and official portraits.
+
+3. **What We Do (*O Que Fazemos*)**:
+   - Core programs: Professional Beauty Training, Self-Care & Well-being Workshops, Human & Emotional Support, and Community Solidary Wardrobe (*Varal Solidário*).
+   - Target audience: vulnerable women, young adults, and families.
+   - Regional operations in Uberaba/MG and community hubs.
+
+4. **Impact & Results (*Impacto e Resultados*)**:
+   - Dynamic metrics and statistics counters.
+   - Interactive video testimonials from students and participants with an integrated modal player.
+   - Filterable multimedia gallery (Beauty, Training, Community, Events & Videos) with Lightbox viewer.
+
+5. **How to Help (*Como Ajudar*)**:
+   - **Financial Donations**: Official Pix key with one-click copy, automated QR Code, dynamic donation values (R$ 30, R$ 60, R$ 120, R$ 250) linked directly to supplies (brushes, makeup kits, mobile content kits), and bank transfer details.
+   - **Volunteer Program (Pink Squad)**: Integrated application card and official Google Forms modal.
+   - **Item Donation Wishlist**: Real-time urgent needs table (cosmetics, hair care, hygiene items, clothes).
+   - **Corporate Partnerships**: ESG-aligned initiatives and CSR sponsorship options.
+
+6. **Transparency & Governance (*Transparência*)**:
+   - Transparent resource allocation breakdown chart.
+   - Downloadable official activity reports and partnership agreements (e.g., Casa de Sopa Adolfo Fritz).
+   - Legal documents and public utility verification.
+
+7. **Contact & Location (*Contato*)**:
+   - Complete physical address and operational information.
+   - Direct WhatsApp integration (`wa.me`) and official communication channels.
+   - Interactive Google Maps embed.
+   - Validated contact form with database persistence and real-time validation.
+
+8. **News & Blog (*Notícias & Blog*)**:
+   - Dynamic cards showcasing recent graduations, volunteer events, and community updates.
+   - Full article reader modal.
+
+---
+
+## 🚀 How to Run the Project Locally
+
+### Option 1: On Windows (Quick Launch)
+Double-click the startup script:
 ```cmd
 iniciar.bat
 ```
-O script detectará o Python instalado no sistema, iniciará o servidor e abrirá o navegador automaticamente em `http://localhost:8000`.
+The script detects your local Python installation, starts the HTTP/API server, and automatically launches the website at `http://localhost:8000`.
 
-### Opção 2: Linha de Comando (Qualquer Sistema Operacional)
-Com o Python instalado, basta executar no terminal:
+### Option 2: Command Line (Any Operating System)
+With Python 3 installed, run:
 ```bash
 python server.py
 ```
-*(Caso esteja usando o MSYS2 ou python específico, use o caminho do seu executável, ex.: `C:\msys64\ucrt64\bin\python.exe server.py`)*
+*(If using MSYS2 or a custom Python path: `C:\msys64\ucrt64\bin\python.exe server.py`)*
 
-Acesse no seu navegador:
-- **Site Principal:** `http://localhost:8000`
-- **Painel de Edição (Admin):** `http://localhost:8000/admin`
+Access in your browser:
+- **Public Website:** `http://localhost:8000`
+- **Admin Control Panel:** `http://localhost:8000/admin`
+- **Admin Login:** `http://localhost:8000/login`
 
 ---
 
-## 🔒 Segurança e Credenciais (GitHub / Produção)
+## 🔒 Security & Environment Configuration
 
-O projeto usa **variáveis de ambiente** via arquivo `.env` para manter todas as senhas fora do GitHub:
+The application uses **environment variables** via a `.env` file to ensure credentials and secret keys are never committed to version control:
 
-1. O arquivo `.env` está registrado no `.gitignore` e **nunca é enviado para o repositório**.
-2. O banco de dados SQLite (`data/ong.db`) com as mensagens e voluntários também está protegido pelo `.gitignore`.
-3. Para definir seu usuário e senha no servidor ou host:
-   - Copie o arquivo `.env.example` para `.env`:
+1. The `.env` file is listed in `.gitignore` and **never pushed to GitHub**.
+2. The SQLite database (`data/ong.db`) is also protected from public repository commits.
+3. Configure your production/host variables:
+   - Copy `.env.example` to `.env`:
      ```bash
      cp .env.example .env
      ```
-   - Edite o `.env` com a sua senha desejada:
+   - Customize your environment settings:
      ```env
      ADMIN_USER=admin
-     ADMIN_PASSWORD=sua_senha_secreta_aqui
+     ADMIN_PASSWORD=your_secure_password_here
      PORT=8000
+     KVDB_BUCKET_URL=https://kvdb.io/CRiiwUrgTkUsVqFprcTA67/site_config
+     KVDB_DB_BACKUP_URL=https://kvdb.io/CRiiwUrgTkUsVqFprcTA67/site_db_backup
+     KVDB_HISTORICO_URL=https://kvdb.io/CRiiwUrgTkUsVqFprcTA67/site_db_historico
      ```
-   - O servidor lerá automaticamente as credenciais ao iniciar!
+   - If no password is provided on startup, a secure temporary access key is generated in the server console.
 
 ---
 
-## ✏️ Como Colocar as Informações Corretas
+## ✏️ Content Management & Cloud Persistence
 
-Você tem **duas formas super fáceis** de atualizar os textos, fotos e dados do site:
+You can update site copy, images, Pix keys, and suggested donation values through two convenient methods:
 
-### 1. Pelo Painel de Edição Visual no Navegador (Recomendado)
-1. Com o servidor rodando, abra: `http://localhost:8000/admin` (ou clique no link "Editar Informações" no rodapé do site).
-2. Você verá abas intuitivas organizadas exatamente pelas seções do site:
-   - Altere o nome da ONG, a frase de impacto e a foto do Hero.
-   - Atualize a Chave PIX, o Favorecido e os dados bancários.
-   - Altere os números de impacto (quantas pessoas foram atendidas).
-   - Atualize endereço, WhatsApp, redes sociais e história.
-   - Visualize na aba **"Mensagens & Voluntários"** todos os contatos e inscrições recebidos pelo site!
-3. Clique em **"Salvar Alterações"** no topo direito. Pronto! O site é atualizado instantaneamente.
+### 1. Web-based Visual Admin Dashboard (Recommended)
+1. With the server running, navigate to: `http://localhost:8000/admin` (or click "Painel Admin" in the footer/header).
+2. Authenticate with your administrator credentials.
+3. Enjoy an intuitive interface with organized tabs corresponding to each website section:
+   - Edit project details, slogan, foundation date, and Hero media.
+   - Adjust Pix keys, banking information, and suggested donation items.
+   - Update impact numbers, news articles, and gallery entries.
+   - Review and manage incoming contact messages and volunteer applications in **"Mensagens & Voluntários"**.
+   - Use the **"Exportar JSON"** button to download a local backup of `config.json` at any time.
+4. Click **"Salvar Alterações"**. The changes sync immediately to both local disk and persistent cloud storage.
 
-### 2. Editando o Arquivo `data/config.json`
-Se preferir editar diretamente no código, abra o arquivo:
+### 2. Editing `data/config.json` Directly
+If you prefer managing configurations in code:
 ```
 data/config.json
 ```
-Todos os textos, links, imagens e configurações estão organizados em formato JSON legível e bem estruturado. Quando salvar o arquivo, basta recarregar a página no navegador.
+All texts, media URLs, links, and parameters are structured in clean, human-readable JSON. Refresh the browser page to see changes.
+
+### ☁️ Resilient Cloud Persistence
+- **Bidirectional Cloud Sync**: Content edited in the Admin panel is synced to persistent KVDB storage.
+- **Deploy Protection**: Ephemeral containers (such as Render or cloud hosts) automatically restore all Admin configurations and database history upon redeployment, preventing any data loss.
+- **Atomic File Writing**: All updates to `config.json` use `.tmp` swap with `os.fsync()` to prevent corruption during sudden server restarts.
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## 🛠️ Tech Stack
 
-- **Backend:** Python 3 (usa a biblioteca padrão `http.server`, `sqlite3`, `json` - **sem dependências externas**, funciona imediatamente em qualquer máquina sem precisar de `pip install`).
-- **Banco de Dados:** SQLite nativo (`data/ong.db`) para armazenar com segurança mensagens de contato e inscrições de voluntários.
-- **Frontend:** HTML5 semântico, Tailwind CSS (via CDN), Ícones Lucide, JavaScript ES6 puro, Design 100% Responsivo.
+- **Backend:** Python 3 standard library (`http.server`, `sqlite3`, `urllib`, `ssl`, `json`, `threading`) — **zero external dependencies required**, runs anywhere without `pip install`.
+- **Database:** SQLite with WAL mode (*Write-Ahead Logging*), 30s busy timeout, and perpetual cloud sync for contacts and volunteers.
+- **Cloud Storage:** Integrated with persistent KVDB cloud endpoints and automatic media management.
+- **Frontend:** Semantic HTML5, Tailwind CSS (via CDN), Lucide Icons, vanilla ES6+ JavaScript, 100% Mobile-First Responsive Design.
